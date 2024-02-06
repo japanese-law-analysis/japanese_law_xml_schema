@@ -1,0 +1,10 @@
+[package]
+name = "japanese_law_xml_schema"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+quick-xml = { version = "0.31.0", features = ["encoding"] }
+serde = { version = "1.0.192", features = ["derive"] }
