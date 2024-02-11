@@ -8,6 +8,7 @@ pub mod appdx;
 pub mod article;
 pub mod contents;
 pub mod fig;
+pub mod law;
 pub mod line;
 pub mod list;
 pub mod paragraph;
@@ -33,197 +34,77 @@ pub trait ToText {
   fn to_text(&self) -> String;
 }
 
-/// 法令そのもの
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
-pub struct Law {
-  /// 年号
-  era: Era,
-  /// 制定年
-  year: usize,
-  /// その年で制定された法令の通し番号
-  num: usize,
-  /// 公布月
-  promulgate_month: Option<usize>,
-  /// 公布日
-  promulgate_day: Option<usize>,
-  /// 法令の種類
-  law_type: LawType,
-  /// 言語
-  lang: Lang,
-  /// 法令番号
-  law_num: String,
-  /// 法令の中身
-  law_body: LawBody,
-}
-
-/// 年号
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
-pub enum Era {
-  /// 明治
-  Meiji,
-  /// 大正
-  Taisho,
-  /// 昭和
-  Showa,
-  /// 平成
-  Heisei,
-  /// 令和
-  Reiwa,
-}
-
-/// 法令の種類
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
-pub enum LawType {
-  /// 憲法
-  Constitution,
-  /// 法律
-  Act,
-  /// 政令
-  CabinetOrder,
-  /// 勅令
-  ImperialOrder,
-  /// 府省令
-  MinisterialOrdinance,
-  /// 規則
-  Rule,
-  /// その他
-  Misc,
-}
-
-/// 言語
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
-pub enum Lang {
-  Ja,
-  En,
-}
-
-/// 法令の中身
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
-pub struct LawBody {
-  /// 法令名
-  law_title: Option<LawTitle>,
-  /// 制定にかかる声明
-  enact_statement: Vec<text::Text>,
-  /// 主題
-  subject: Option<String>,
-  /// 目次
-  toc: Option<table_of_contents::TOC>,
-  /// 前文
-  preamble: Option<Preamble>,
-  /// 本文
-  main_provision: MainProvision,
-  /// 附則
-  suppl_provision: Vec<suppl_provision::SupplProvision>,
-  /// 付録表
-  appdx_table: Vec<appdx::AppdxTable>,
-  /// 付録記載
-  appdx_note: Vec<appdx::AppdxNote>,
-  /// 付録様式
-  appdx_style: Vec<appdx::AppdxStyle>,
-  /// 付録
-  appdx: Vec<appdx::Appdx>,
-  /// 付録図
-  appdx_fig: Vec<appdx::AppdxFig>,
-  /// 付録書式
-  appdx_format: Vec<appdx::AppdxFormat>,
-}
-
-/// 法令名
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
-pub struct LawTitle {
-  /// ひらがなでの読み
-  kana: Option<String>,
-  /// 略称
-  abbrev: Option<String>,
-  /// 略称のひらがな読み
-  abbrev_kana: Option<String>,
-  /// 法令名
-  contents: text::Text,
-}
-
-/// 前文
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
-pub struct Preamble {
-  children: Vec<paragraph::Paragraph>,
-}
-
-/// 本文
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
-pub struct MainProvision {
-  /// 本文の要素
-  children: Vec<MainProvisionContents>,
-  extract: Option<bool>,
-}
-
-/// 本文の要素
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
-pub enum MainProvisionContents {
-  /// 編
-  Part(article::Part),
-  /// 章
-  Chapter(article::Chapter),
-  /// 節
-  Section(article::Section),
-  /// 条
-  Article(article::Article),
-  /// 段落
-  Paragraph(paragraph::Paragraph),
-}
-
-/// 改正
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
-pub struct AmendProvision {
-  sentence: sentence::Sentence,
-  new_provision: Vec<NewProvision>,
-}
-
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
-pub enum NewProvision {
-  LawTitle(LawTitle),
-  Preamble(Preamble),
-  TOC(table_of_contents::TOC),
-  Part(article::Part),
-  PartTitle(text::Text),
-  Chapter(article::Chapter),
-  ChapterTitle(text::Text),
-  Section(article::Section),
-  SectionTitle(text::Text),
-  Subsection(article::Subsection),
-  SubsectionTitle(text::Text),
-  Division(article::Division),
-  DivisionTitle(text::Text),
-  Article(article::Article),
-  SupplNote(text::Text),
-  Paragraph(paragraph::Paragraph),
-  Item(paragraph::Item),
-  Subitem1(paragraph::Subitem1),
-  Subitem2(paragraph::Subitem2),
-  Subitem3(paragraph::Subitem3),
-  Subitem4(paragraph::Subitem4),
-  Subitem5(paragraph::Subitem5),
-  Subitem6(paragraph::Subitem6),
-  Subitem7(paragraph::Subitem7),
-  Subitem8(paragraph::Subitem8),
-  Subitem9(paragraph::Subitem9),
-  Subitem10(paragraph::Subitem10),
-  List(list::List),
-  Sentence(sentence::Sentence),
-  AmendProvision(AmendProvision),
-  AppdxTable(appdx::AppdxTable),
-  AppdxNote(appdx::AppdxNote),
-  AppdxStyle(appdx::AppdxStyle),
-  Appdx(appdx::Appdx),
-  AppdxFig(appdx::AppdxFig),
-  AppdxFormat(appdx::AppdxFormat),
-  SupplProvisionAppdxStyle(suppl_provision::SupplProvisionAppdxStyle),
-}
-
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct Class {
   class_title: Option<text::Text>,
   class_sentence: SentenceOrColumnOrTable,
   children: Vec<paragraph::Item>,
   num: String,
+}
+
+impl parser::Parser for Class {
+  fn parser(node: &roxmltree::Node) -> result::Result<Self> {
+    if node.tag_name().name() == "Class" {
+      let num = node
+        .attribute("Num")
+        .ok_or(result::Error::Attribute)?
+        .to_string();
+      let mut class_title = None;
+      let mut class_sentence_opt = None;
+      let mut children = Vec::new();
+      for node in node.children() {
+        match node.tag_name().name() {
+          "ClassTitle" => {
+            class_title = Some(text::Text::from_children(node.children()));
+          }
+          "ClassSentence" => {
+            let mut sentence_list = Vec::new();
+            let mut column_list = Vec::new();
+            for node in node.children() {
+              match node.tag_name().name() {
+                "Sentence" => {
+                  let v = sentence::Sentence::parser(&node)?;
+                  sentence_list.push(v);
+                }
+                "Column" => {
+                  let v = Column::parser(&node)?;
+                  column_list.push(v);
+                }
+                "Table" => {
+                  let v = table::Table::parser(&node)?;
+                  class_sentence_opt = Some(SentenceOrColumnOrTable::Table(v));
+                }
+                _ => {}
+              }
+              if !sentence_list.is_empty() {
+                class_sentence_opt = Some(SentenceOrColumnOrTable::Sentence(sentence_list.clone()));
+              }
+              if !column_list.is_empty() {
+                class_sentence_opt = Some(SentenceOrColumnOrTable::Column(column_list.clone()));
+              }
+            }
+          }
+          "Item" => {
+            let v = paragraph::Item::parser(&node)?;
+            children.push(v)
+          }
+          _ => {}
+        }
+      }
+      if let Some(class_sentence) = class_sentence_opt {
+        Ok(Class {
+          class_title,
+          class_sentence,
+          children,
+          num,
+        })
+      } else {
+        Err(result::Error::Tag)
+      }
+    } else {
+      Err(result::Error::Tag)
+    }
+  }
 }
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]

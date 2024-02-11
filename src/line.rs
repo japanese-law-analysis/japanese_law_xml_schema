@@ -16,7 +16,7 @@ pub struct Line {
 
 impl ToHtml for Line {
   fn to_html(&self) -> String {
-    format!("〔図略〕")
+    "〔図略〕".to_string()
   }
 }
 

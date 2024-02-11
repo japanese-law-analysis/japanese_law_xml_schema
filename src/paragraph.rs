@@ -1,5 +1,6 @@
 //! 段落
 //!
+use crate::law::*;
 use crate::list::*;
 use crate::parser::*;
 use crate::result::Error;
@@ -15,7 +16,7 @@ use serde::{Deserialize, Serialize};
 pub struct Paragraph {
   caption: Option<Caption>,
   paragraph_num: Text,
-  amend_provision: Vec<AmendProvision>,
+  amend_provision: Vec<law::AmendProvision>,
   class: Vec<Class>,
   sentence: Vec<Sentence>,
   struct_list: Vec<Struct>,
@@ -71,14 +72,12 @@ impl Parser for Paragraph {
           }
         }
         "AmendProvision" => {
-          //if let Ok(v) = AmendProvision::parser(&node) {
-          //  amend_provision.push(v);
-          //}
+          let v = AmendProvision::parser(&node)?;
+          amend_provision.push(v);
         }
         "Class" => {
-          //if let Ok(v) = Class::parser(&node) {
-          //  class.push(v);
-          //}
+          let v = Class::parser(&node)?;
+          class.push(v);
         }
         "TableStruct" => {
           if let Ok(v) = TableStruct::parser(&node) {
@@ -172,7 +171,7 @@ impl Parser for Item {
         "ItemTitle" => {
           title = Some(Text::from_children(node.children()));
         }
-        "Subitem1Sentence" => {
+        "ItemSentence" => {
           let mut sentence_list = Vec::new();
           let mut column_list = Vec::new();
           for node in node.children() {
@@ -426,7 +425,7 @@ impl Parser for Subitem2 {
         "ItemTitle" => {
           title = Some(Text::from_children(node.children()));
         }
-        "Subitem1Sentence" => {
+        "Subitem2Sentence" => {
           let mut sentence_list = Vec::new();
           let mut column_list = Vec::new();
           for node in node.children() {
@@ -553,7 +552,7 @@ impl Parser for Subitem3 {
         "ItemTitle" => {
           title = Some(Text::from_children(node.children()));
         }
-        "Subitem1Sentence" => {
+        "Subitem3Sentence" => {
           let mut sentence_list = Vec::new();
           let mut column_list = Vec::new();
           for node in node.children() {
@@ -680,7 +679,7 @@ impl Parser for Subitem4 {
         "ItemTitle" => {
           title = Some(Text::from_children(node.children()));
         }
-        "Subitem1Sentence" => {
+        "Subitem4Sentence" => {
           let mut sentence_list = Vec::new();
           let mut column_list = Vec::new();
           for node in node.children() {
@@ -807,7 +806,7 @@ impl Parser for Subitem5 {
         "ItemTitle" => {
           title = Some(Text::from_children(node.children()));
         }
-        "Subitem1Sentence" => {
+        "Subitem5Sentence" => {
           let mut sentence_list = Vec::new();
           let mut column_list = Vec::new();
           for node in node.children() {
@@ -934,7 +933,7 @@ impl Parser for Subitem6 {
         "ItemTitle" => {
           title = Some(Text::from_children(node.children()));
         }
-        "Subitem1Sentence" => {
+        "Subitem6Sentence" => {
           let mut sentence_list = Vec::new();
           let mut column_list = Vec::new();
           for node in node.children() {
@@ -1061,7 +1060,7 @@ impl Parser for Subitem7 {
         "ItemTitle" => {
           title = Some(Text::from_children(node.children()));
         }
-        "Subitem1Sentence" => {
+        "Subitem7Sentence" => {
           let mut sentence_list = Vec::new();
           let mut column_list = Vec::new();
           for node in node.children() {
@@ -1188,7 +1187,7 @@ impl Parser for Subitem8 {
         "ItemTitle" => {
           title = Some(Text::from_children(node.children()));
         }
-        "Subitem1Sentence" => {
+        "Subitem8Sentence" => {
           let mut sentence_list = Vec::new();
           let mut column_list = Vec::new();
           for node in node.children() {
@@ -1315,7 +1314,7 @@ impl Parser for Subitem9 {
         "ItemTitle" => {
           title = Some(Text::from_children(node.children()));
         }
-        "Subitem1Sentence" => {
+        "Subitem9Sentence" => {
           let mut sentence_list = Vec::new();
           let mut column_list = Vec::new();
           for node in node.children() {
@@ -1438,7 +1437,7 @@ impl Parser for Subitem10 {
         "ItemTitle" => {
           title = Some(Text::from_children(node.children()));
         }
-        "Subitem1Sentence" => {
+        "Subitem10Sentence" => {
           let mut sentence_list = Vec::new();
           let mut column_list = Vec::new();
           for node in node.children() {
