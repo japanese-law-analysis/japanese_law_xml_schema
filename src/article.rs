@@ -1,5 +1,6 @@
 //! 条文とそれの階層構造
 //!
+use crate::paragraph::*;
 use crate::parser::*;
 use crate::result::Error;
 use crate::text::*;
@@ -49,12 +50,11 @@ impl Parser for Part {
         .unwrap_or(false);
       let mut children = node.children();
       let title_node = children.next();
-      let mut title = Text::new();
-      if let Some("PartTitle") = title_node.map(|node| node.tag_name().name()) {
-        title = Text::from_children(title_node.unwrap().children());
+      let title = if Some("PartTitle") == title_node.map(|node| node.tag_name().name()) {
+        Text::from_children(title_node.unwrap().children())
       } else {
         return Err(Error::Tag);
-      }
+      };
       let mut children_list = Vec::new();
       for node in children {
         match node.tag_name().name() {
@@ -126,12 +126,11 @@ impl Parser for Chapter {
         .unwrap_or(false);
       let mut children = node.children();
       let title_node = children.next();
-      let mut title = Text::new();
-      if let Some("ChapterTitle") = title_node.map(|node| node.tag_name().name()) {
-        title = Text::from_children(title_node.unwrap().children());
+      let title = if Some("ChapterTitle") == title_node.map(|node| node.tag_name().name()) {
+        Text::from_children(title_node.unwrap().children())
       } else {
         return Err(Error::Tag);
-      }
+      };
       let mut children_list = Vec::new();
       for node in children {
         match node.tag_name().name() {
@@ -203,12 +202,11 @@ impl Parser for Section {
         .unwrap_or(false);
       let mut children = node.children();
       let title_node = children.next();
-      let mut title = Text::new();
-      if let Some("SectionTitle") = title_node.map(|node| node.tag_name().name()) {
-        title = Text::from_children(title_node.unwrap().children());
+      let title = if Some("SectionTitle") == title_node.map(|node| node.tag_name().name()) {
+        Text::from_children(title_node.unwrap().children())
       } else {
         return Err(Error::Tag);
-      }
+      };
       let mut children_list = Vec::new();
       for node in children {
         match node.tag_name().name() {
@@ -280,12 +278,11 @@ impl Parser for Subsection {
         .unwrap_or(false);
       let mut children = node.children();
       let title_node = children.next();
-      let mut title = Text::new();
-      if let Some("SubsectionTitle") = title_node.map(|node| node.tag_name().name()) {
-        title = Text::from_children(title_node.unwrap().children());
+      let title = if Some("SubsectionTitle") == title_node.map(|node| node.tag_name().name()) {
+        Text::from_children(title_node.unwrap().children())
       } else {
         return Err(Error::Tag);
-      }
+      };
       let mut children_list = Vec::new();
       for node in children {
         match node.tag_name().name() {
@@ -351,12 +348,11 @@ impl Parser for Division {
         .unwrap_or(false);
       let mut children = node.children();
       let title_node = children.next();
-      let mut title = Text::new();
-      if let Some("DivisionTitle") = title_node.map(|node| node.tag_name().name()) {
-        title = Text::from_children(title_node.unwrap().children());
+      let title = if Some("DivisionTitle") == title_node.map(|node| node.tag_name().name()) {
+        Text::from_children(title_node.unwrap().children())
       } else {
         return Err(Error::Tag);
-      }
+      };
       let mut children_list = Vec::new();
       for node in children {
         match node.tag_name().name() {
@@ -378,7 +374,7 @@ impl Parser for Division {
 /// 条
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct Article {
-  caption: Option<ArticleCaption>,
+  caption: Option<Caption>,
   title: Text,
   paragraph: Vec<Paragraph>,
   suppl_note: Option<Text>,
@@ -393,7 +389,7 @@ impl Article {
     num: &str,
     delete: bool,
     hide: bool,
-    caption: Option<ArticleCaption>,
+    caption: Option<Caption>,
     paragraph: Vec<Paragraph>,
     suppl_note: Option<Text>,
   ) -> Self {
@@ -434,14 +430,11 @@ impl Parser for Article {
         let next = children.next().unwrap();
         match next.tag_name().name() {
           "ArticleCaption" => {
-            let text = Text::from_children(next.children());
-            let common_caption = next
-              .attribute("CommonCaption")
-              .and_then(|s| s.parse::<bool>().ok());
-            caption = Some(ArticleCaption {
-              text,
-              common_caption,
-            });
+            if let Ok(c) = Caption::parser(&next) {
+              caption = Some(c);
+            } else {
+              return Err(Error::Tag);
+            }
           }
           "ArticleTitle" => {
             title = Text::from_children(next.children());
@@ -469,10 +462,4 @@ impl Parser for Article {
       Err(Error::Tag)
     }
   }
-}
-
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
-pub struct ArticleCaption {
-  pub text: text::Text,
-  pub common_caption: Option<bool>,
 }

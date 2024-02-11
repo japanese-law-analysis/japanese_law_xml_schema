@@ -82,6 +82,12 @@ impl Text {
   pub fn add_sub(&mut self, sub: Sub) {
     self.contents.push(TextElement::Sub(sub))
   }
+  pub fn with_writing_mode(&self, writing_mode: WritingMode) -> TextWithWritingMode {
+    TextWithWritingMode {
+      contents: self.clone().contents,
+      writing_mode,
+    }
+  }
 }
 
 impl ToHtml for Text {
@@ -109,22 +115,22 @@ impl Parser for Text {
     let mut text = Text::new();
     match node.tag_name().name() {
       "Ruby" => {
-        if let Ok(ruby) = Ruby::parser(&node) {
+        if let Ok(ruby) = Ruby::parser(node) {
           text.add_ruby(ruby)
         }
       }
       "Line" => {
-        if let Ok(line) = Line::parser(&node) {
+        if let Ok(line) = Line::parser(node) {
           text.add_line(line)
         }
       }
       "Sup" => {
-        if let Ok(sup) = Sup::parser(&node) {
+        if let Ok(sup) = Sup::parser(node) {
           text.add_sup(sup)
         }
       }
       "Sub" => {
-        if let Ok(sub) = Sub::parser(&node) {
+        if let Ok(sub) = Sub::parser(node) {
           text.add_sub(sub)
         }
       }
@@ -152,6 +158,24 @@ pub enum WritingMode {
 pub struct TextWithWritingMode {
   contents: Vec<TextElement>,
   writing_mode: WritingMode,
+}
+
+impl Parser for TextWithWritingMode {
+  fn parser(node: &Node) -> result::Result<Self> {
+    let writing_mode = node.attribute("WritingMode");
+    let text = Text::from_children(node.children());
+    match writing_mode {
+      Some("vertical") => Ok(TextWithWritingMode {
+        contents: text.contents,
+        writing_mode: WritingMode::Vertical,
+      }),
+      Some("horizontal") => Ok(TextWithWritingMode {
+        contents: text.contents,
+        writing_mode: WritingMode::Horizontal,
+      }),
+      _ => Err(Error::Attribute),
+    }
+  }
 }
 
 /// テキストの要素

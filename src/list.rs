@@ -2,6 +2,7 @@
 
 use crate::parser::*;
 use crate::result::Error;
+use crate::sentence::*;
 use crate::*;
 use roxmltree::Node;
 use serde::{Deserialize, Serialize};
