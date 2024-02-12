@@ -1,7 +1,7 @@
 use crate::result::Result;
 use roxmltree::Node;
 
-pub trait Parser {
+pub(crate) trait Parser {
   fn parser(node: &Node) -> Result<Self>
   where
     Self: Sized;

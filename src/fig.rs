@@ -10,9 +10,7 @@ pub struct Fig {
 
 impl Parser for Fig {
   fn parser(node: &Node) -> result::Result<Self> {
-    let src = node.attribute("src").ok_or(result::Error::Attribute)?;
-    Ok(Fig {
-      src: src.to_string(),
-    })
+    let src = get_attribute(node, "src")?;
+    Ok(Fig { src })
   }
 }

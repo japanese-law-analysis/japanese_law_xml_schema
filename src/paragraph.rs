@@ -1,12 +1,12 @@
 //! 段落
 //!
+use crate::class::*;
 use crate::law::*;
 use crate::list::*;
 use crate::parser::*;
 use crate::result::Error;
 use crate::sentence::*;
 use crate::structs::*;
-use crate::table::*;
 use crate::text::*;
 use crate::*;
 use roxmltree::Node;
@@ -29,92 +29,76 @@ pub struct Paragraph {
 
 impl Parser for Paragraph {
   fn parser(node: &Node) -> result::Result<Self> {
-    let num = node
-      .attribute("Num")
-      .and_then(|s| s.parse::<usize>().ok())
-      .ok_or(Error::Attribute)?;
-    let old_style = node
-      .attribute("OldStyle")
-      .and_then(|s| s.parse::<bool>().ok())
-      .unwrap_or(false);
-    let old_num = node
-      .attribute("OldNum")
-      .and_then(|s| s.parse::<bool>().ok())
-      .unwrap_or(false);
-    let hide = node
-      .attribute("Hide")
-      .and_then(|s| s.parse::<bool>().ok())
-      .unwrap_or(false);
-    let mut caption = None;
-    let mut paragraph_num = Text::new();
-    let mut sentence = Vec::new();
-    let mut amend_provision = Vec::new();
-    let mut class = Vec::new();
-    let mut struct_list = Vec::new();
-    let mut children = Vec::new();
-    for node in node.children() {
-      match node.tag_name().name() {
-        "ParagraphCaption" => {
-          if let Ok(v) = Caption::parser(&node) {
+    if node.tag_name().name() == "Paragraph" {
+      let num = get_attribute_with_parse(node, "Num")?;
+      let old_style = get_attribute_opt_with_parse(node, "OldStyle")?.unwrap_or(false);
+      let old_num = get_attribute_opt_with_parse(node, "OldNum")?.unwrap_or(false);
+      let hide = get_attribute_opt_with_parse(node, "Hide")?.unwrap_or(false);
+      let mut caption = None;
+      let mut paragraph_num = Text::new();
+      let mut sentence = Vec::new();
+      let mut amend_provision = Vec::new();
+      let mut class = Vec::new();
+      let mut struct_list = Vec::new();
+      let mut children = Vec::new();
+      for node in node.children() {
+        match node.tag_name().name() {
+          "ParagraphCaption" => {
+            let v = Caption::parser(&node)?;
             caption = Some(v);
           }
-        }
-        "ParagraphNum" => {
-          paragraph_num = Text::from_children(node.children());
-        }
-        "ParagraphSentence" => {
-          for node in node.children() {
-            if node.tag_name().name() == "Sentence" {
-              if let Ok(v) = Sentence::parser(&node) {
-                sentence.push(v);
-              }
+          "ParagraphNum" => {
+            paragraph_num = Text::from_children(node.children());
+          }
+          "ParagraphSentence" => {
+            for node in node.children() {
+              let v = Sentence::parser(&node)?;
+              sentence.push(v);
             }
           }
-        }
-        "AmendProvision" => {
-          let v = AmendProvision::parser(&node)?;
-          amend_provision.push(v);
-        }
-        "Class" => {
-          let v = Class::parser(&node)?;
-          class.push(v);
-        }
-        "TableStruct" => {
-          if let Ok(v) = TableStruct::parser(&node) {
+          "AmendProvision" => {
+            let v = AmendProvision::parser(&node)?;
+            amend_provision.push(v);
+          }
+          "Class" => {
+            let v = Class::parser(&node)?;
+            class.push(v);
+          }
+          "TableStruct" => {
+            let v = TableStruct::parser(&node)?;
             struct_list.push(Struct::TableStruct(v));
           }
-        }
-        "FigStruct" => {
-          if let Ok(v) = FigStruct::parser(&node) {
+          "FigStruct" => {
+            let v = FigStruct::parser(&node)?;
             struct_list.push(Struct::FigStruct(v));
           }
-        }
-        "StyleStruct" => {
-          if let Ok(v) = StyleStruct::parser(&node) {
+          "StyleStruct" => {
+            let v = StyleStruct::parser(&node)?;
             struct_list.push(Struct::StyleStruct(v));
           }
-        }
-        "Item" => {
-          if let Ok(v) = Item::parser(&node) {
+          "Item" => {
+            let v = Item::parser(&node)?;
             children.push(v);
           }
+          s => return Err(Error::unexpected_tag(&node, s)),
         }
-        _ => {}
       }
+      Ok(Paragraph {
+        caption,
+        paragraph_num,
+        amend_provision,
+        class,
+        sentence,
+        struct_list,
+        children,
+        num,
+        old_style,
+        old_num,
+        hide,
+      })
+    } else {
+      Err(Error::wrong_tag_name(node, "Paragraph"))
     }
-    Ok(Paragraph {
-      caption,
-      paragraph_num,
-      amend_provision,
-      class,
-      sentence,
-      struct_list,
-      children,
-      num,
-      old_style,
-      old_num,
-      hide,
-    })
   }
 }
 
@@ -130,7 +114,7 @@ pub struct Item {
 }
 
 impl Item {
-  pub fn new(
+  fn new(
     title: Option<Text>,
     sentence: SentenceOrColumnOrTable,
     struct_list: Vec<Struct>,
@@ -153,94 +137,64 @@ impl Item {
 
 impl Parser for Item {
   fn parser(node: &Node) -> result::Result<Self> {
-    let num = node.attribute("Num").ok_or(Error::Attribute)?;
-    let delete = node
-      .attribute("Delete")
-      .and_then(|s| s.parse::<bool>().ok())
-      .unwrap_or(false);
-    let hide = node
-      .attribute("Hide")
-      .and_then(|s| s.parse::<bool>().ok())
-      .unwrap_or(false);
-    let mut title = None;
-    let mut sentence_opt = None;
-    let mut struct_list = Vec::new();
-    let mut children = Vec::new();
-    for node in node.children() {
-      match node.tag_name().name() {
-        "ItemTitle" => {
-          title = Some(Text::from_children(node.children()));
-        }
-        "ItemSentence" => {
-          let mut sentence_list = Vec::new();
-          let mut column_list = Vec::new();
-          for node in node.children() {
-            match node.tag_name().name() {
-              "Sentence" => {
-                if let Ok(v) = Sentence::parser(&node) {
-                  sentence_list.push(v);
-                }
-              }
-              "Column" => {
-                if let Ok(v) = Column::parser(&node) {
-                  column_list.push(v);
-                }
-              }
-              "Table" => {
-                if let Ok(v) = Table::parser(&node) {
-                  sentence_opt = Some(SentenceOrColumnOrTable::Table(v));
-                }
-              }
-              _ => {}
-            }
-            if !sentence_list.is_empty() {
-              sentence_opt = Some(SentenceOrColumnOrTable::Sentence(sentence_list.clone()));
-            }
-            if !column_list.is_empty() {
-              sentence_opt = Some(SentenceOrColumnOrTable::Column(column_list.clone()));
-            }
+    if node.tag_name().name() == "Item" {
+      let num = get_attribute(node, "Num")?;
+      let delete = get_attribute_opt_with_parse(node, "Delete")?.unwrap_or(false);
+      let hide = get_attribute_opt_with_parse(node, "Hide")?.unwrap_or(false);
+      let mut title = None;
+      let mut sentence_opt = None;
+      let mut struct_list = Vec::new();
+      let mut children = Vec::new();
+      for node in node.children() {
+        match node.tag_name().name() {
+          "ItemTitle" => {
+            title = Some(Text::from_children(node.children()));
           }
-        }
-        "TableStruct" => {
-          if let Ok(v) = TableStruct::parser(&node) {
+          "ItemSentence" => {
+            let v = SentenceOrColumnOrTable::from_node(&node)?;
+            sentence_opt = Some(v);
+          }
+          "TableStruct" => {
+            let v = TableStruct::parser(&node)?;
             struct_list.push(Struct::TableStruct(v));
           }
-        }
-        "FigStruct" => {
-          if let Ok(v) = FigStruct::parser(&node) {
+          "FigStruct" => {
+            let v = FigStruct::parser(&node)?;
             struct_list.push(Struct::FigStruct(v));
           }
-        }
-        "StyleStruct" => {
-          if let Ok(v) = StyleStruct::parser(&node) {
+          "StyleStruct" => {
+            let v = StyleStruct::parser(&node)?;
             struct_list.push(Struct::StyleStruct(v));
           }
-        }
-        "List" => {
-          if let Ok(v) = List::parser(&node) {
+          "List" => {
+            let v = List::parser(&node)?;
             struct_list.push(Struct::List(v));
           }
-        }
-        "Subitem1" => {
-          if let Ok(v) = Subitem1::parser(&node) {
+          "Subitem1" => {
+            let v = Subitem1::parser(&node)?;
             children.push(v);
           }
+          s => return Err(Error::unexpected_tag(&node, s)),
         }
-        _ => {}
       }
-    }
-    if let Some(sentence) = sentence_opt {
-      Ok(Item::new(
-        title,
-        sentence,
-        struct_list,
-        children,
-        num,
-        delete,
-        hide,
-      ))
+      if let Some(sentence) = sentence_opt {
+        Ok(Item::new(
+          title,
+          sentence,
+          struct_list,
+          children,
+          &num,
+          delete,
+          hide,
+        ))
+      } else {
+        Err(Error::MissingRequiredTag {
+          range: node.range(),
+          tag_name: "Sentence or Column or Table".to_string(),
+        })
+      }
     } else {
-      Err(Error::Tag)
+      Err(Error::wrong_tag_name(node, "Item"))
     }
   }
 }
@@ -257,7 +211,7 @@ pub struct Subitem1 {
 }
 
 impl Subitem1 {
-  pub fn new(
+  fn new(
     title: Option<Text>,
     sentence: SentenceOrColumnOrTable,
     struct_list: Vec<Struct>,
@@ -280,94 +234,64 @@ impl Subitem1 {
 
 impl Parser for Subitem1 {
   fn parser(node: &Node) -> result::Result<Self> {
-    let num = node.attribute("Num").ok_or(Error::Attribute)?;
-    let delete = node
-      .attribute("Delete")
-      .and_then(|s| s.parse::<bool>().ok())
-      .unwrap_or(false);
-    let hide = node
-      .attribute("Hide")
-      .and_then(|s| s.parse::<bool>().ok())
-      .unwrap_or(false);
-    let mut title = None;
-    let mut sentence_opt = None;
-    let mut struct_list = Vec::new();
-    let mut children = Vec::new();
-    for node in node.children() {
-      match node.tag_name().name() {
-        "ItemTitle" => {
-          title = Some(Text::from_children(node.children()));
-        }
-        "Subitem1Sentence" => {
-          let mut sentence_list = Vec::new();
-          let mut column_list = Vec::new();
-          for node in node.children() {
-            match node.tag_name().name() {
-              "Sentence" => {
-                if let Ok(v) = Sentence::parser(&node) {
-                  sentence_list.push(v);
-                }
-              }
-              "Column" => {
-                if let Ok(v) = Column::parser(&node) {
-                  column_list.push(v);
-                }
-              }
-              "Table" => {
-                if let Ok(v) = Table::parser(&node) {
-                  sentence_opt = Some(SentenceOrColumnOrTable::Table(v));
-                }
-              }
-              _ => {}
-            }
-            if !sentence_list.is_empty() {
-              sentence_opt = Some(SentenceOrColumnOrTable::Sentence(sentence_list.clone()));
-            }
-            if !column_list.is_empty() {
-              sentence_opt = Some(SentenceOrColumnOrTable::Column(column_list.clone()));
-            }
+    if node.tag_name().name() == "Subitem1" {
+      let num = get_attribute(node, "Num")?;
+      let delete = get_attribute_opt_with_parse(node, "Delete")?.unwrap_or(false);
+      let hide = get_attribute_opt_with_parse(node, "Hide")?.unwrap_or(false);
+      let mut title = None;
+      let mut sentence_opt = None;
+      let mut struct_list = Vec::new();
+      let mut children = Vec::new();
+      for node in node.children() {
+        match node.tag_name().name() {
+          "ItemTitle" => {
+            title = Some(Text::from_children(node.children()));
           }
-        }
-        "TableStruct" => {
-          if let Ok(v) = TableStruct::parser(&node) {
+          "Subitem1Sentence" => {
+            let v = SentenceOrColumnOrTable::from_node(&node)?;
+            sentence_opt = Some(v);
+          }
+          "TableStruct" => {
+            let v = TableStruct::parser(&node)?;
             struct_list.push(Struct::TableStruct(v));
           }
-        }
-        "FigStruct" => {
-          if let Ok(v) = FigStruct::parser(&node) {
+          "FigStruct" => {
+            let v = FigStruct::parser(&node)?;
             struct_list.push(Struct::FigStruct(v));
           }
-        }
-        "StyleStruct" => {
-          if let Ok(v) = StyleStruct::parser(&node) {
+          "StyleStruct" => {
+            let v = StyleStruct::parser(&node)?;
             struct_list.push(Struct::StyleStruct(v));
           }
-        }
-        "List" => {
-          if let Ok(v) = List::parser(&node) {
+          "List" => {
+            let v = List::parser(&node)?;
             struct_list.push(Struct::List(v));
           }
-        }
-        "Subitem2" => {
-          if let Ok(v) = Subitem2::parser(&node) {
+          "Subitem2" => {
+            let v = Subitem2::parser(&node)?;
             children.push(v);
           }
+          s => return Err(Error::unexpected_tag(&node, s)),
         }
-        _ => {}
       }
-    }
-    if let Some(sentence) = sentence_opt {
-      Ok(Subitem1::new(
-        title,
-        sentence,
-        struct_list,
-        children,
-        num,
-        delete,
-        hide,
-      ))
+      if let Some(sentence) = sentence_opt {
+        Ok(Subitem1::new(
+          title,
+          sentence,
+          struct_list,
+          children,
+          &num,
+          delete,
+          hide,
+        ))
+      } else {
+        Err(Error::MissingRequiredTag {
+          range: node.range(),
+          tag_name: "Sentence or Column or Table".to_string(),
+        })
+      }
     } else {
-      Err(Error::Tag)
+      Err(Error::wrong_tag_name(node, "Subitem1"))
     }
   }
 }
@@ -384,7 +308,7 @@ pub struct Subitem2 {
 }
 
 impl Subitem2 {
-  pub fn new(
+  fn new(
     title: Option<Text>,
     sentence: SentenceOrColumnOrTable,
     struct_list: Vec<Struct>,
@@ -407,94 +331,64 @@ impl Subitem2 {
 
 impl Parser for Subitem2 {
   fn parser(node: &Node) -> result::Result<Self> {
-    let num = node.attribute("Num").ok_or(Error::Attribute)?;
-    let delete = node
-      .attribute("Delete")
-      .and_then(|s| s.parse::<bool>().ok())
-      .unwrap_or(false);
-    let hide = node
-      .attribute("Hide")
-      .and_then(|s| s.parse::<bool>().ok())
-      .unwrap_or(false);
-    let mut title = None;
-    let mut sentence_opt = None;
-    let mut struct_list = Vec::new();
-    let mut children = Vec::new();
-    for node in node.children() {
-      match node.tag_name().name() {
-        "ItemTitle" => {
-          title = Some(Text::from_children(node.children()));
-        }
-        "Subitem2Sentence" => {
-          let mut sentence_list = Vec::new();
-          let mut column_list = Vec::new();
-          for node in node.children() {
-            match node.tag_name().name() {
-              "Sentence" => {
-                if let Ok(v) = Sentence::parser(&node) {
-                  sentence_list.push(v);
-                }
-              }
-              "Column" => {
-                if let Ok(v) = Column::parser(&node) {
-                  column_list.push(v);
-                }
-              }
-              "Table" => {
-                if let Ok(v) = Table::parser(&node) {
-                  sentence_opt = Some(SentenceOrColumnOrTable::Table(v));
-                }
-              }
-              _ => {}
-            }
-            if !sentence_list.is_empty() {
-              sentence_opt = Some(SentenceOrColumnOrTable::Sentence(sentence_list.clone()));
-            }
-            if !column_list.is_empty() {
-              sentence_opt = Some(SentenceOrColumnOrTable::Column(column_list.clone()));
-            }
+    if node.tag_name().name() == "Subitem2" {
+      let num = get_attribute(node, "Num")?;
+      let delete = get_attribute_opt_with_parse(node, "Delete")?.unwrap_or(false);
+      let hide = get_attribute_opt_with_parse(node, "Hide")?.unwrap_or(false);
+      let mut title = None;
+      let mut sentence_opt = None;
+      let mut struct_list = Vec::new();
+      let mut children = Vec::new();
+      for node in node.children() {
+        match node.tag_name().name() {
+          "ItemTitle" => {
+            title = Some(Text::from_children(node.children()));
           }
-        }
-        "TableStruct" => {
-          if let Ok(v) = TableStruct::parser(&node) {
+          "Subitem2Sentence" => {
+            let v = SentenceOrColumnOrTable::from_node(&node)?;
+            sentence_opt = Some(v);
+          }
+          "TableStruct" => {
+            let v = TableStruct::parser(&node)?;
             struct_list.push(Struct::TableStruct(v));
           }
-        }
-        "FigStruct" => {
-          if let Ok(v) = FigStruct::parser(&node) {
+          "FigStruct" => {
+            let v = FigStruct::parser(&node)?;
             struct_list.push(Struct::FigStruct(v));
           }
-        }
-        "StyleStruct" => {
-          if let Ok(v) = StyleStruct::parser(&node) {
+          "StyleStruct" => {
+            let v = StyleStruct::parser(&node)?;
             struct_list.push(Struct::StyleStruct(v));
           }
-        }
-        "List" => {
-          if let Ok(v) = List::parser(&node) {
+          "List" => {
+            let v = List::parser(&node)?;
             struct_list.push(Struct::List(v));
           }
-        }
-        "Subitem3" => {
-          if let Ok(v) = Subitem3::parser(&node) {
+          "Subitem3" => {
+            let v = Subitem3::parser(&node)?;
             children.push(v);
           }
+          s => return Err(Error::unexpected_tag(&node, s)),
         }
-        _ => {}
       }
-    }
-    if let Some(sentence) = sentence_opt {
-      Ok(Subitem2::new(
-        title,
-        sentence,
-        struct_list,
-        children,
-        num,
-        delete,
-        hide,
-      ))
+      if let Some(sentence) = sentence_opt {
+        Ok(Subitem2::new(
+          title,
+          sentence,
+          struct_list,
+          children,
+          &num,
+          delete,
+          hide,
+        ))
+      } else {
+        Err(Error::MissingRequiredTag {
+          range: node.range(),
+          tag_name: "Sentence or Column or Table".to_string(),
+        })
+      }
     } else {
-      Err(Error::Tag)
+      Err(Error::wrong_tag_name(node, "Subitem2"))
     }
   }
 }
@@ -511,7 +405,7 @@ pub struct Subitem3 {
 }
 
 impl Subitem3 {
-  pub fn new(
+  fn new(
     title: Option<Text>,
     sentence: SentenceOrColumnOrTable,
     struct_list: Vec<Struct>,
@@ -534,94 +428,64 @@ impl Subitem3 {
 
 impl Parser for Subitem3 {
   fn parser(node: &Node) -> result::Result<Self> {
-    let num = node.attribute("Num").ok_or(Error::Attribute)?;
-    let delete = node
-      .attribute("Delete")
-      .and_then(|s| s.parse::<bool>().ok())
-      .unwrap_or(false);
-    let hide = node
-      .attribute("Hide")
-      .and_then(|s| s.parse::<bool>().ok())
-      .unwrap_or(false);
-    let mut title = None;
-    let mut sentence_opt = None;
-    let mut struct_list = Vec::new();
-    let mut children = Vec::new();
-    for node in node.children() {
-      match node.tag_name().name() {
-        "ItemTitle" => {
-          title = Some(Text::from_children(node.children()));
-        }
-        "Subitem3Sentence" => {
-          let mut sentence_list = Vec::new();
-          let mut column_list = Vec::new();
-          for node in node.children() {
-            match node.tag_name().name() {
-              "Sentence" => {
-                if let Ok(v) = Sentence::parser(&node) {
-                  sentence_list.push(v);
-                }
-              }
-              "Column" => {
-                if let Ok(v) = Column::parser(&node) {
-                  column_list.push(v);
-                }
-              }
-              "Table" => {
-                if let Ok(v) = Table::parser(&node) {
-                  sentence_opt = Some(SentenceOrColumnOrTable::Table(v));
-                }
-              }
-              _ => {}
-            }
-            if !sentence_list.is_empty() {
-              sentence_opt = Some(SentenceOrColumnOrTable::Sentence(sentence_list.clone()));
-            }
-            if !column_list.is_empty() {
-              sentence_opt = Some(SentenceOrColumnOrTable::Column(column_list.clone()));
-            }
+    if node.tag_name().name() == "Subitem3" {
+      let num = get_attribute(node, "Num")?;
+      let delete = get_attribute_opt_with_parse(node, "Delete")?.unwrap_or(false);
+      let hide = get_attribute_opt_with_parse(node, "Hide")?.unwrap_or(false);
+      let mut title = None;
+      let mut sentence_opt = None;
+      let mut struct_list = Vec::new();
+      let mut children = Vec::new();
+      for node in node.children() {
+        match node.tag_name().name() {
+          "ItemTitle" => {
+            title = Some(Text::from_children(node.children()));
           }
-        }
-        "TableStruct" => {
-          if let Ok(v) = TableStruct::parser(&node) {
+          "Subitem3Sentence" => {
+            let v = SentenceOrColumnOrTable::from_node(&node)?;
+            sentence_opt = Some(v);
+          }
+          "TableStruct" => {
+            let v = TableStruct::parser(&node)?;
             struct_list.push(Struct::TableStruct(v));
           }
-        }
-        "FigStruct" => {
-          if let Ok(v) = FigStruct::parser(&node) {
+          "FigStruct" => {
+            let v = FigStruct::parser(&node)?;
             struct_list.push(Struct::FigStruct(v));
           }
-        }
-        "StyleStruct" => {
-          if let Ok(v) = StyleStruct::parser(&node) {
+          "StyleStruct" => {
+            let v = StyleStruct::parser(&node)?;
             struct_list.push(Struct::StyleStruct(v));
           }
-        }
-        "List" => {
-          if let Ok(v) = List::parser(&node) {
+          "List" => {
+            let v = List::parser(&node)?;
             struct_list.push(Struct::List(v));
           }
-        }
-        "Subitem4" => {
-          if let Ok(v) = Subitem4::parser(&node) {
+          "Subitem4" => {
+            let v = Subitem4::parser(&node)?;
             children.push(v);
           }
+          s => return Err(Error::unexpected_tag(&node, s)),
         }
-        _ => {}
       }
-    }
-    if let Some(sentence) = sentence_opt {
-      Ok(Subitem3::new(
-        title,
-        sentence,
-        struct_list,
-        children,
-        num,
-        delete,
-        hide,
-      ))
+      if let Some(sentence) = sentence_opt {
+        Ok(Subitem3::new(
+          title,
+          sentence,
+          struct_list,
+          children,
+          &num,
+          delete,
+          hide,
+        ))
+      } else {
+        Err(Error::MissingRequiredTag {
+          range: node.range(),
+          tag_name: "Sentence or Column or Table".to_string(),
+        })
+      }
     } else {
-      Err(Error::Tag)
+      Err(Error::wrong_tag_name(node, "Subitem3"))
     }
   }
 }
@@ -638,7 +502,7 @@ pub struct Subitem4 {
 }
 
 impl Subitem4 {
-  pub fn new(
+  fn new(
     title: Option<Text>,
     sentence: SentenceOrColumnOrTable,
     struct_list: Vec<Struct>,
@@ -661,94 +525,64 @@ impl Subitem4 {
 
 impl Parser for Subitem4 {
   fn parser(node: &Node) -> result::Result<Self> {
-    let num = node.attribute("Num").ok_or(Error::Attribute)?;
-    let delete = node
-      .attribute("Delete")
-      .and_then(|s| s.parse::<bool>().ok())
-      .unwrap_or(false);
-    let hide = node
-      .attribute("Hide")
-      .and_then(|s| s.parse::<bool>().ok())
-      .unwrap_or(false);
-    let mut title = None;
-    let mut sentence_opt = None;
-    let mut struct_list = Vec::new();
-    let mut children = Vec::new();
-    for node in node.children() {
-      match node.tag_name().name() {
-        "ItemTitle" => {
-          title = Some(Text::from_children(node.children()));
-        }
-        "Subitem4Sentence" => {
-          let mut sentence_list = Vec::new();
-          let mut column_list = Vec::new();
-          for node in node.children() {
-            match node.tag_name().name() {
-              "Sentence" => {
-                if let Ok(v) = Sentence::parser(&node) {
-                  sentence_list.push(v);
-                }
-              }
-              "Column" => {
-                if let Ok(v) = Column::parser(&node) {
-                  column_list.push(v);
-                }
-              }
-              "Table" => {
-                if let Ok(v) = Table::parser(&node) {
-                  sentence_opt = Some(SentenceOrColumnOrTable::Table(v));
-                }
-              }
-              _ => {}
-            }
-            if !sentence_list.is_empty() {
-              sentence_opt = Some(SentenceOrColumnOrTable::Sentence(sentence_list.clone()));
-            }
-            if !column_list.is_empty() {
-              sentence_opt = Some(SentenceOrColumnOrTable::Column(column_list.clone()));
-            }
+    if node.tag_name().name() == "Subitem4" {
+      let num = get_attribute(node, "Num")?;
+      let delete = get_attribute_opt_with_parse(node, "Delete")?.unwrap_or(false);
+      let hide = get_attribute_opt_with_parse(node, "Hide")?.unwrap_or(false);
+      let mut title = None;
+      let mut sentence_opt = None;
+      let mut struct_list = Vec::new();
+      let mut children = Vec::new();
+      for node in node.children() {
+        match node.tag_name().name() {
+          "ItemTitle" => {
+            title = Some(Text::from_children(node.children()));
           }
-        }
-        "TableStruct" => {
-          if let Ok(v) = TableStruct::parser(&node) {
+          "Subitem4Sentence" => {
+            let v = SentenceOrColumnOrTable::from_node(&node)?;
+            sentence_opt = Some(v);
+          }
+          "TableStruct" => {
+            let v = TableStruct::parser(&node)?;
             struct_list.push(Struct::TableStruct(v));
           }
-        }
-        "FigStruct" => {
-          if let Ok(v) = FigStruct::parser(&node) {
+          "FigStruct" => {
+            let v = FigStruct::parser(&node)?;
             struct_list.push(Struct::FigStruct(v));
           }
-        }
-        "StyleStruct" => {
-          if let Ok(v) = StyleStruct::parser(&node) {
+          "StyleStruct" => {
+            let v = StyleStruct::parser(&node)?;
             struct_list.push(Struct::StyleStruct(v));
           }
-        }
-        "List" => {
-          if let Ok(v) = List::parser(&node) {
+          "List" => {
+            let v = List::parser(&node)?;
             struct_list.push(Struct::List(v));
           }
-        }
-        "Subitem5" => {
-          if let Ok(v) = Subitem5::parser(&node) {
+          "Subitem5" => {
+            let v = Subitem5::parser(&node)?;
             children.push(v);
           }
+          s => return Err(Error::unexpected_tag(&node, s)),
         }
-        _ => {}
       }
-    }
-    if let Some(sentence) = sentence_opt {
-      Ok(Subitem4::new(
-        title,
-        sentence,
-        struct_list,
-        children,
-        num,
-        delete,
-        hide,
-      ))
+      if let Some(sentence) = sentence_opt {
+        Ok(Subitem4::new(
+          title,
+          sentence,
+          struct_list,
+          children,
+          &num,
+          delete,
+          hide,
+        ))
+      } else {
+        Err(Error::MissingRequiredTag {
+          range: node.range(),
+          tag_name: "Sentence or Column or Table".to_string(),
+        })
+      }
     } else {
-      Err(Error::Tag)
+      Err(Error::wrong_tag_name(node, "Subitem4"))
     }
   }
 }
@@ -765,7 +599,7 @@ pub struct Subitem5 {
 }
 
 impl Subitem5 {
-  pub fn new(
+  fn new(
     title: Option<Text>,
     sentence: SentenceOrColumnOrTable,
     struct_list: Vec<Struct>,
@@ -788,94 +622,64 @@ impl Subitem5 {
 
 impl Parser for Subitem5 {
   fn parser(node: &Node) -> result::Result<Self> {
-    let num = node.attribute("Num").ok_or(Error::Attribute)?;
-    let delete = node
-      .attribute("Delete")
-      .and_then(|s| s.parse::<bool>().ok())
-      .unwrap_or(false);
-    let hide = node
-      .attribute("Hide")
-      .and_then(|s| s.parse::<bool>().ok())
-      .unwrap_or(false);
-    let mut title = None;
-    let mut sentence_opt = None;
-    let mut struct_list = Vec::new();
-    let mut children = Vec::new();
-    for node in node.children() {
-      match node.tag_name().name() {
-        "ItemTitle" => {
-          title = Some(Text::from_children(node.children()));
-        }
-        "Subitem5Sentence" => {
-          let mut sentence_list = Vec::new();
-          let mut column_list = Vec::new();
-          for node in node.children() {
-            match node.tag_name().name() {
-              "Sentence" => {
-                if let Ok(v) = Sentence::parser(&node) {
-                  sentence_list.push(v);
-                }
-              }
-              "Column" => {
-                if let Ok(v) = Column::parser(&node) {
-                  column_list.push(v);
-                }
-              }
-              "Table" => {
-                if let Ok(v) = Table::parser(&node) {
-                  sentence_opt = Some(SentenceOrColumnOrTable::Table(v));
-                }
-              }
-              _ => {}
-            }
-            if !sentence_list.is_empty() {
-              sentence_opt = Some(SentenceOrColumnOrTable::Sentence(sentence_list.clone()));
-            }
-            if !column_list.is_empty() {
-              sentence_opt = Some(SentenceOrColumnOrTable::Column(column_list.clone()));
-            }
+    if node.tag_name().name() == "Subitem5" {
+      let num = get_attribute(node, "Num")?;
+      let delete = get_attribute_opt_with_parse(node, "Delete")?.unwrap_or(false);
+      let hide = get_attribute_opt_with_parse(node, "Hide")?.unwrap_or(false);
+      let mut title = None;
+      let mut sentence_opt = None;
+      let mut struct_list = Vec::new();
+      let mut children = Vec::new();
+      for node in node.children() {
+        match node.tag_name().name() {
+          "ItemTitle" => {
+            title = Some(Text::from_children(node.children()));
           }
-        }
-        "TableStruct" => {
-          if let Ok(v) = TableStruct::parser(&node) {
+          "Subitem5Sentence" => {
+            let v = SentenceOrColumnOrTable::from_node(&node)?;
+            sentence_opt = Some(v);
+          }
+          "TableStruct" => {
+            let v = TableStruct::parser(&node)?;
             struct_list.push(Struct::TableStruct(v));
           }
-        }
-        "FigStruct" => {
-          if let Ok(v) = FigStruct::parser(&node) {
+          "FigStruct" => {
+            let v = FigStruct::parser(&node)?;
             struct_list.push(Struct::FigStruct(v));
           }
-        }
-        "StyleStruct" => {
-          if let Ok(v) = StyleStruct::parser(&node) {
+          "StyleStruct" => {
+            let v = StyleStruct::parser(&node)?;
             struct_list.push(Struct::StyleStruct(v));
           }
-        }
-        "List" => {
-          if let Ok(v) = List::parser(&node) {
+          "List" => {
+            let v = List::parser(&node)?;
             struct_list.push(Struct::List(v));
           }
-        }
-        "Subitem6" => {
-          if let Ok(v) = Subitem6::parser(&node) {
+          "Subitem6" => {
+            let v = Subitem6::parser(&node)?;
             children.push(v);
           }
+          s => return Err(Error::unexpected_tag(&node, s)),
         }
-        _ => {}
       }
-    }
-    if let Some(sentence) = sentence_opt {
-      Ok(Subitem5::new(
-        title,
-        sentence,
-        struct_list,
-        children,
-        num,
-        delete,
-        hide,
-      ))
+      if let Some(sentence) = sentence_opt {
+        Ok(Subitem5::new(
+          title,
+          sentence,
+          struct_list,
+          children,
+          &num,
+          delete,
+          hide,
+        ))
+      } else {
+        Err(Error::MissingRequiredTag {
+          range: node.range(),
+          tag_name: "Sentence or Column or Table".to_string(),
+        })
+      }
     } else {
-      Err(Error::Tag)
+      Err(Error::wrong_tag_name(node, "Subitem5"))
     }
   }
 }
@@ -892,7 +696,7 @@ pub struct Subitem6 {
 }
 
 impl Subitem6 {
-  pub fn new(
+  fn new(
     title: Option<Text>,
     sentence: SentenceOrColumnOrTable,
     struct_list: Vec<Struct>,
@@ -915,94 +719,64 @@ impl Subitem6 {
 
 impl Parser for Subitem6 {
   fn parser(node: &Node) -> result::Result<Self> {
-    let num = node.attribute("Num").ok_or(Error::Attribute)?;
-    let delete = node
-      .attribute("Delete")
-      .and_then(|s| s.parse::<bool>().ok())
-      .unwrap_or(false);
-    let hide = node
-      .attribute("Hide")
-      .and_then(|s| s.parse::<bool>().ok())
-      .unwrap_or(false);
-    let mut title = None;
-    let mut sentence_opt = None;
-    let mut struct_list = Vec::new();
-    let mut children = Vec::new();
-    for node in node.children() {
-      match node.tag_name().name() {
-        "ItemTitle" => {
-          title = Some(Text::from_children(node.children()));
-        }
-        "Subitem6Sentence" => {
-          let mut sentence_list = Vec::new();
-          let mut column_list = Vec::new();
-          for node in node.children() {
-            match node.tag_name().name() {
-              "Sentence" => {
-                if let Ok(v) = Sentence::parser(&node) {
-                  sentence_list.push(v);
-                }
-              }
-              "Column" => {
-                if let Ok(v) = Column::parser(&node) {
-                  column_list.push(v);
-                }
-              }
-              "Table" => {
-                if let Ok(v) = Table::parser(&node) {
-                  sentence_opt = Some(SentenceOrColumnOrTable::Table(v));
-                }
-              }
-              _ => {}
-            }
-            if !sentence_list.is_empty() {
-              sentence_opt = Some(SentenceOrColumnOrTable::Sentence(sentence_list.clone()));
-            }
-            if !column_list.is_empty() {
-              sentence_opt = Some(SentenceOrColumnOrTable::Column(column_list.clone()));
-            }
+    if node.tag_name().name() == "Subitem6" {
+      let num = get_attribute(node, "Num")?;
+      let delete = get_attribute_opt_with_parse(node, "Delete")?.unwrap_or(false);
+      let hide = get_attribute_opt_with_parse(node, "Hide")?.unwrap_or(false);
+      let mut title = None;
+      let mut sentence_opt = None;
+      let mut struct_list = Vec::new();
+      let mut children = Vec::new();
+      for node in node.children() {
+        match node.tag_name().name() {
+          "ItemTitle" => {
+            title = Some(Text::from_children(node.children()));
           }
-        }
-        "TableStruct" => {
-          if let Ok(v) = TableStruct::parser(&node) {
+          "Subitem6Sentence" => {
+            let v = SentenceOrColumnOrTable::from_node(&node)?;
+            sentence_opt = Some(v);
+          }
+          "TableStruct" => {
+            let v = TableStruct::parser(&node)?;
             struct_list.push(Struct::TableStruct(v));
           }
-        }
-        "FigStruct" => {
-          if let Ok(v) = FigStruct::parser(&node) {
+          "FigStruct" => {
+            let v = FigStruct::parser(&node)?;
             struct_list.push(Struct::FigStruct(v));
           }
-        }
-        "StyleStruct" => {
-          if let Ok(v) = StyleStruct::parser(&node) {
+          "StyleStruct" => {
+            let v = StyleStruct::parser(&node)?;
             struct_list.push(Struct::StyleStruct(v));
           }
-        }
-        "List" => {
-          if let Ok(v) = List::parser(&node) {
+          "List" => {
+            let v = List::parser(&node)?;
             struct_list.push(Struct::List(v));
           }
-        }
-        "Subitem7" => {
-          if let Ok(v) = Subitem7::parser(&node) {
+          "Subitem7" => {
+            let v = Subitem7::parser(&node)?;
             children.push(v);
           }
+          s => return Err(Error::unexpected_tag(&node, s)),
         }
-        _ => {}
       }
-    }
-    if let Some(sentence) = sentence_opt {
-      Ok(Subitem6::new(
-        title,
-        sentence,
-        struct_list,
-        children,
-        num,
-        delete,
-        hide,
-      ))
+      if let Some(sentence) = sentence_opt {
+        Ok(Subitem6::new(
+          title,
+          sentence,
+          struct_list,
+          children,
+          &num,
+          delete,
+          hide,
+        ))
+      } else {
+        Err(Error::MissingRequiredTag {
+          range: node.range(),
+          tag_name: "Sentence or Column or Table".to_string(),
+        })
+      }
     } else {
-      Err(Error::Tag)
+      Err(Error::wrong_tag_name(node, "Subitem6"))
     }
   }
 }
@@ -1019,7 +793,7 @@ pub struct Subitem7 {
 }
 
 impl Subitem7 {
-  pub fn new(
+  fn new(
     title: Option<Text>,
     sentence: SentenceOrColumnOrTable,
     struct_list: Vec<Struct>,
@@ -1042,94 +816,64 @@ impl Subitem7 {
 
 impl Parser for Subitem7 {
   fn parser(node: &Node) -> result::Result<Self> {
-    let num = node.attribute("Num").ok_or(Error::Attribute)?;
-    let delete = node
-      .attribute("Delete")
-      .and_then(|s| s.parse::<bool>().ok())
-      .unwrap_or(false);
-    let hide = node
-      .attribute("Hide")
-      .and_then(|s| s.parse::<bool>().ok())
-      .unwrap_or(false);
-    let mut title = None;
-    let mut sentence_opt = None;
-    let mut struct_list = Vec::new();
-    let mut children = Vec::new();
-    for node in node.children() {
-      match node.tag_name().name() {
-        "ItemTitle" => {
-          title = Some(Text::from_children(node.children()));
-        }
-        "Subitem7Sentence" => {
-          let mut sentence_list = Vec::new();
-          let mut column_list = Vec::new();
-          for node in node.children() {
-            match node.tag_name().name() {
-              "Sentence" => {
-                if let Ok(v) = Sentence::parser(&node) {
-                  sentence_list.push(v);
-                }
-              }
-              "Column" => {
-                if let Ok(v) = Column::parser(&node) {
-                  column_list.push(v);
-                }
-              }
-              "Table" => {
-                if let Ok(v) = Table::parser(&node) {
-                  sentence_opt = Some(SentenceOrColumnOrTable::Table(v));
-                }
-              }
-              _ => {}
-            }
-            if !sentence_list.is_empty() {
-              sentence_opt = Some(SentenceOrColumnOrTable::Sentence(sentence_list.clone()));
-            }
-            if !column_list.is_empty() {
-              sentence_opt = Some(SentenceOrColumnOrTable::Column(column_list.clone()));
-            }
+    if node.tag_name().name() == "Subitem7" {
+      let num = get_attribute(node, "Num")?;
+      let delete = get_attribute_opt_with_parse(node, "Delete")?.unwrap_or(false);
+      let hide = get_attribute_opt_with_parse(node, "Hide")?.unwrap_or(false);
+      let mut title = None;
+      let mut sentence_opt = None;
+      let mut struct_list = Vec::new();
+      let mut children = Vec::new();
+      for node in node.children() {
+        match node.tag_name().name() {
+          "ItemTitle" => {
+            title = Some(Text::from_children(node.children()));
           }
-        }
-        "TableStruct" => {
-          if let Ok(v) = TableStruct::parser(&node) {
+          "Subitem7Sentence" => {
+            let v = SentenceOrColumnOrTable::from_node(&node)?;
+            sentence_opt = Some(v);
+          }
+          "TableStruct" => {
+            let v = TableStruct::parser(&node)?;
             struct_list.push(Struct::TableStruct(v));
           }
-        }
-        "FigStruct" => {
-          if let Ok(v) = FigStruct::parser(&node) {
+          "FigStruct" => {
+            let v = FigStruct::parser(&node)?;
             struct_list.push(Struct::FigStruct(v));
           }
-        }
-        "StyleStruct" => {
-          if let Ok(v) = StyleStruct::parser(&node) {
+          "StyleStruct" => {
+            let v = StyleStruct::parser(&node)?;
             struct_list.push(Struct::StyleStruct(v));
           }
-        }
-        "List" => {
-          if let Ok(v) = List::parser(&node) {
+          "List" => {
+            let v = List::parser(&node)?;
             struct_list.push(Struct::List(v));
           }
-        }
-        "Subitem8" => {
-          if let Ok(v) = Subitem8::parser(&node) {
+          "Subitem8" => {
+            let v = Subitem8::parser(&node)?;
             children.push(v);
           }
+          s => return Err(Error::unexpected_tag(&node, s)),
         }
-        _ => {}
       }
-    }
-    if let Some(sentence) = sentence_opt {
-      Ok(Subitem7::new(
-        title,
-        sentence,
-        struct_list,
-        children,
-        num,
-        delete,
-        hide,
-      ))
+      if let Some(sentence) = sentence_opt {
+        Ok(Subitem7::new(
+          title,
+          sentence,
+          struct_list,
+          children,
+          &num,
+          delete,
+          hide,
+        ))
+      } else {
+        Err(Error::MissingRequiredTag {
+          range: node.range(),
+          tag_name: "Sentence or Column or Table".to_string(),
+        })
+      }
     } else {
-      Err(Error::Tag)
+      Err(Error::wrong_tag_name(node, "Subitem7"))
     }
   }
 }
@@ -1146,7 +890,7 @@ pub struct Subitem8 {
 }
 
 impl Subitem8 {
-  pub fn new(
+  fn new(
     title: Option<Text>,
     sentence: SentenceOrColumnOrTable,
     struct_list: Vec<Struct>,
@@ -1169,94 +913,64 @@ impl Subitem8 {
 
 impl Parser for Subitem8 {
   fn parser(node: &Node) -> result::Result<Self> {
-    let num = node.attribute("Num").ok_or(Error::Attribute)?;
-    let delete = node
-      .attribute("Delete")
-      .and_then(|s| s.parse::<bool>().ok())
-      .unwrap_or(false);
-    let hide = node
-      .attribute("Hide")
-      .and_then(|s| s.parse::<bool>().ok())
-      .unwrap_or(false);
-    let mut title = None;
-    let mut sentence_opt = None;
-    let mut struct_list = Vec::new();
-    let mut children = Vec::new();
-    for node in node.children() {
-      match node.tag_name().name() {
-        "ItemTitle" => {
-          title = Some(Text::from_children(node.children()));
-        }
-        "Subitem8Sentence" => {
-          let mut sentence_list = Vec::new();
-          let mut column_list = Vec::new();
-          for node in node.children() {
-            match node.tag_name().name() {
-              "Sentence" => {
-                if let Ok(v) = Sentence::parser(&node) {
-                  sentence_list.push(v);
-                }
-              }
-              "Column" => {
-                if let Ok(v) = Column::parser(&node) {
-                  column_list.push(v);
-                }
-              }
-              "Table" => {
-                if let Ok(v) = Table::parser(&node) {
-                  sentence_opt = Some(SentenceOrColumnOrTable::Table(v));
-                }
-              }
-              _ => {}
-            }
-            if !sentence_list.is_empty() {
-              sentence_opt = Some(SentenceOrColumnOrTable::Sentence(sentence_list.clone()));
-            }
-            if !column_list.is_empty() {
-              sentence_opt = Some(SentenceOrColumnOrTable::Column(column_list.clone()));
-            }
+    if node.tag_name().name() == "Subitem8" {
+      let num = get_attribute(node, "Num")?;
+      let delete = get_attribute_opt_with_parse(node, "Delete")?.unwrap_or(false);
+      let hide = get_attribute_opt_with_parse(node, "Hide")?.unwrap_or(false);
+      let mut title = None;
+      let mut sentence_opt = None;
+      let mut struct_list = Vec::new();
+      let mut children = Vec::new();
+      for node in node.children() {
+        match node.tag_name().name() {
+          "ItemTitle" => {
+            title = Some(Text::from_children(node.children()));
           }
-        }
-        "TableStruct" => {
-          if let Ok(v) = TableStruct::parser(&node) {
+          "Subitem8Sentence" => {
+            let v = SentenceOrColumnOrTable::from_node(&node)?;
+            sentence_opt = Some(v);
+          }
+          "TableStruct" => {
+            let v = TableStruct::parser(&node)?;
             struct_list.push(Struct::TableStruct(v));
           }
-        }
-        "FigStruct" => {
-          if let Ok(v) = FigStruct::parser(&node) {
+          "FigStruct" => {
+            let v = FigStruct::parser(&node)?;
             struct_list.push(Struct::FigStruct(v));
           }
-        }
-        "StyleStruct" => {
-          if let Ok(v) = StyleStruct::parser(&node) {
+          "StyleStruct" => {
+            let v = StyleStruct::parser(&node)?;
             struct_list.push(Struct::StyleStruct(v));
           }
-        }
-        "List" => {
-          if let Ok(v) = List::parser(&node) {
+          "List" => {
+            let v = List::parser(&node)?;
             struct_list.push(Struct::List(v));
           }
-        }
-        "Subitem9" => {
-          if let Ok(v) = Subitem9::parser(&node) {
+          "Subitem9" => {
+            let v = Subitem9::parser(&node)?;
             children.push(v);
           }
+          s => return Err(Error::unexpected_tag(&node, s)),
         }
-        _ => {}
       }
-    }
-    if let Some(sentence) = sentence_opt {
-      Ok(Subitem8::new(
-        title,
-        sentence,
-        struct_list,
-        children,
-        num,
-        delete,
-        hide,
-      ))
+      if let Some(sentence) = sentence_opt {
+        Ok(Subitem8::new(
+          title,
+          sentence,
+          struct_list,
+          children,
+          &num,
+          delete,
+          hide,
+        ))
+      } else {
+        Err(Error::MissingRequiredTag {
+          range: node.range(),
+          tag_name: "Sentence or Column or Table".to_string(),
+        })
+      }
     } else {
-      Err(Error::Tag)
+      Err(Error::wrong_tag_name(node, "Subitem8"))
     }
   }
 }
@@ -1273,7 +987,7 @@ pub struct Subitem9 {
 }
 
 impl Subitem9 {
-  pub fn new(
+  fn new(
     title: Option<Text>,
     sentence: SentenceOrColumnOrTable,
     struct_list: Vec<Struct>,
@@ -1296,94 +1010,64 @@ impl Subitem9 {
 
 impl Parser for Subitem9 {
   fn parser(node: &Node) -> result::Result<Self> {
-    let num = node.attribute("Num").ok_or(Error::Attribute)?;
-    let delete = node
-      .attribute("Delete")
-      .and_then(|s| s.parse::<bool>().ok())
-      .unwrap_or(false);
-    let hide = node
-      .attribute("Hide")
-      .and_then(|s| s.parse::<bool>().ok())
-      .unwrap_or(false);
-    let mut title = None;
-    let mut sentence_opt = None;
-    let mut struct_list = Vec::new();
-    let mut children = Vec::new();
-    for node in node.children() {
-      match node.tag_name().name() {
-        "ItemTitle" => {
-          title = Some(Text::from_children(node.children()));
-        }
-        "Subitem9Sentence" => {
-          let mut sentence_list = Vec::new();
-          let mut column_list = Vec::new();
-          for node in node.children() {
-            match node.tag_name().name() {
-              "Sentence" => {
-                if let Ok(v) = Sentence::parser(&node) {
-                  sentence_list.push(v);
-                }
-              }
-              "Column" => {
-                if let Ok(v) = Column::parser(&node) {
-                  column_list.push(v);
-                }
-              }
-              "Table" => {
-                if let Ok(v) = Table::parser(&node) {
-                  sentence_opt = Some(SentenceOrColumnOrTable::Table(v));
-                }
-              }
-              _ => {}
-            }
-            if !sentence_list.is_empty() {
-              sentence_opt = Some(SentenceOrColumnOrTable::Sentence(sentence_list.clone()));
-            }
-            if !column_list.is_empty() {
-              sentence_opt = Some(SentenceOrColumnOrTable::Column(column_list.clone()));
-            }
+    if node.tag_name().name() == "Subitem9" {
+      let num = get_attribute(node, "Num")?;
+      let delete = get_attribute_opt_with_parse(node, "Delete")?.unwrap_or(false);
+      let hide = get_attribute_opt_with_parse(node, "Hide")?.unwrap_or(false);
+      let mut title = None;
+      let mut sentence_opt = None;
+      let mut struct_list = Vec::new();
+      let mut children = Vec::new();
+      for node in node.children() {
+        match node.tag_name().name() {
+          "ItemTitle" => {
+            title = Some(Text::from_children(node.children()));
           }
-        }
-        "TableStruct" => {
-          if let Ok(v) = TableStruct::parser(&node) {
+          "Subitem9Sentence" => {
+            let v = SentenceOrColumnOrTable::from_node(&node)?;
+            sentence_opt = Some(v);
+          }
+          "TableStruct" => {
+            let v = TableStruct::parser(&node)?;
             struct_list.push(Struct::TableStruct(v));
           }
-        }
-        "FigStruct" => {
-          if let Ok(v) = FigStruct::parser(&node) {
+          "FigStruct" => {
+            let v = FigStruct::parser(&node)?;
             struct_list.push(Struct::FigStruct(v));
           }
-        }
-        "StyleStruct" => {
-          if let Ok(v) = StyleStruct::parser(&node) {
+          "StyleStruct" => {
+            let v = StyleStruct::parser(&node)?;
             struct_list.push(Struct::StyleStruct(v));
           }
-        }
-        "List" => {
-          if let Ok(v) = List::parser(&node) {
+          "List" => {
+            let v = List::parser(&node)?;
             struct_list.push(Struct::List(v));
           }
-        }
-        "Subitem10" => {
-          if let Ok(v) = Subitem10::parser(&node) {
+          "Subitem10" => {
+            let v = Subitem10::parser(&node)?;
             children.push(v);
           }
+          s => return Err(Error::unexpected_tag(&node, s)),
         }
-        _ => {}
       }
-    }
-    if let Some(sentence) = sentence_opt {
-      Ok(Subitem9::new(
-        title,
-        sentence,
-        struct_list,
-        children,
-        num,
-        delete,
-        hide,
-      ))
+      if let Some(sentence) = sentence_opt {
+        Ok(Subitem9::new(
+          title,
+          sentence,
+          struct_list,
+          children,
+          &num,
+          delete,
+          hide,
+        ))
+      } else {
+        Err(Error::MissingRequiredTag {
+          range: node.range(),
+          tag_name: "Sentence or Column or Table".to_string(),
+        })
+      }
     } else {
-      Err(Error::Tag)
+      Err(Error::wrong_tag_name(node, "Subitem9"))
     }
   }
 }
@@ -1399,7 +1083,7 @@ pub struct Subitem10 {
 }
 
 impl Subitem10 {
-  pub fn new(
+  fn new(
     title: Option<Text>,
     sentence: SentenceOrColumnOrTable,
     struct_list: Vec<Struct>,
@@ -1420,87 +1104,58 @@ impl Subitem10 {
 
 impl Parser for Subitem10 {
   fn parser(node: &Node) -> result::Result<Self> {
-    let num = node.attribute("Num").ok_or(Error::Attribute)?;
-    let delete = node
-      .attribute("Delete")
-      .and_then(|s| s.parse::<bool>().ok())
-      .unwrap_or(false);
-    let hide = node
-      .attribute("Hide")
-      .and_then(|s| s.parse::<bool>().ok())
-      .unwrap_or(false);
-    let mut title = None;
-    let mut sentence_opt = None;
-    let mut struct_list = Vec::new();
-    for node in node.children() {
-      match node.tag_name().name() {
-        "ItemTitle" => {
-          title = Some(Text::from_children(node.children()));
-        }
-        "Subitem10Sentence" => {
-          let mut sentence_list = Vec::new();
-          let mut column_list = Vec::new();
-          for node in node.children() {
-            match node.tag_name().name() {
-              "Sentence" => {
-                if let Ok(v) = Sentence::parser(&node) {
-                  sentence_list.push(v);
-                }
-              }
-              "Column" => {
-                if let Ok(v) = Column::parser(&node) {
-                  column_list.push(v);
-                }
-              }
-              "Table" => {
-                if let Ok(v) = Table::parser(&node) {
-                  sentence_opt = Some(SentenceOrColumnOrTable::Table(v));
-                }
-              }
-              _ => {}
-            }
-            if !sentence_list.is_empty() {
-              sentence_opt = Some(SentenceOrColumnOrTable::Sentence(sentence_list.clone()));
-            }
-            if !column_list.is_empty() {
-              sentence_opt = Some(SentenceOrColumnOrTable::Column(column_list.clone()));
-            }
+    if node.tag_name().name() == "Subitem10" {
+      let num = get_attribute(node, "Num")?;
+      let delete = get_attribute_opt_with_parse(node, "Delete")?.unwrap_or(false);
+      let hide = get_attribute_opt_with_parse(node, "Hide")?.unwrap_or(false);
+      let mut title = None;
+      let mut sentence_opt = None;
+      let mut struct_list = Vec::new();
+      for node in node.children() {
+        match node.tag_name().name() {
+          "ItemTitle" => {
+            title = Some(Text::from_children(node.children()));
           }
-        }
-        "TableStruct" => {
-          if let Ok(v) = TableStruct::parser(&node) {
+          "Subitem10Sentence" => {
+            let v = SentenceOrColumnOrTable::from_node(&node)?;
+            sentence_opt = Some(v);
+          }
+          "TableStruct" => {
+            let v = TableStruct::parser(&node)?;
             struct_list.push(Struct::TableStruct(v));
           }
-        }
-        "FigStruct" => {
-          if let Ok(v) = FigStruct::parser(&node) {
+          "FigStruct" => {
+            let v = FigStruct::parser(&node)?;
             struct_list.push(Struct::FigStruct(v));
           }
-        }
-        "StyleStruct" => {
-          if let Ok(v) = StyleStruct::parser(&node) {
+          "StyleStruct" => {
+            let v = StyleStruct::parser(&node)?;
             struct_list.push(Struct::StyleStruct(v));
           }
-        }
-        "List" => {
-          if let Ok(v) = List::parser(&node) {
+          "List" => {
+            let v = List::parser(&node)?;
             struct_list.push(Struct::List(v));
           }
+          s => return Err(Error::unexpected_tag(&node, s)),
         }
-        _ => {}
       }
-    }
-    if let Some(sentence) = sentence_opt {
-      Ok(Subitem10::new(
-        title,
-        sentence,
-        struct_list,
-        num,
-        delete,
-        hide,
-      ))
+      if let Some(sentence) = sentence_opt {
+        Ok(Subitem10::new(
+          title,
+          sentence,
+          struct_list,
+          &num,
+          delete,
+          hide,
+        ))
+      } else {
+        Err(Error::MissingRequiredTag {
+          range: node.range(),
+          tag_name: "Sentence or Column or Table".to_string(),
+        })
+      }
     } else {
-      Err(Error::Tag)
+      Err(Error::wrong_tag_name(node, "Subitem10"))
     }
   }
 }

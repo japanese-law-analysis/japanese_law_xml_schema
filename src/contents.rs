@@ -1,7 +1,12 @@
 use crate::fig::*;
+use crate::line::*;
+use crate::list::*;
+use crate::paragraph::*;
 use crate::parser::*;
+use crate::sentence::*;
 use crate::structs::*;
 use crate::table::*;
+use crate::text::*;
 use crate::*;
 use roxmltree::Node;
 use serde::{Deserialize, Serialize};
@@ -19,66 +24,55 @@ impl parser::Parser for Contents {
     for node in node.children() {
       match node.tag_name().name() {
         "Table" => {
-          if let Ok(v) = Table::parser(&node) {
-            lst.push(ContentsElement::Table(v));
-          }
+          let v = Table::parser(&node)?;
+          lst.push(ContentsElement::Table(v));
         }
         "TableStruct" => {
-          if let Ok(v) = TableStruct::parser(&node) {
-            lst.push(ContentsElement::TableStruct(v));
-          }
+          let v = TableStruct::parser(&node)?;
+          lst.push(ContentsElement::TableStruct(v));
         }
         "Fig" => {
-          if let Ok(v) = Fig::parser(&node) {
-            lst.push(ContentsElement::Fig(v));
-          }
+          let v = Fig::parser(&node)?;
+          lst.push(ContentsElement::Fig(v));
         }
         "FigStruct" => {
-          if let Ok(v) = FigStruct::parser(&node) {
-            lst.push(ContentsElement::FigStruct(v));
-          }
+          let v = FigStruct::parser(&node)?;
+          lst.push(ContentsElement::FigStruct(v));
         }
         "Ruby" => {
-          if let Ok(v) = text::Ruby::parser(&node) {
-            lst.push(ContentsElement::Ruby(v));
-          }
+          let v = Ruby::parser(&node)?;
+          lst.push(ContentsElement::Ruby(v));
         }
         "Line" => {
-          if let Ok(v) = line::Line::parser(&node) {
-            lst.push(ContentsElement::Line(v));
-          }
+          let v = Line::parser(&node)?;
+          lst.push(ContentsElement::Line(v));
         }
         "Sup" => {
-          if let Ok(v) = text::Sup::parser(&node) {
-            lst.push(ContentsElement::Sup(v));
-          }
+          let v = Sup::parser(&node)?;
+          lst.push(ContentsElement::Sup(v));
         }
         "Sub" => {
-          if let Ok(v) = text::Sub::parser(&node) {
-            lst.push(ContentsElement::Sub(v));
-          }
+          let v = Sub::parser(&node)?;
+          lst.push(ContentsElement::Sub(v));
         }
         "Paragraph" => {
-          if let Ok(v) = paragraph::Paragraph::parser(&node) {
-            lst.push(ContentsElement::Paragraph(v));
-          }
+          let v = Paragraph::parser(&node)?;
+          lst.push(ContentsElement::Paragraph(v));
         }
         "List" => {
-          if let Ok(v) = list::List::parser(&node) {
-            lst.push(ContentsElement::List(v));
-          }
+          let v = List::parser(&node)?;
+          lst.push(ContentsElement::List(v));
         }
         "Sentence" => {
-          if let Ok(v) = sentence::Sentence::parser(&node) {
-            lst.push(ContentsElement::Sentence(v));
-          }
+          let v = Sentence::parser(&node)?;
+          lst.push(ContentsElement::Sentence(v));
         }
         "" => {
           if let Some(text) = node.text() {
             lst.push(ContentsElement::String(text.to_string()));
           }
         }
-        _ => return Err(result::Error::Tag),
+        s => return Err(Error::unexpected_tag(&node, s)),
       }
     }
     Ok(Contents { contents: lst })
@@ -145,7 +139,7 @@ pub struct ArithFormula {
 
 impl Parser for ArithFormula {
   fn parser(node: &Node) -> result::Result<Self> {
-    let num = node.attribute("Num").and_then(|s| s.parse::<usize>().ok());
+    let num = get_attribute_opt_with_parse(node, "Num")?;
     Contents::parser(node).map(|c| ArithFormula { num, contentes: c })
   }
 }

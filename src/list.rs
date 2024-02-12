@@ -1,5 +1,6 @@
 //! 列挙に関する
 
+use crate::class::*;
 use crate::parser::*;
 use crate::result::Error;
 use crate::sentence::*;
@@ -15,7 +16,7 @@ pub struct List {
 }
 
 impl List {
-  pub fn new(sentence: Vec<ListSentence>, children: Vec<Sublist1>) -> Self {
+  fn new(sentence: Vec<ListSentence>, children: Vec<Sublist1>) -> Self {
     List { sentence, children }
   }
 }
@@ -30,30 +31,27 @@ impl Parser for List {
         for node in list_sentence.unwrap().children() {
           match node.tag_name().name() {
             "Sentence" => {
-              if let Ok(s) = Sentence::parser(&node) {
-                sentence.push(ListSentence::Sentence(s))
-              }
+              let v = Sentence::parser(&node)?;
+              sentence.push(ListSentence::Sentence(v))
             }
             "Column" => {
-              if let Ok(c) = Column::parser(&node) {
-                sentence.push(ListSentence::Column(c))
-              }
+              let v = Column::parser(&node)?;
+              sentence.push(ListSentence::Column(v))
             }
-            _ => return Err(Error::Tag),
+            s => return Err(Error::unexpected_tag(&node, s)),
           }
         }
       } else {
-        return Err(Error::Tag);
+        return Err(Error::wrong_tag_name(node, "LiseSentence"));
       }
       let mut sublist = Vec::new();
       for node in children {
-        if let Ok(sub) = Sublist1::parser(&node) {
-          sublist.push(sub)
-        }
+        let v = Sublist1::parser(&node)?;
+        sublist.push(v)
       }
       Ok(List::new(sentence, sublist))
     } else {
-      Err(Error::Tag)
+      Err(Error::wrong_tag_name(node, "List"))
     }
   }
 }
@@ -71,7 +69,7 @@ pub struct Sublist1 {
 }
 
 impl Sublist1 {
-  pub fn new(sentence: Vec<ListSentence>, children: Vec<Sublist2>) -> Self {
+  fn new(sentence: Vec<ListSentence>, children: Vec<Sublist2>) -> Self {
     Sublist1 { sentence, children }
   }
 }
@@ -86,30 +84,27 @@ impl Parser for Sublist1 {
         for node in list_sentence.unwrap().children() {
           match node.tag_name().name() {
             "Sentence" => {
-              if let Ok(s) = Sentence::parser(&node) {
-                sentence.push(ListSentence::Sentence(s))
-              }
+              let v = Sentence::parser(&node)?;
+              sentence.push(ListSentence::Sentence(v))
             }
             "Column" => {
-              if let Ok(c) = Column::parser(&node) {
-                sentence.push(ListSentence::Column(c))
-              }
+              let v = Column::parser(&node)?;
+              sentence.push(ListSentence::Column(v))
             }
-            _ => return Err(Error::Tag),
+            s => return Err(Error::unexpected_tag(&node, s)),
           }
         }
       } else {
-        return Err(Error::Tag);
+        return Err(Error::wrong_tag_name(node, "Sublist1Sentence"));
       }
       let mut sublist = Vec::new();
       for node in children {
-        if let Ok(sub) = Sublist2::parser(&node) {
-          sublist.push(sub)
-        }
+        let v = Sublist2::parser(&node)?;
+        sublist.push(v)
       }
       Ok(Sublist1::new(sentence, sublist))
     } else {
-      Err(Error::Tag)
+      Err(Error::wrong_tag_name(node, "Sublist1"))
     }
   }
 }
@@ -121,7 +116,7 @@ pub struct Sublist2 {
 }
 
 impl Sublist2 {
-  pub fn new(sentence: Vec<ListSentence>, children: Vec<Sublist3>) -> Self {
+  fn new(sentence: Vec<ListSentence>, children: Vec<Sublist3>) -> Self {
     Sublist2 { sentence, children }
   }
 }
@@ -136,30 +131,27 @@ impl Parser for Sublist2 {
         for node in list_sentence.unwrap().children() {
           match node.tag_name().name() {
             "Sentence" => {
-              if let Ok(s) = Sentence::parser(&node) {
-                sentence.push(ListSentence::Sentence(s))
-              }
+              let v = Sentence::parser(&node)?;
+              sentence.push(ListSentence::Sentence(v))
             }
             "Column" => {
-              if let Ok(c) = Column::parser(&node) {
-                sentence.push(ListSentence::Column(c))
-              }
+              let v = Column::parser(&node)?;
+              sentence.push(ListSentence::Column(v))
             }
-            _ => return Err(Error::Tag),
+            s => return Err(Error::unexpected_tag(&node, s)),
           }
         }
       } else {
-        return Err(Error::Tag);
+        return Err(Error::wrong_tag_name(node, "Sublist2Sentence"));
       }
       let mut sublist = Vec::new();
       for node in children {
-        if let Ok(sub) = Sublist3::parser(&node) {
-          sublist.push(sub)
-        }
+        let v = Sublist3::parser(&node)?;
+        sublist.push(v)
       }
       Ok(Sublist2::new(sentence, sublist))
     } else {
-      Err(Error::Tag)
+      Err(Error::wrong_tag_name(node, "Sublist2"))
     }
   }
 }
@@ -170,7 +162,7 @@ pub struct Sublist3 {
 }
 
 impl Sublist3 {
-  pub fn new(sentence: Vec<ListSentence>) -> Self {
+  fn new(sentence: Vec<ListSentence>) -> Self {
     Sublist3 { sentence }
   }
 }
@@ -185,24 +177,22 @@ impl Parser for Sublist3 {
         for node in list_sentence.unwrap().children() {
           match node.tag_name().name() {
             "Sentence" => {
-              if let Ok(s) = Sentence::parser(&node) {
-                sentence.push(ListSentence::Sentence(s))
-              }
+              let v = Sentence::parser(&node)?;
+              sentence.push(ListSentence::Sentence(v))
             }
             "Column" => {
-              if let Ok(c) = Column::parser(&node) {
-                sentence.push(ListSentence::Column(c))
-              }
+              let v = Column::parser(&node)?;
+              sentence.push(ListSentence::Column(v))
             }
-            _ => return Err(Error::Tag),
+            s => return Err(Error::unexpected_tag(&node, s)),
           }
         }
       } else {
-        return Err(Error::Tag);
+        return Err(Error::wrong_tag_name(node, "Sublist3Sentence"));
       }
       Ok(Sublist3::new(sentence))
     } else {
-      Err(Error::Tag)
+      Err(Error::wrong_tag_name(node, "Sublist3"))
     }
   }
 }

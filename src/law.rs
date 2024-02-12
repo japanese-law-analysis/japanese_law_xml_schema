@@ -47,22 +47,18 @@ impl Parser for Law {
         Some("Showa") => Era::Showa,
         Some("Heisei") => Era::Heisei,
         Some("Reiwa") => Era::Reiwa,
-        _ => return Err(Error::Attribute),
+        _ => {
+          return Err(Error::AttributeParseError {
+            range: node.range(),
+            tag_name: node.tag_name().name().to_string(),
+            attribute_name: "Era".to_string(),
+          })
+        }
       };
-      let year = node
-        .attribute("Year")
-        .and_then(|s| s.parse::<usize>().ok())
-        .ok_or(Error::Attribute)?;
-      let num = node
-        .attribute("Num")
-        .and_then(|s| s.parse::<usize>().ok())
-        .ok_or(Error::Attribute)?;
-      let promulgate_month = node
-        .attribute("PromulgateMonth")
-        .and_then(|s| s.parse::<usize>().ok());
-      let promulgate_day = node
-        .attribute("PromulgateDay")
-        .and_then(|s| s.parse::<usize>().ok());
+      let year = get_attribute_with_parse(node, "Year")?;
+      let num = get_attribute_with_parse(node, "Num")?;
+      let promulgate_month = get_attribute_opt_with_parse(node, "PromulgateMonth")?;
+      let promulgate_day = get_attribute_opt_with_parse(node, "PromulgateDay")?;
       let law_type = match node.attribute("LawType") {
         Some("Constitution") => LawType::Constitution,
         Some("Act") => LawType::Act,
@@ -71,21 +67,42 @@ impl Parser for Law {
         Some("MinisterialOrdinance") => LawType::MinisterialOrdinance,
         Some("Rule") => LawType::Rule,
         Some("Misc") => LawType::Misc,
-        _ => return Err(Error::Attribute),
+        _ => {
+          return Err(Error::AttributeParseError {
+            range: node.range(),
+            tag_name: node.tag_name().name().to_string(),
+            attribute_name: "LawType".to_string(),
+          })
+        }
       };
       let lang = match node.attribute("Lang") {
         Some("ja") => Lang::Ja,
         Some("en") => Lang::En,
-        _ => return Err(Error::Attribute),
+        _ => {
+          return Err(Error::AttributeParseError {
+            range: node.range(),
+            tag_name: node.tag_name().name().to_string(),
+            attribute_name: "Lang".to_string(),
+          })
+        }
       };
       let mut children = node.children();
-      let law_num_node = children.next().ok_or(Error::Tag)?;
-      let law_num = if law_num_node.tag_name().name() == "LawNum" {
+      let law_num_node = children
+        .next()
+        .ok_or(Error::missing_required_tag(&node.range(), "LawNum"))?;
+      let law_num_node_tag_name = law_num_node.tag_name().name();
+      let law_num = if law_num_node_tag_name == "LawNum" {
         law_num_node.text().unwrap_or_default().to_string()
       } else {
-        return Err(Error::Tag);
+        return Err(Error::UnexpectedTag {
+          range: law_num_node.range(),
+          wrong_name: law_num_node_tag_name.to_string(),
+          tag: "LawNum".to_string(),
+        });
       };
-      let law_body_node = children.next().ok_or(Error::Tag)?;
+      let law_body_node = children
+        .next()
+        .ok_or(Error::missing_required_tag(&node.range(), "LawBody"))?;
       let law_body = LawBody::parser(&law_body_node)?;
       Ok(Law {
         era,
@@ -99,7 +116,7 @@ impl Parser for Law {
         law_body,
       })
     } else {
-      Err(Error::Tag)
+      Err(Error::wrong_tag_name(node, "Law"))
     }
   }
 }
@@ -179,7 +196,7 @@ pub struct LawBody {
 impl Parser for LawBody {
   fn parser(node: &Node) -> result::Result<Self> {
     if node.tag_name().name() == "LawBody" {
-      let subject = node.attribute("Subject").map(|s| s.to_string());
+      let subject = get_attribute_opt_with_parse(node, "Subject")?;
       let mut law_title = None;
       let mut enact_statement = Vec::new();
       let mut toc = None;
@@ -239,7 +256,7 @@ impl Parser for LawBody {
             let v = AppdxFormat::parser(&node)?;
             appdx_format.push(v);
           }
-          _ => {}
+          s => return Err(Error::unexpected_tag(&node, s)),
         }
       }
       if let Some(main_provision) = main_provision {
@@ -259,10 +276,10 @@ impl Parser for LawBody {
           appdx_format,
         })
       } else {
-        Err(Error::Tag)
+        Err(Error::missing_required_tag(&node.range(), "MainProvision"))
       }
     } else {
-      Err(Error::Tag)
+      Err(Error::wrong_tag_name(node, "LawBody"))
     }
   }
 }
@@ -283,9 +300,9 @@ pub struct LawTitle {
 impl Parser for LawTitle {
   fn parser(node: &Node) -> result::Result<Self> {
     if node.tag_name().name() == "LawTitle" {
-      let kana = node.attribute("Kana").map(|s| s.to_string());
-      let abbrev = node.attribute("Abbrev").map(|s| s.to_string());
-      let abbrev_kana = node.attribute("AbbrevKana").map(|s| s.to_string());
+      let kana = get_attribute_opt_with_parse(node, "Kana")?;
+      let abbrev = get_attribute_opt_with_parse(node, "Abbrev")?;
+      let abbrev_kana = get_attribute_opt_with_parse(node, "AbbrevKana")?;
       let text = Text::from_children(node.children());
       Ok(LawTitle {
         kana,
@@ -294,7 +311,7 @@ impl Parser for LawTitle {
         text,
       })
     } else {
-      Err(Error::Tag)
+      Err(Error::wrong_tag_name(node, "LawTitle"))
     }
   }
 }
@@ -317,7 +334,7 @@ impl Parser for Preamble {
       }
       Ok(Preamble { children })
     } else {
-      Err(Error::Tag)
+      Err(Error::wrong_tag_name(node, "Preamble"))
     }
   }
 }
@@ -333,9 +350,7 @@ pub struct MainProvision {
 impl Parser for MainProvision {
   fn parser(node: &Node) -> result::Result<Self> {
     if node.tag_name().name() == "MainProvision" {
-      let extract = node
-        .attribute("Extract")
-        .and_then(|s| s.parse::<bool>().ok());
+      let extract = get_attribute_opt_with_parse(node, "Extract")?;
       let mut children = Vec::new();
       for node in node.children() {
         match node.tag_name().name() {
@@ -359,12 +374,12 @@ impl Parser for MainProvision {
             let v = Paragraph::parser(&node)?;
             children.push(MainProvisionContents::Paragraph(v))
           }
-          _ => {}
+          s => return Err(Error::unexpected_tag(&node, s)),
         }
       }
       Ok(MainProvision { children, extract })
     } else {
-      Err(Error::Tag)
+      Err(Error::wrong_tag_name(node, "MainProvision"))
     }
   }
 }
@@ -399,7 +414,10 @@ impl Parser for AmendProvision {
       for node in node.children() {
         match node.tag_name().name() {
           "AmendProvisionSentence" => {
-            let n = node.children().next().ok_or(Error::Tag)?;
+            let n = node
+              .children()
+              .next()
+              .ok_or(Error::missing_required_tag(&node.range(), "AmendProvision"))?;
             let v = Sentence::parser(&n)?;
             sentence = Some(v)
           }
@@ -604,11 +622,11 @@ impl Parser for AmendProvision {
                   let v = LawBody::parser(&node)?;
                   new_provision.push(NewProvision::LawBody(v));
                 }
-                _ => {}
+                s => return Err(Error::unexpected_tag(&node, s)),
               }
             }
           }
-          _ => {}
+          s => return Err(Error::unexpected_tag(&node, s)),
         }
       }
       Ok(AmendProvision {
@@ -616,7 +634,7 @@ impl Parser for AmendProvision {
         new_provision,
       })
     } else {
-      Err(Error::Tag)
+      Err(Error::wrong_tag_name(node, "AmendProvision"))
     }
   }
 }

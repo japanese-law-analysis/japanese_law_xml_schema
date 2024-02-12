@@ -1,5 +1,6 @@
 //! 表
 use crate::article::*;
+use crate::class::*;
 use crate::line::*;
 use crate::paragraph::*;
 use crate::parser::*;
@@ -24,23 +25,21 @@ impl Parser for Table {
       let writing_mode = match node.attribute("WritingMode") {
         Some("vetical") => WritingMode::Vertical,
         Some("horizontal") => WritingMode::Horizontal,
-        _ => return Err(Error::Attribute),
+        _ => WritingMode::Vertical,
       };
       let mut table_header_row = Vec::new();
       let mut table_row = Vec::new();
       for node in node.children() {
         match node.tag_name().name() {
           "TableHeaderRow" => {
-            if let Ok(v) = TableHeaderRow::parser(&node) {
-              table_header_row.push(v)
-            }
+            let v = TableHeaderRow::parser(&node)?;
+            table_header_row.push(v)
           }
           "TableRow" => {
-            if let Ok(v) = TableRow::parser(&node) {
-              table_row.push(v)
-            }
+            let v = TableRow::parser(&node)?;
+            table_row.push(v)
           }
-          _ => {}
+          s => return Err(Error::unexpected_tag(&node, s)),
         }
       }
       Ok(Table {
@@ -49,7 +48,7 @@ impl Parser for Table {
         writing_mode,
       })
     } else {
-      Err(Error::Tag)
+      Err(Error::wrong_tag_name(node, "Table"))
     }
   }
 }
@@ -71,7 +70,7 @@ impl Parser for TableHeaderRow {
       }
       Ok(TableHeaderRow { columns })
     } else {
-      Err(Error::Tag)
+      Err(Error::wrong_tag_name(node, "TableHeaderRow"))
     }
   }
 }
@@ -87,14 +86,13 @@ impl Parser for TableRow {
       let mut columns = Vec::new();
       for node in node.children() {
         if node.tag_name().name() == "TableColumn" {
-          if let Ok(v) = TableColumn::parser(&node) {
-            columns.push(v);
-          }
+          let v = TableColumn::parser(&node)?;
+          columns.push(v);
         }
       }
       Ok(TableRow { columns })
     } else {
-      Err(Error::Tag)
+      Err(Error::wrong_tag_name(node, "TableRow"))
     }
   }
 }
@@ -123,124 +121,103 @@ impl Parser for TableColumn {
         LineStyle::from_attribute(node.attribute("BorderLeft")).unwrap_or(LineStyle::Solid);
       let border_right =
         LineStyle::from_attribute(node.attribute("BorderRight")).unwrap_or(LineStyle::Solid);
-      let rowspan = node.attribute("rowspan").map(|s| s.to_string());
-      let colspan = node.attribute("colspan").map(|s| s.to_string());
+      let rowspan = get_attribute_opt_with_parse(node, "rowspan")?;
+      let colspan = get_attribute_opt_with_parse(node, "colspan")?;
       let align = Align::from_attribute(node.attribute("Align"));
       let valign = Position::from_attribute(node.attribute("Valign"));
       let mut contents = Vec::new();
       for node in node.children() {
         match node.tag_name().name() {
           "Part" => {
-            if let Ok(v) = Part::parser(&node) {
-              contents.push(TableColumnContents::Part(v));
-            }
+            let v = Part::parser(&node)?;
+            contents.push(TableColumnContents::Part(v));
           }
           "Chapter" => {
-            if let Ok(v) = Chapter::parser(&node) {
-              contents.push(TableColumnContents::Chapter(v));
-            }
+            let v = Chapter::parser(&node)?;
+            contents.push(TableColumnContents::Chapter(v));
           }
           "Section" => {
-            if let Ok(v) = Section::parser(&node) {
-              contents.push(TableColumnContents::Section(v));
-            }
+            let v = Section::parser(&node)?;
+            contents.push(TableColumnContents::Section(v));
           }
           "Subsection" => {
-            if let Ok(v) = Subsection::parser(&node) {
-              contents.push(TableColumnContents::Subsection(v));
-            }
+            let v = Subsection::parser(&node)?;
+            contents.push(TableColumnContents::Subsection(v));
           }
           "Division" => {
-            if let Ok(v) = Division::parser(&node) {
-              contents.push(TableColumnContents::Division(v));
-            }
+            let v = Division::parser(&node)?;
+            contents.push(TableColumnContents::Division(v));
           }
           "Article" => {
-            if let Ok(v) = Article::parser(&node) {
-              contents.push(TableColumnContents::Article(v));
-            }
+            let v = Article::parser(&node)?;
+            contents.push(TableColumnContents::Article(v));
           }
           "Item" => {
-            if let Ok(v) = Item::parser(&node) {
-              contents.push(TableColumnContents::Item(v));
-            }
+            let v = Item::parser(&node)?;
+            contents.push(TableColumnContents::Item(v));
           }
           "Subitem1" => {
-            if let Ok(v) = Subitem1::parser(&node) {
-              contents.push(TableColumnContents::Subitem1(v));
-            }
+            let v = Subitem1::parser(&node)?;
+            contents.push(TableColumnContents::Subitem1(v));
           }
           "Subitem2" => {
-            if let Ok(v) = Subitem2::parser(&node) {
-              contents.push(TableColumnContents::Subitem2(v));
-            }
+            let v = Subitem2::parser(&node)?;
+            contents.push(TableColumnContents::Subitem2(v));
           }
           "Subitem3" => {
-            if let Ok(v) = Subitem3::parser(&node) {
-              contents.push(TableColumnContents::Subitem3(v));
-            }
+            let v = Subitem3::parser(&node)?;
+            contents.push(TableColumnContents::Subitem3(v));
           }
           "Subitem4" => {
-            if let Ok(v) = Subitem4::parser(&node) {
-              contents.push(TableColumnContents::Subitem4(v));
-            }
+            let v = Subitem4::parser(&node)?;
+            contents.push(TableColumnContents::Subitem4(v));
           }
           "Subitem5" => {
-            if let Ok(v) = Subitem5::parser(&node) {
-              contents.push(TableColumnContents::Subitem5(v));
-            }
+            let v = Subitem5::parser(&node)?;
+            contents.push(TableColumnContents::Subitem5(v));
           }
           "Subitem6" => {
-            if let Ok(v) = Subitem6::parser(&node) {
-              contents.push(TableColumnContents::Subitem6(v));
-            }
+            let v = Subitem6::parser(&node)?;
+            contents.push(TableColumnContents::Subitem6(v));
           }
           "Subitem7" => {
-            if let Ok(v) = Subitem7::parser(&node) {
-              contents.push(TableColumnContents::Subitem7(v));
-            }
+            let v = Subitem7::parser(&node)?;
+            contents.push(TableColumnContents::Subitem7(v));
           }
           "Subitem8" => {
-            if let Ok(v) = Subitem8::parser(&node) {
-              contents.push(TableColumnContents::Subitem8(v));
-            }
+            let v = Subitem8::parser(&node)?;
+            contents.push(TableColumnContents::Subitem8(v));
           }
           "Subitem9" => {
-            if let Ok(v) = Subitem9::parser(&node) {
-              contents.push(TableColumnContents::Subitem9(v));
-            }
+            let v = Subitem9::parser(&node)?;
+            contents.push(TableColumnContents::Subitem9(v));
           }
           "Subitem10" => {
-            if let Ok(v) = Subitem10::parser(&node) {
-              contents.push(TableColumnContents::Subitem10(v));
-            }
+            let v = Subitem10::parser(&node)?;
+            contents.push(TableColumnContents::Subitem10(v));
           }
           "FigStruct" => {
-            if let Ok(v) = FigStruct::parser(&node) {
-              contents.push(TableColumnContents::FigStruct(v));
-            }
+            let v = FigStruct::parser(&node)?;
+            contents.push(TableColumnContents::FigStruct(v));
           }
           "Remarks" => {
-            if let Ok(v) = Remarks::parser(&node) {
-              contents.push(TableColumnContents::Remarks(v));
-            }
+            let v = Remarks::parser(&node)?;
+            contents.push(TableColumnContents::Remarks(v));
           }
           "Sentence" => {
-            if let Ok(v) = Sentence::parser(&node) {
-              contents.push(TableColumnContents::Sentence(v));
-            }
+            let v = Sentence::parser(&node)?;
+            contents.push(TableColumnContents::Sentence(v));
           }
           "Column" => {
-            if let Ok(v) = Column::parser(&node) {
-              contents.push(TableColumnContents::Column(v));
-            }
+            let v = Column::parser(&node)?;
+            contents.push(TableColumnContents::Column(v));
           }
           "" => {
             if let Some(v) = node.text() {
               contents.push(TableColumnContents::String(v.to_string()));
             }
           }
-          _ => {}
+          s => return Err(Error::unexpected_tag(&node, s)),
         }
       }
       Ok(TableColumn {
@@ -255,7 +232,7 @@ impl Parser for TableColumn {
         valign,
       })
     } else {
-      Err(Error::Tag)
+      Err(Error::wrong_tag_name(node, "TableColumn"))
     }
   }
 }

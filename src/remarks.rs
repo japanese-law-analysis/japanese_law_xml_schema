@@ -21,30 +21,30 @@ impl Parser for Remarks {
       for node in node.children() {
         match node.tag_name().name() {
           "RemarksLabel" => {
-            if let Ok(l) = RemarksLabel::parser(&node) {
-              label_opt = Some(l);
-            }
+            let v = RemarksLabel::parser(&node)?;
+            label_opt = Some(v);
           }
           "Item" => {
-            if let Ok(item) = Item::parser(&node) {
-              children.push(RemarksContents::Item(item));
-            }
+            let v = Item::parser(&node)?;
+            children.push(RemarksContents::Item(v));
           }
           "Sentence" => {
-            if let Ok(sentence) = Sentence::parser(&node) {
-              children.push(RemarksContents::Sentence(sentence));
-            }
+            let v = Sentence::parser(&node)?;
+            children.push(RemarksContents::Sentence(v));
           }
-          _ => {}
+          s => return Err(Error::unexpected_tag(&node, s)),
         }
       }
       if let Some(label) = label_opt {
         Ok(Remarks { label, children })
       } else {
-        Err(Error::Tag)
+        Err(Error::MissingRequiredTag {
+          range: node.range(),
+          tag_name: "RemarksLabel".to_string(),
+        })
       }
     } else {
-      Err(Error::Tag)
+      Err(Error::wrong_tag_name(node, "Remarks"))
     }
   }
 }
@@ -58,14 +58,11 @@ pub struct RemarksLabel {
 impl Parser for RemarksLabel {
   fn parser(node: &Node) -> result::Result<Self> {
     if node.tag_name().name() == "RemarksLabel" {
-      let line_break = node
-        .attribute("LineBreak")
-        .and_then(|s| s.parse::<bool>().ok())
-        .unwrap_or(false);
+      let line_break = get_attribute_opt_with_parse(node, "LineBreak")?.unwrap_or(false);
       let text = Text::from_children(node.children());
       Ok(RemarksLabel { text, line_break })
     } else {
-      Err(Error::Tag)
+      Err(Error::wrong_tag_name(node, "RemarksLabel"))
     }
   }
 }

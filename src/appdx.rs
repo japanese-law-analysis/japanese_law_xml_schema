@@ -23,7 +23,7 @@ pub struct AppdxTable {
 impl Parser for AppdxTable {
   fn parser(node: &Node) -> result::Result<Self> {
     if node.tag_name().name() == "AppdxTable" {
-      let num = node.attribute("Num").and_then(|s| s.parse::<usize>().ok());
+      let num = get_attribute_opt_with_parse(node, "Num")?;
       let mut title = None;
       let mut related_article_num = None;
       let mut remarks = None;
@@ -31,27 +31,23 @@ impl Parser for AppdxTable {
       for node in node.children() {
         match node.tag_name().name() {
           "AppdxTableTitle" => {
-            if let Ok(v) = TextWithWritingMode::parser(&node) {
-              title = Some(v)
-            }
+            let v = TextWithWritingMode::parser(&node)?;
+            title = Some(v)
           }
           "RelatedArticleNum" => related_article_num = Some(Text::from_children(node.children())),
           "TableStruct" => {
-            if let Ok(v) = TableStruct::parser(&node) {
-              children.push(AppdxTableContents::TableStruct(v))
-            }
+            let v = TableStruct::parser(&node)?;
+            children.push(AppdxTableContents::TableStruct(v))
           }
           "Item" => {
-            if let Ok(v) = Item::parser(&node) {
-              children.push(AppdxTableContents::Item(v))
-            }
+            let v = Item::parser(&node)?;
+            children.push(AppdxTableContents::Item(v))
           }
           "Remarks" => {
-            if let Ok(v) = Remarks::parser(&node) {
-              remarks = Some(v)
-            }
+            let v = Remarks::parser(&node)?;
+            remarks = Some(v)
           }
-          _ => {}
+          s => return Err(Error::unexpected_tag(&node, s)),
         }
       }
       Ok(AppdxTable {
@@ -62,7 +58,7 @@ impl Parser for AppdxTable {
         num,
       })
     } else {
-      Err(Error::Tag)
+      Err(Error::wrong_tag_name(node, "AppdxTable"))
     }
   }
 }
@@ -85,7 +81,7 @@ pub struct AppdxNote {
 impl Parser for AppdxNote {
   fn parser(node: &Node) -> result::Result<Self> {
     if node.tag_name().name() == "AppdxNote" {
-      let num = node.attribute("Num").and_then(|s| s.parse::<usize>().ok());
+      let num = get_attribute_opt_with_parse(node, "Num")?;
       let mut title = None;
       let mut related_article_num = None;
       let mut remarks = None;
@@ -93,32 +89,27 @@ impl Parser for AppdxNote {
       for node in node.children() {
         match node.tag_name().name() {
           "AppdxNoteTitle" => {
-            if let Ok(v) = TextWithWritingMode::parser(&node) {
-              title = Some(v)
-            }
+            let v = TextWithWritingMode::parser(&node)?;
+            title = Some(v)
           }
           "RelatedArticleNum" => related_article_num = Some(Text::from_children(node.children())),
           "TableStruct" => {
-            if let Ok(v) = TableStruct::parser(&node) {
-              children.push(AppdxNoteContents::TableStruct(v))
-            }
+            let v = TableStruct::parser(&node)?;
+            children.push(AppdxNoteContents::TableStruct(v))
           }
           "FigStruct" => {
-            if let Ok(v) = FigStruct::parser(&node) {
-              children.push(AppdxNoteContents::FigStruct(v))
-            }
+            let v = FigStruct::parser(&node)?;
+            children.push(AppdxNoteContents::FigStruct(v))
           }
           "NoteStruct" => {
-            if let Ok(v) = NoteStruct::parser(&node) {
-              children.push(AppdxNoteContents::NoteStruct(v))
-            }
+            let v = NoteStruct::parser(&node)?;
+            children.push(AppdxNoteContents::NoteStruct(v))
           }
           "Remarks" => {
-            if let Ok(v) = Remarks::parser(&node) {
-              remarks = Some(v)
-            }
+            let v = Remarks::parser(&node)?;
+            remarks = Some(v)
           }
-          _ => {}
+          s => return Err(Error::unexpected_tag(&node, s)),
         }
       }
       Ok(AppdxNote {
@@ -129,7 +120,7 @@ impl Parser for AppdxNote {
         num,
       })
     } else {
-      Err(Error::Tag)
+      Err(Error::wrong_tag_name(node, "AppdxNote"))
     }
   }
 }
@@ -153,7 +144,7 @@ pub struct AppdxStyle {
 impl Parser for AppdxStyle {
   fn parser(node: &Node) -> result::Result<Self> {
     if node.tag_name().name() == "AppdxStyle" {
-      let num = node.attribute("Num").and_then(|s| s.parse::<usize>().ok());
+      let num = get_attribute_opt_with_parse(node, "Num")?;
       let mut title = None;
       let mut related_article_num = None;
       let mut remarks = None;
@@ -161,22 +152,19 @@ impl Parser for AppdxStyle {
       for node in node.children() {
         match node.tag_name().name() {
           "AppdxStyleTitle" => {
-            if let Ok(v) = TextWithWritingMode::parser(&node) {
-              title = Some(v)
-            }
+            let v = TextWithWritingMode::parser(&node)?;
+            title = Some(v)
           }
           "RelatedArticleNum" => related_article_num = Some(Text::from_children(node.children())),
           "StyleStruct" => {
-            if let Ok(v) = StyleStruct::parser(&node) {
-              children.push(v)
-            }
+            let v = StyleStruct::parser(&node)?;
+            children.push(v)
           }
           "Remarks" => {
-            if let Ok(v) = Remarks::parser(&node) {
-              remarks = Some(v)
-            }
+            let v = Remarks::parser(&node)?;
+            remarks = Some(v)
           }
-          _ => {}
+          s => return Err(Error::unexpected_tag(&node, s)),
         }
       }
       Ok(AppdxStyle {
@@ -187,7 +175,7 @@ impl Parser for AppdxStyle {
         num,
       })
     } else {
-      Err(Error::Tag)
+      Err(Error::wrong_tag_name(node, "AppdxStyle"))
     }
   }
 }
@@ -204,7 +192,7 @@ pub struct AppdxFormat {
 impl Parser for AppdxFormat {
   fn parser(node: &Node) -> result::Result<Self> {
     if node.tag_name().name() == "AppdxFormat" {
-      let num = node.attribute("Num").and_then(|s| s.parse::<usize>().ok());
+      let num = get_attribute_opt_with_parse(node, "Num")?;
       let mut title = None;
       let mut related_article_num = None;
       let mut remarks = None;
@@ -212,22 +200,19 @@ impl Parser for AppdxFormat {
       for node in node.children() {
         match node.tag_name().name() {
           "AppdxFormatTitle" => {
-            if let Ok(v) = TextWithWritingMode::parser(&node) {
-              title = Some(v)
-            }
+            let v = TextWithWritingMode::parser(&node)?;
+            title = Some(v)
           }
           "RelatedArticleNum" => related_article_num = Some(Text::from_children(node.children())),
           "FormatStruct" => {
-            if let Ok(v) = FormatStruct::parser(&node) {
-              children.push(v)
-            }
+            let v = FormatStruct::parser(&node)?;
+            children.push(v)
           }
           "Remarks" => {
-            if let Ok(v) = Remarks::parser(&node) {
-              remarks = Some(v)
-            }
+            let v = Remarks::parser(&node)?;
+            remarks = Some(v)
           }
-          _ => {}
+          s => return Err(Error::unexpected_tag(&node, s)),
         }
       }
       Ok(AppdxFormat {
@@ -238,7 +223,7 @@ impl Parser for AppdxFormat {
         num,
       })
     } else {
-      Err(Error::Tag)
+      Err(Error::wrong_tag_name(node, "AppdxFormat"))
     }
   }
 }
@@ -263,16 +248,14 @@ impl Parser for Appdx {
           "ArithFormulaNum" => arith_formula_num = Some(Text::from_children(node.children())),
           "RelatedArticleNum" => related_article_num = Some(Text::from_children(node.children())),
           "ArithFormula" => {
-            if let Ok(v) = ArithFormula::parser(&node) {
-              arith_formula.push(v)
-            }
+            let v = ArithFormula::parser(&node)?;
+            arith_formula.push(v)
           }
           "Remarks" => {
-            if let Ok(v) = Remarks::parser(&node) {
-              remarks = Some(v)
-            }
+            let v = Remarks::parser(&node)?;
+            remarks = Some(v)
           }
-          _ => {}
+          s => return Err(Error::unexpected_tag(&node, s)),
         }
       }
       Ok(Appdx {
@@ -282,7 +265,7 @@ impl Parser for Appdx {
         remarks,
       })
     } else {
-      Err(Error::Tag)
+      Err(Error::wrong_tag_name(node, "Appdx"))
     }
   }
 }
@@ -298,29 +281,26 @@ pub struct AppdxFig {
 impl Parser for AppdxFig {
   fn parser(node: &Node) -> result::Result<Self> {
     if node.tag_name().name() == "AppdxFig" {
-      let num = node.attribute("Num").and_then(|s| s.parse::<usize>().ok());
+      let num = get_attribute_opt_with_parse(node, "Num")?;
       let mut title = None;
       let mut related_article_num = None;
       let mut children = Vec::new();
       for node in node.children() {
         match node.tag_name().name() {
           "AppdxFigTitle" => {
-            if let Ok(v) = TextWithWritingMode::parser(&node) {
-              title = Some(v)
-            }
+            let v = TextWithWritingMode::parser(&node)?;
+            title = Some(v)
           }
           "RelatedArticleNum" => related_article_num = Some(Text::from_children(node.children())),
           "TableStruct" => {
-            if let Ok(v) = TableStruct::parser(&node) {
-              children.push(AppdxFigContents::TableStruct(v))
-            }
+            let v = TableStruct::parser(&node)?;
+            children.push(AppdxFigContents::TableStruct(v))
           }
           "FigStruct" => {
-            if let Ok(v) = FigStruct::parser(&node) {
-              children.push(AppdxFigContents::FigStruct(v))
-            }
+            let v = FigStruct::parser(&node)?;
+            children.push(AppdxFigContents::FigStruct(v))
           }
-          _ => {}
+          s => return Err(Error::unexpected_tag(&node, s)),
         }
       }
       Ok(AppdxFig {
@@ -330,7 +310,7 @@ impl Parser for AppdxFig {
         num,
       })
     } else {
-      Err(Error::Tag)
+      Err(Error::wrong_tag_name(node, "AppdxFig"))
     }
   }
 }

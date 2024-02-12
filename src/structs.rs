@@ -24,7 +24,7 @@ impl Parser for Struct {
       "FigStruct" => FigStruct::parser(node).map(Struct::FigStruct),
       "StyleStruct" => StyleStruct::parser(node).map(Struct::StyleStruct),
       "List" => list::List::parser(node).map(Struct::List),
-      _ => Err(Error::Tag),
+      _ => Err(Error::missing_required_tag(&node.range(), "Struct")),
     }
   }
 }
@@ -71,11 +71,10 @@ impl Parser for NoteStruct {
             }
           }
           "Note" => {
-            if let Ok(n) = Note::parser(&node) {
-              note = Some(n);
-            }
+            let v = Note::parser(&node)?;
+            note = Some(v);
           }
-          _ => {}
+          s => return Err(Error::unexpected_tag(&node, s)),
         }
       }
       if let Some(note) = note {
@@ -86,10 +85,13 @@ impl Parser for NoteStruct {
           note_remarks,
         })
       } else {
-        Err(Error::Tag)
+        Err(Error::MissingRequiredTag {
+          range: node.range(),
+          tag_name: "Note".to_string(),
+        })
       }
     } else {
-      Err(Error::Tag)
+      Err(Error::wrong_tag_name(node, "NoteStruct"))
     }
   }
 }
@@ -124,11 +126,10 @@ impl Parser for StyleStruct {
             }
           }
           "Style" => {
-            if let Ok(s) = Style::parser(&node) {
-              style = Some(s);
-            }
+            let v = Style::parser(&node)?;
+            style = Some(v);
           }
-          _ => {}
+          s => return Err(Error::unexpected_tag(&node, s)),
         }
       }
       if let Some(style) = style {
@@ -139,10 +140,13 @@ impl Parser for StyleStruct {
           style_remarks,
         })
       } else {
-        Err(Error::Tag)
+        Err(Error::MissingRequiredTag {
+          range: node.range(),
+          tag_name: "Style".to_string(),
+        })
       }
     } else {
-      Err(Error::Tag)
+      Err(Error::wrong_tag_name(node, "StyleStruct"))
     }
   }
 }
@@ -177,11 +181,10 @@ impl Parser for FormatStruct {
             }
           }
           "Format" => {
-            if let Ok(f) = Format::parser(&node) {
-              format = Some(f);
-            }
+            let v = Format::parser(&node)?;
+            format = Some(v);
           }
-          _ => {}
+          s => return Err(Error::unexpected_tag(&node, s)),
         }
       }
       if let Some(format) = format {
@@ -192,10 +195,13 @@ impl Parser for FormatStruct {
           format_remarks,
         })
       } else {
-        Err(Error::Tag)
+        Err(Error::MissingRequiredTag {
+          range: node.range(),
+          tag_name: "Format".to_string(),
+        })
       }
     } else {
-      Err(Error::Tag)
+      Err(Error::wrong_tag_name(node, "FormatStruct"))
     }
   }
 }
@@ -229,12 +235,11 @@ impl Parser for FigStruct {
               }
             }
           }
-          "FIg" => {
-            if let Ok(f) = Fig::parser(&node) {
-              fig = Some(f);
-            }
+          "Fig" => {
+            let v = Fig::parser(&node)?;
+            fig = Some(v);
           }
-          _ => {}
+          s => return Err(Error::unexpected_tag(&node, s)),
         }
       }
       if let Some(fig) = fig {
@@ -245,10 +250,13 @@ impl Parser for FigStruct {
           fig_remarks,
         })
       } else {
-        Err(Error::Tag)
+        Err(Error::MissingRequiredTag {
+          range: node.range(),
+          tag_name: "Fig".to_string(),
+        })
       }
     } else {
-      Err(Error::Tag)
+      Err(Error::wrong_tag_name(node, "FigStruct"))
     }
   }
 }
@@ -271,11 +279,8 @@ impl Parser for TableStruct {
       for node in node.children() {
         match node.tag_name().name() {
           "TableStructTitle" => {
-            if let Ok(t) = TextWithWritingMode::parser(&node) {
-              title = Some(t);
-            } else {
-              return Err(Error::Tag);
-            }
+            let v = TextWithWritingMode::parser(&node)?;
+            title = Some(v);
           }
           "Remarks" => {
             if let Ok(r) = Remarks::parser(&node) {
@@ -287,11 +292,10 @@ impl Parser for TableStruct {
             }
           }
           "Table" => {
-            if let Ok(t) = Table::parser(&node) {
-              table = Some(t);
-            }
+            let v = Table::parser(&node)?;
+            table = Some(v);
           }
-          _ => {}
+          s => return Err(Error::unexpected_tag(&node, s)),
         }
       }
       if let Some(table) = table {
@@ -302,10 +306,13 @@ impl Parser for TableStruct {
           table_remarks,
         })
       } else {
-        Err(Error::Tag)
+        Err(Error::MissingRequiredTag {
+          range: node.range(),
+          tag_name: "Table".to_string(),
+        })
       }
     } else {
-      Err(Error::Tag)
+      Err(Error::wrong_tag_name(node, "TableStruct"))
     }
   }
 }

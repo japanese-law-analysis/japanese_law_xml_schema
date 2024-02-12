@@ -14,7 +14,7 @@ pub struct Text {
 #[allow(clippy::new_without_default)]
 impl Text {
   /// テキストの初期値を生成する
-  pub fn new() -> Self {
+  pub(crate) fn new() -> Self {
     Text {
       contents: Vec::new(),
     }
@@ -173,7 +173,10 @@ impl Parser for TextWithWritingMode {
         contents: text.contents,
         writing_mode: WritingMode::Horizontal,
       }),
-      _ => Err(Error::Attribute),
+      _ => Ok(TextWithWritingMode {
+        contents: text.contents,
+        writing_mode: WritingMode::Vertical,
+      }),
     }
   }
 }
@@ -198,7 +201,7 @@ pub struct Ruby {
 }
 
 impl Ruby {
-  pub fn new(text: &Text, ruby: &str) -> Self {
+  fn new(text: &Text, ruby: &str) -> Self {
     Ruby {
       text: text.clone(),
       ruby: ruby.to_string(),
@@ -228,13 +231,10 @@ impl Parser for Ruby {
           text.add_text(t);
         }
       }
-      if let Some(r) = ruby {
-        Ok(Ruby::new(&text, r))
-      } else {
-        Err(Error::Tag)
-      }
+      let r = ruby.unwrap_or_default();
+      Ok(Ruby::new(&text, r))
     } else {
-      Err(Error::Tag)
+      Err(Error::wrong_tag_name(node, "Ruby"))
     }
   }
 }
@@ -243,14 +243,6 @@ impl Parser for Ruby {
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct Sup {
   text: String,
-}
-
-impl Sup {
-  pub fn new(text: &str) -> Self {
-    Sup {
-      text: text.to_string(),
-    }
-  }
 }
 
 impl ToHtml for Sup {
@@ -262,15 +254,16 @@ impl ToHtml for Sup {
 impl Parser for Sup {
   fn parser(node: &Node) -> result::Result<Self> {
     if node.tag_name().name() == "Sup" {
-      if let Some(text) = node.children().next().and_then(|n| n.text()) {
-        Ok(Sup {
-          text: text.to_string(),
-        })
-      } else {
-        Err(Error::Tag)
-      }
+      let text = node
+        .children()
+        .next()
+        .and_then(|n| n.text())
+        .unwrap_or_default();
+      Ok(Sup {
+        text: text.to_string(),
+      })
     } else {
-      Err(Error::Tag)
+      Err(Error::wrong_tag_name(node, "Sup"))
     }
   }
 }
@@ -279,14 +272,6 @@ impl Parser for Sup {
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct Sub {
   text: String,
-}
-
-impl Sub {
-  pub fn new(text: &str) -> Self {
-    Sub {
-      text: text.to_string(),
-    }
-  }
 }
 
 impl ToHtml for Sub {
@@ -298,15 +283,16 @@ impl ToHtml for Sub {
 impl Parser for Sub {
   fn parser(node: &Node) -> result::Result<Self> {
     if node.tag_name().name() == "Sub" {
-      if let Some(text) = node.children().next().and_then(|n| n.text()) {
-        Ok(Sub {
-          text: text.to_string(),
-        })
-      } else {
-        Err(Error::Tag)
-      }
+      let text = node
+        .children()
+        .next()
+        .and_then(|n| n.text())
+        .unwrap_or_default();
+      Ok(Sub {
+        text: text.to_string(),
+      })
     } else {
-      Err(Error::Tag)
+      Err(Error::wrong_tag_name(node, "Sub"))
     }
   }
 }

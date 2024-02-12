@@ -23,46 +23,46 @@ impl ToHtml for Line {
 impl Parser for Line {
   fn parser(node: &Node) -> result::Result<Self> {
     if node.tag_name().name() == "Line" {
-      let style = LineStyle::from_attribute(node.attribute("Style")).ok_or(Error::Attribute)?;
+      let style =
+        LineStyle::from_attribute(node.attribute("Style")).ok_or(Error::AttributeParseError {
+          range: node.range(),
+          tag_name: "Line".to_string(),
+          attribute_name: "Style".to_string(),
+        })?;
       let mut contents = Vec::new();
       for node in node.children() {
         match node.tag_name().name() {
           "QuoteStruct" => {
-            if let Ok(v) = QuoteStruct::parser(&node) {
-              contents.push(LineContents::QuoteStruct(v))
-            }
+            let v = QuoteStruct::parser(&node)?;
+            contents.push(LineContents::QuoteStruct(v))
           }
           "ArithFormula" => {
-            if let Ok(v) = ArithFormula::parser(&node) {
-              contents.push(LineContents::ArithFormula(v))
-            }
+            let v = ArithFormula::parser(&node)?;
+            contents.push(LineContents::ArithFormula(v))
           }
           "Ruby" => {
-            if let Ok(v) = Ruby::parser(&node) {
-              contents.push(LineContents::Ruby(v))
-            }
+            let v = Ruby::parser(&node)?;
+            contents.push(LineContents::Ruby(v))
           }
           "Sup" => {
-            if let Ok(v) = Sup::parser(&node) {
-              contents.push(LineContents::Sup(v))
-            }
+            let v = Sup::parser(&node)?;
+            contents.push(LineContents::Sup(v))
           }
           "Sub" => {
-            if let Ok(v) = Sub::parser(&node) {
-              contents.push(LineContents::Sub(v))
-            }
+            let v = Sub::parser(&node)?;
+            contents.push(LineContents::Sub(v))
           }
           "" => {
             if let Some(v) = node.text() {
               contents.push(LineContents::String(v.to_string()));
             }
           }
-          _ => {}
+          s => return Err(Error::unexpected_tag(&node, s)),
         }
       }
       Ok(Line { contents, style })
     } else {
-      Err(Error::Tag)
+      Err(Error::wrong_tag_name(node, "Line"))
     }
   }
 }
