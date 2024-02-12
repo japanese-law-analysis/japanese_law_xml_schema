@@ -10,10 +10,10 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct Class {
-  class_title: Option<Text>,
-  class_sentence: SentenceOrColumnOrTable,
-  children: Vec<Item>,
-  num: String,
+  pub class_title: Option<Text>,
+  pub class_sentence: SentenceOrColumnOrTable,
+  pub children: Vec<Item>,
+  pub num: String,
 }
 
 impl Parser for Class {
@@ -106,8 +106,8 @@ impl SentenceOrColumnOrTable {
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct Caption {
-  text: Text,
-  common_caption: Option<bool>,
+  pub text: Text,
+  pub common_caption: Option<bool>,
 }
 
 impl Caption {
@@ -129,10 +129,10 @@ impl Parser for Caption {
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct Column {
-  sentence: Vec<Sentence>,
-  num: Option<usize>,
-  line_break: bool,
-  align: Option<Align>,
+  pub sentence: Vec<Sentence>,
+  pub num: Option<usize>,
+  pub line_break: bool,
+  pub align: Option<Align>,
 }
 
 impl Parser for Column {

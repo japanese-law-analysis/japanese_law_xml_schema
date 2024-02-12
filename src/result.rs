@@ -1,3 +1,5 @@
+//! エラーハンドリング
+
 use std::ops::Range;
 use thiserror::Error;
 

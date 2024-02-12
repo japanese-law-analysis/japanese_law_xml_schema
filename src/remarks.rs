@@ -9,8 +9,8 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct Remarks {
-  label: RemarksLabel,
-  children: Vec<RemarksContents>,
+  pub label: RemarksLabel,
+  pub children: Vec<RemarksContents>,
 }
 
 impl Parser for Remarks {
@@ -51,8 +51,8 @@ impl Parser for Remarks {
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct RemarksLabel {
-  text: Text,
-  line_break: bool,
+  pub text: Text,
+  pub line_break: bool,
 }
 
 impl Parser for RemarksLabel {

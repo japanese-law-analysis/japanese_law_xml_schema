@@ -1,4 +1,4 @@
-//! 列挙に関する
+//! 列挙
 
 use crate::class::*;
 use crate::parser::*;
@@ -11,8 +11,8 @@ use serde::{Deserialize, Serialize};
 /// 列挙
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct List {
-  sentence: Vec<ListSentence>,
-  children: Vec<Sublist1>,
+  pub sentence: Vec<ListSentence>,
+  pub children: Vec<Sublist1>,
 }
 
 impl List {
@@ -64,8 +64,8 @@ pub enum ListSentence {
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct Sublist1 {
-  sentence: Vec<ListSentence>,
-  children: Vec<Sublist2>,
+  pub sentence: Vec<ListSentence>,
+  pub children: Vec<Sublist2>,
 }
 
 impl Sublist1 {
@@ -111,8 +111,8 @@ impl Parser for Sublist1 {
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct Sublist2 {
-  sentence: Vec<ListSentence>,
-  children: Vec<Sublist3>,
+  pub sentence: Vec<ListSentence>,
+  pub children: Vec<Sublist3>,
 }
 
 impl Sublist2 {
@@ -158,7 +158,7 @@ impl Parser for Sublist2 {
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct Sublist3 {
-  sentence: Vec<ListSentence>,
+  pub sentence: Vec<ListSentence>,
 }
 
 impl Sublist3 {

@@ -1,3 +1,5 @@
+//! 法律本体
+
 use crate::appdx::*;
 use crate::article::*;
 use crate::list::*;
@@ -19,23 +21,23 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct Law {
   /// 年号
-  era: Era,
+  pub era: Era,
   /// 制定年
-  year: usize,
+  pub year: usize,
   /// その年で制定された法令の通し番号
-  num: usize,
+  pub num: usize,
   /// 公布月
-  promulgate_month: Option<usize>,
+  pub promulgate_month: Option<usize>,
   /// 公布日
-  promulgate_day: Option<usize>,
+  pub promulgate_day: Option<usize>,
   /// 法令の種類
-  law_type: LawType,
+  pub law_type: LawType,
   /// 言語
-  lang: Lang,
+  pub lang: Lang,
   /// 法令番号
-  law_num: String,
+  pub law_num: String,
   /// 法令の中身
-  law_body: LawBody,
+  pub law_body: LawBody,
 }
 
 impl Parser for Law {
@@ -166,31 +168,31 @@ pub enum Lang {
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct LawBody {
   /// 法令名
-  law_title: Option<LawTitle>,
+  pub law_title: Option<LawTitle>,
   /// 制定にかかる声明
-  enact_statement: Vec<Text>,
+  pub enact_statement: Vec<Text>,
   /// 主題
-  subject: Option<String>,
+  pub subject: Option<String>,
   /// 目次
-  toc: Option<TOC>,
+  pub toc: Option<TOC>,
   /// 前文
-  preamble: Option<Preamble>,
+  pub preamble: Option<Preamble>,
   /// 本文
-  main_provision: MainProvision,
+  pub main_provision: MainProvision,
   /// 附則
-  suppl_provision: Vec<SupplProvision>,
+  pub suppl_provision: Vec<SupplProvision>,
   /// 付録表
-  appdx_table: Vec<AppdxTable>,
+  pub appdx_table: Vec<AppdxTable>,
   /// 付録記載
-  appdx_note: Vec<AppdxNote>,
+  pub appdx_note: Vec<AppdxNote>,
   /// 付録様式
-  appdx_style: Vec<AppdxStyle>,
+  pub appdx_style: Vec<AppdxStyle>,
   /// 付録
-  appdx: Vec<Appdx>,
+  pub appdx: Vec<Appdx>,
   /// 付録図
-  appdx_fig: Vec<AppdxFig>,
+  pub appdx_fig: Vec<AppdxFig>,
   /// 付録書式
-  appdx_format: Vec<AppdxFormat>,
+  pub appdx_format: Vec<AppdxFormat>,
 }
 
 impl Parser for LawBody {
@@ -288,13 +290,13 @@ impl Parser for LawBody {
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct LawTitle {
   /// ひらがなでの読み
-  kana: Option<String>,
+  pub kana: Option<String>,
   /// 略称
-  abbrev: Option<String>,
+  pub abbrev: Option<String>,
   /// 略称のひらがな読み
-  abbrev_kana: Option<String>,
+  pub abbrev_kana: Option<String>,
   /// 法令名
-  text: Text,
+  pub text: Text,
 }
 
 impl Parser for LawTitle {
@@ -319,7 +321,7 @@ impl Parser for LawTitle {
 /// 前文
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct Preamble {
-  children: Vec<Paragraph>,
+  pub children: Vec<Paragraph>,
 }
 
 impl Parser for Preamble {
@@ -343,8 +345,8 @@ impl Parser for Preamble {
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct MainProvision {
   /// 本文の要素
-  children: Vec<MainProvisionContents>,
-  extract: Option<bool>,
+  pub children: Vec<MainProvisionContents>,
+  pub extract: Option<bool>,
 }
 
 impl Parser for MainProvision {
@@ -402,8 +404,8 @@ pub enum MainProvisionContents {
 /// 改正
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct AmendProvision {
-  sentence: Option<Sentence>,
-  new_provision: Vec<NewProvision>,
+  pub sentence: Option<Sentence>,
+  pub new_provision: Vec<NewProvision>,
 }
 
 impl Parser for AmendProvision {

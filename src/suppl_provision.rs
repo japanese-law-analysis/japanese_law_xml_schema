@@ -14,11 +14,11 @@ use serde::{Deserialize, Serialize};
 /// 附則
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct SupplProvision {
-  label: Text,
-  children: Vec<SupplProvisionChildrenElement>,
-  suppl_provision_type: Option<SupplProvisionType>,
-  amend_law_num: Option<String>,
-  extract: Option<bool>,
+  pub label: Text,
+  pub children: Vec<SupplProvisionChildrenElement>,
+  pub suppl_provision_type: Option<SupplProvisionType>,
+  pub amend_law_num: Option<String>,
+  pub extract: Option<bool>,
 }
 
 impl Parser for SupplProvision {
@@ -110,10 +110,10 @@ pub enum SupplProvisionType {
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct SupplProvisionAppdxTable {
-  title: TextWithWritingMode,
-  related_article_num: Option<Text>,
-  table_struct: Vec<TableStruct>,
-  num: Option<usize>,
+  pub title: TextWithWritingMode,
+  pub related_article_num: Option<Text>,
+  pub table_struct: Vec<TableStruct>,
+  pub num: Option<usize>,
 }
 
 impl Parser for SupplProvisionAppdxTable {
@@ -160,10 +160,10 @@ impl Parser for SupplProvisionAppdxTable {
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct SupplProvisionAppdxStyle {
-  title: text::TextWithWritingMode,
-  related_article_num: Option<Text>,
-  style_struct: Vec<StyleStruct>,
-  num: Option<usize>,
+  pub title: text::TextWithWritingMode,
+  pub related_article_num: Option<Text>,
+  pub style_struct: Vec<StyleStruct>,
+  pub num: Option<usize>,
 }
 
 impl Parser for SupplProvisionAppdxStyle {
@@ -210,10 +210,10 @@ impl Parser for SupplProvisionAppdxStyle {
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct SupplProvisionAppdx {
-  arith_formula_num: Option<Text>,
-  related_article_num: Option<Text>,
-  arith_formula: Vec<ArithFormula>,
-  num: Option<usize>,
+  pub arith_formula_num: Option<Text>,
+  pub related_article_num: Option<Text>,
+  pub arith_formula: Vec<ArithFormula>,
+  pub num: Option<usize>,
 }
 
 impl Parser for SupplProvisionAppdx {

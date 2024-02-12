@@ -14,17 +14,17 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct Paragraph {
-  caption: Option<Caption>,
-  paragraph_num: Text,
-  amend_provision: Vec<law::AmendProvision>,
-  class: Vec<Class>,
-  sentence: Vec<Sentence>,
-  struct_list: Vec<Struct>,
-  children: Vec<Item>,
-  num: usize,
-  old_style: bool,
-  old_num: bool,
-  hide: bool,
+  pub caption: Option<Caption>,
+  pub paragraph_num: Text,
+  pub amend_provision: Vec<law::AmendProvision>,
+  pub class: Vec<Class>,
+  pub sentence: Vec<Sentence>,
+  pub struct_list: Vec<Struct>,
+  pub children: Vec<Item>,
+  pub num: usize,
+  pub old_style: bool,
+  pub old_num: bool,
+  pub hide: bool,
 }
 
 impl Parser for Paragraph {
@@ -104,13 +104,13 @@ impl Parser for Paragraph {
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct Item {
-  title: Option<Text>,
-  sentence: SentenceOrColumnOrTable,
-  children: Vec<Subitem1>,
-  struct_list: Vec<Struct>,
-  num: String,
-  delete: bool,
-  hide: bool,
+  pub title: Option<Text>,
+  pub sentence: SentenceOrColumnOrTable,
+  pub children: Vec<Subitem1>,
+  pub struct_list: Vec<Struct>,
+  pub num: String,
+  pub delete: bool,
+  pub hide: bool,
 }
 
 impl Item {
@@ -201,13 +201,13 @@ impl Parser for Item {
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct Subitem1 {
-  title: Option<text::Text>,
-  sentence: SentenceOrColumnOrTable,
-  children: Vec<Subitem2>,
-  struct_list: Vec<Struct>,
-  num: String,
-  delete: bool,
-  hide: bool,
+  pub title: Option<text::Text>,
+  pub sentence: SentenceOrColumnOrTable,
+  pub children: Vec<Subitem2>,
+  pub struct_list: Vec<Struct>,
+  pub num: String,
+  pub delete: bool,
+  pub hide: bool,
 }
 
 impl Subitem1 {
@@ -298,13 +298,13 @@ impl Parser for Subitem1 {
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct Subitem2 {
-  title: Option<text::Text>,
-  sentence: SentenceOrColumnOrTable,
-  children: Vec<Subitem3>,
-  struct_list: Vec<Struct>,
-  num: String,
-  delete: bool,
-  hide: bool,
+  pub title: Option<text::Text>,
+  pub sentence: SentenceOrColumnOrTable,
+  pub children: Vec<Subitem3>,
+  pub struct_list: Vec<Struct>,
+  pub num: String,
+  pub delete: bool,
+  pub hide: bool,
 }
 
 impl Subitem2 {
@@ -395,13 +395,13 @@ impl Parser for Subitem2 {
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct Subitem3 {
-  title: Option<text::Text>,
-  sentence: SentenceOrColumnOrTable,
-  children: Vec<Subitem4>,
-  struct_list: Vec<Struct>,
-  num: String,
-  delete: bool,
-  hide: bool,
+  pub title: Option<text::Text>,
+  pub sentence: SentenceOrColumnOrTable,
+  pub children: Vec<Subitem4>,
+  pub struct_list: Vec<Struct>,
+  pub num: String,
+  pub delete: bool,
+  pub hide: bool,
 }
 
 impl Subitem3 {
@@ -492,13 +492,13 @@ impl Parser for Subitem3 {
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct Subitem4 {
-  title: Option<text::Text>,
-  sentence: SentenceOrColumnOrTable,
-  children: Vec<Subitem5>,
-  struct_list: Vec<Struct>,
-  num: String,
-  delete: bool,
-  hide: bool,
+  pub title: Option<text::Text>,
+  pub sentence: SentenceOrColumnOrTable,
+  pub children: Vec<Subitem5>,
+  pub struct_list: Vec<Struct>,
+  pub num: String,
+  pub delete: bool,
+  pub hide: bool,
 }
 
 impl Subitem4 {
@@ -589,13 +589,13 @@ impl Parser for Subitem4 {
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct Subitem5 {
-  title: Option<text::Text>,
-  sentence: SentenceOrColumnOrTable,
-  children: Vec<Subitem6>,
-  struct_list: Vec<Struct>,
-  num: String,
-  delete: bool,
-  hide: bool,
+  pub title: Option<text::Text>,
+  pub sentence: SentenceOrColumnOrTable,
+  pub children: Vec<Subitem6>,
+  pub struct_list: Vec<Struct>,
+  pub num: String,
+  pub delete: bool,
+  pub hide: bool,
 }
 
 impl Subitem5 {
@@ -686,13 +686,13 @@ impl Parser for Subitem5 {
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct Subitem6 {
-  title: Option<text::Text>,
-  sentence: SentenceOrColumnOrTable,
-  children: Vec<Subitem7>,
-  struct_list: Vec<Struct>,
-  num: String,
-  delete: bool,
-  hide: bool,
+  pub title: Option<text::Text>,
+  pub sentence: SentenceOrColumnOrTable,
+  pub children: Vec<Subitem7>,
+  pub struct_list: Vec<Struct>,
+  pub num: String,
+  pub delete: bool,
+  pub hide: bool,
 }
 
 impl Subitem6 {
@@ -783,13 +783,13 @@ impl Parser for Subitem6 {
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct Subitem7 {
-  title: Option<text::Text>,
-  sentence: SentenceOrColumnOrTable,
-  children: Vec<Subitem8>,
-  struct_list: Vec<Struct>,
-  num: String,
-  delete: bool,
-  hide: bool,
+  pub title: Option<text::Text>,
+  pub sentence: SentenceOrColumnOrTable,
+  pub children: Vec<Subitem8>,
+  pub struct_list: Vec<Struct>,
+  pub num: String,
+  pub delete: bool,
+  pub hide: bool,
 }
 
 impl Subitem7 {
@@ -880,13 +880,13 @@ impl Parser for Subitem7 {
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct Subitem8 {
-  title: Option<text::Text>,
-  sentence: SentenceOrColumnOrTable,
-  children: Vec<Subitem9>,
-  struct_list: Vec<Struct>,
-  num: String,
-  delete: bool,
-  hide: bool,
+  pub title: Option<text::Text>,
+  pub sentence: SentenceOrColumnOrTable,
+  pub children: Vec<Subitem9>,
+  pub struct_list: Vec<Struct>,
+  pub num: String,
+  pub delete: bool,
+  pub hide: bool,
 }
 
 impl Subitem8 {
@@ -977,13 +977,13 @@ impl Parser for Subitem8 {
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct Subitem9 {
-  title: Option<text::Text>,
-  sentence: SentenceOrColumnOrTable,
-  children: Vec<Subitem10>,
-  struct_list: Vec<Struct>,
-  num: String,
-  delete: bool,
-  hide: bool,
+  pub title: Option<text::Text>,
+  pub sentence: SentenceOrColumnOrTable,
+  pub children: Vec<Subitem10>,
+  pub struct_list: Vec<Struct>,
+  pub num: String,
+  pub delete: bool,
+  pub hide: bool,
 }
 
 impl Subitem9 {
@@ -1074,12 +1074,12 @@ impl Parser for Subitem9 {
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct Subitem10 {
-  title: Option<text::Text>,
-  sentence: SentenceOrColumnOrTable,
-  struct_list: Vec<Struct>,
-  num: String,
-  delete: bool,
-  hide: bool,
+  pub title: Option<text::Text>,
+  pub sentence: SentenceOrColumnOrTable,
+  pub struct_list: Vec<Struct>,
+  pub num: String,
+  pub delete: bool,
+  pub hide: bool,
 }
 
 impl Subitem10 {

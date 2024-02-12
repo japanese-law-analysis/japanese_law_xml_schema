@@ -14,9 +14,9 @@ use roxmltree::Node;
 use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct Table {
-  table_header_row: Vec<TableHeaderRow>,
-  table_row: Vec<TableRow>,
-  writing_mode: text::WritingMode,
+  pub table_header_row: Vec<TableHeaderRow>,
+  pub table_row: Vec<TableRow>,
+  pub writing_mode: text::WritingMode,
 }
 
 impl Parser for Table {
@@ -55,7 +55,7 @@ impl Parser for Table {
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct TableHeaderRow {
-  columns: Vec<Text>,
+  pub columns: Vec<Text>,
 }
 
 impl Parser for TableHeaderRow {
@@ -77,7 +77,7 @@ impl Parser for TableHeaderRow {
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct TableRow {
-  columns: Vec<TableColumn>,
+  pub columns: Vec<TableColumn>,
 }
 
 impl Parser for TableRow {
@@ -99,15 +99,15 @@ impl Parser for TableRow {
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct TableColumn {
-  contents: Vec<TableColumnContents>,
-  border_top: LineStyle,
-  border_bottom: LineStyle,
-  border_left: LineStyle,
-  border_right: LineStyle,
-  rowspan: Option<String>,
-  colspan: Option<String>,
-  align: Option<Align>,
-  valign: Option<Position>,
+  pub contents: Vec<TableColumnContents>,
+  pub border_top: LineStyle,
+  pub border_bottom: LineStyle,
+  pub border_left: LineStyle,
+  pub border_right: LineStyle,
+  pub rowspan: Option<String>,
+  pub colspan: Option<String>,
+  pub align: Option<Align>,
+  pub valign: Option<Position>,
 }
 
 impl Parser for TableColumn {

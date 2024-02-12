@@ -1,3 +1,5 @@
+//! 構造体一般
+
 use crate::contents::*;
 use crate::fig::*;
 use crate::parser::*;
@@ -32,7 +34,7 @@ impl Parser for Struct {
 /// 引用
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct QuoteStruct {
-  contentes: contents::Contents,
+  pub contentes: contents::Contents,
 }
 
 impl Parser for QuoteStruct {
@@ -43,10 +45,10 @@ impl Parser for QuoteStruct {
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct NoteStruct {
-  title: Option<Text>,
-  title_remarks: Vec<Remarks>,
-  note: contents::Note,
-  note_remarks: Vec<Remarks>,
+  pub title: Option<Text>,
+  pub title_remarks: Vec<Remarks>,
+  pub note: contents::Note,
+  pub note_remarks: Vec<Remarks>,
 }
 
 impl Parser for NoteStruct {
@@ -98,10 +100,10 @@ impl Parser for NoteStruct {
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct StyleStruct {
-  title: Option<Text>,
-  title_remarks: Vec<Remarks>,
-  style: Style,
-  style_remarks: Vec<Remarks>,
+  pub title: Option<Text>,
+  pub title_remarks: Vec<Remarks>,
+  pub style: Style,
+  pub style_remarks: Vec<Remarks>,
 }
 
 impl Parser for StyleStruct {
@@ -208,10 +210,10 @@ impl Parser for FormatStruct {
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct FigStruct {
-  title: Option<Text>,
-  title_remarks: Vec<Remarks>,
-  fig: Fig,
-  fig_remarks: Vec<Remarks>,
+  pub title: Option<Text>,
+  pub title_remarks: Vec<Remarks>,
+  pub fig: Fig,
+  pub fig_remarks: Vec<Remarks>,
 }
 
 impl Parser for FigStruct {
@@ -263,10 +265,10 @@ impl Parser for FigStruct {
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct TableStruct {
-  title: Option<TextWithWritingMode>,
-  title_remarks: Vec<Remarks>,
-  table: Table,
-  table_remarks: Vec<Remarks>,
+  pub title: Option<TextWithWritingMode>,
+  pub title_remarks: Vec<Remarks>,
+  pub table: Table,
+  pub table_remarks: Vec<Remarks>,
 }
 
 impl Parser for TableStruct {

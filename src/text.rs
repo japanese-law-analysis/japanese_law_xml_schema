@@ -1,3 +1,5 @@
+//! 文字列一般
+
 use crate::line::*;
 use crate::parser::*;
 use crate::result::Error;
@@ -8,7 +10,7 @@ use serde::{Deserialize, Serialize};
 /// テキスト
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct Text {
-  contents: Vec<TextElement>,
+  pub contents: Vec<TextElement>,
 }
 
 #[allow(clippy::new_without_default)]
@@ -156,8 +158,8 @@ pub enum WritingMode {
 /// 段落方向の情報がついたテキスト
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct TextWithWritingMode {
-  contents: Vec<TextElement>,
-  writing_mode: WritingMode,
+  pub contents: Vec<TextElement>,
+  pub writing_mode: WritingMode,
 }
 
 impl Parser for TextWithWritingMode {
@@ -183,7 +185,7 @@ impl Parser for TextWithWritingMode {
 
 /// テキストの要素
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
-enum TextElement {
+pub enum TextElement {
   Ruby(Ruby),
   Line(Line),
   Sup(Sup),
@@ -195,9 +197,9 @@ enum TextElement {
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct Ruby {
   /// 本文
-  text: Text,
+  pub text: Text,
   /// ルビ
-  ruby: String,
+  pub ruby: String,
 }
 
 impl Ruby {
@@ -242,7 +244,7 @@ impl Parser for Ruby {
 /// 上付き文字
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct Sup {
-  text: String,
+  pub text: String,
 }
 
 impl ToHtml for Sup {
@@ -271,7 +273,7 @@ impl Parser for Sup {
 /// 下付き文字
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct Sub {
-  text: String,
+  pub text: String,
 }
 
 impl ToHtml for Sub {

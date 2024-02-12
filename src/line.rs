@@ -10,8 +10,8 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct Line {
-  contents: Vec<LineContents>,
-  style: LineStyle,
+  pub contents: Vec<LineContents>,
+  pub style: LineStyle,
 }
 
 impl ToHtml for Line {

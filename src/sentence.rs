@@ -1,3 +1,5 @@
+//! 節
+
 use crate::parser::*;
 use crate::result::Error;
 use crate::*;
@@ -5,11 +7,11 @@ use roxmltree::Node;
 use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct Sentence {
-  contents: Vec<SentenceElement>,
-  num: usize,
-  function: SentenceFunction,
-  indent: SentenceIndent,
-  writing_mode: text::WritingMode,
+  pub contents: Vec<SentenceElement>,
+  pub num: usize,
+  pub function: SentenceFunction,
+  pub indent: SentenceIndent,
+  pub writing_mode: text::WritingMode,
 }
 
 impl Parser for Sentence {

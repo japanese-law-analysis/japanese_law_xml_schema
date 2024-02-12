@@ -12,11 +12,11 @@ use serde::{Deserialize, Serialize};
 /// 編
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct Part {
-  part_title: Text,
-  children: Vec<PartContents>,
-  num: String,
-  delete: bool,
-  hide: bool,
+  pub part_title: Text,
+  pub children: Vec<PartContents>,
+  pub num: String,
+  pub delete: bool,
+  pub hide: bool,
 }
 
 impl Part {
@@ -81,11 +81,11 @@ pub enum PartContents {
 /// 章
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct Chapter {
-  chapter_title: Text,
-  children: Vec<ChapterContents>,
-  num: String,
-  delete: bool,
-  hide: bool,
+  pub chapter_title: Text,
+  pub children: Vec<ChapterContents>,
+  pub num: String,
+  pub delete: bool,
+  pub hide: bool,
 }
 
 impl Chapter {
@@ -150,11 +150,11 @@ pub enum ChapterContents {
 /// 節
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct Section {
-  section_title: Text,
-  children: Vec<SectionContents>,
-  num: String,
-  delete: bool,
-  hide: bool,
+  pub section_title: Text,
+  pub children: Vec<SectionContents>,
+  pub num: String,
+  pub delete: bool,
+  pub hide: bool,
 }
 
 impl Section {
@@ -219,11 +219,11 @@ pub enum SectionContents {
 /// 款
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct Subsection {
-  subsection_title: Text,
-  children: Vec<SubsectionContents>,
-  num: String,
-  delete: bool,
-  hide: bool,
+  pub subsection_title: Text,
+  pub children: Vec<SubsectionContents>,
+  pub num: String,
+  pub delete: bool,
+  pub hide: bool,
 }
 
 impl Subsection {
@@ -295,11 +295,11 @@ pub enum SubsectionContents {
 /// 目
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct Division {
-  division_title: Text,
-  children: Vec<Article>,
-  num: String,
-  delete: bool,
-  hide: bool,
+  pub division_title: Text,
+  pub children: Vec<Article>,
+  pub num: String,
+  pub delete: bool,
+  pub hide: bool,
 }
 
 impl Division {
@@ -354,13 +354,13 @@ impl Parser for Division {
 /// 条
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct Article {
-  caption: Option<Caption>,
-  title: Text,
-  paragraph: Vec<Paragraph>,
-  suppl_note: Option<Text>,
-  num: String,
-  delete: bool,
-  hide: bool,
+  pub caption: Option<Caption>,
+  pub title: Text,
+  pub paragraph: Vec<Paragraph>,
+  pub suppl_note: Option<Text>,
+  pub num: String,
+  pub delete: bool,
+  pub hide: bool,
 }
 
 impl Article {

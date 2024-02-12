@@ -11,15 +11,15 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct TOC {
   /// 目次タイトル（概ね「目次」）
-  toc_label: Option<Text>,
+  pub toc_label: Option<Text>,
   /// 前文タイトル（概ね「前文」）
-  toc_preamble_label: Option<Text>,
+  pub toc_preamble_label: Option<Text>,
   /// 本文の目次
-  toc_main_contents: Vec<TOCMainContents>,
+  pub toc_main_contents: Vec<TOCMainContents>,
   /// 附則の目次
-  toc_suppl_provision: Option<TOCSupplProvision>,
+  pub toc_suppl_provision: Option<TOCSupplProvision>,
   /// 付録表のタイトル
-  toc_appdx_table_label: Vec<Text>,
+  pub toc_appdx_table_label: Vec<Text>,
 }
 
 impl Parser for TOC {
@@ -93,15 +93,15 @@ pub enum TOCMainContents {
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct TOCPart {
   /// 編のタイトル
-  part_title: Text,
+  pub part_title: Text,
   /// 条の範囲
-  article_range: Option<Text>,
+  pub article_range: Option<Text>,
   /// 編の番号
-  num: String,
+  pub num: String,
   /// 削除された編かどうか
-  delete: bool,
+  pub delete: bool,
   /// 子要素
-  children: Vec<TOCChapter>,
+  pub children: Vec<TOCChapter>,
 }
 
 impl Parser for TOCPart {
@@ -144,15 +144,15 @@ impl Parser for TOCPart {
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct TOCChapter {
   /// 章のタイトル
-  chapter_title: Text,
+  pub chapter_title: Text,
   /// 条の範囲
-  article_range: Option<Text>,
+  pub article_range: Option<Text>,
   /// 章の番号
-  num: String,
+  pub num: String,
   /// 削除された章かどうか
-  delete: bool,
+  pub delete: bool,
   /// 子要素
-  children: Vec<TOCSection>,
+  pub children: Vec<TOCSection>,
 }
 
 impl Parser for TOCChapter {
@@ -195,15 +195,15 @@ impl Parser for TOCChapter {
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct TOCSection {
   /// 節のタイトル
-  section_title: Text,
+  pub section_title: Text,
   /// 条の範囲
-  article_range: Option<Text>,
+  pub article_range: Option<Text>,
   /// 節の番号
-  num: String,
+  pub num: String,
   /// 削除された節かどうか
-  delete: bool,
+  pub delete: bool,
   /// 子要素
-  children: Vec<TOCSectionContents>,
+  pub children: Vec<TOCSectionContents>,
 }
 
 impl Parser for TOCSection {
@@ -259,15 +259,15 @@ pub enum TOCSectionContents {
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct TOCSubsection {
   /// 款のタイトル
-  subsection_title: Text,
+  pub subsection_title: Text,
   /// 条の範囲
-  article_range: Option<Text>,
+  pub article_range: Option<Text>,
   /// 款の番号
-  num: String,
+  pub num: String,
   /// 削除された款かどうか
-  delete: bool,
+  pub delete: bool,
   /// 子要素
-  children: Vec<TOCDivision>,
+  pub children: Vec<TOCDivision>,
 }
 
 impl Parser for TOCSubsection {
@@ -310,13 +310,13 @@ impl Parser for TOCSubsection {
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct TOCDivision {
   /// 目のタイトル
-  division_title: Text,
+  pub division_title: Text,
   /// 条の範囲
-  article_range: Option<Text>,
+  pub article_range: Option<Text>,
   /// 目の番号
-  num: String,
+  pub num: String,
   /// 削除された目かどうか
-  delete: bool,
+  pub delete: bool,
 }
 
 impl Parser for TOCDivision {
@@ -353,13 +353,13 @@ impl Parser for TOCDivision {
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct TOCArticle {
   /// 条のタイトル
-  article_title: Text,
+  pub article_title: Text,
   /// 見出し
-  article_caption: Caption,
+  pub article_caption: Caption,
   /// 条番号
-  num: String,
+  pub num: String,
   /// 削除された条かどうか
-  delete: bool,
+  pub delete: bool,
 }
 
 impl Parser for TOCArticle {
@@ -404,11 +404,11 @@ impl Parser for TOCArticle {
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct TOCSupplProvision {
   /// 見出し（概ね「附則」）
-  suppl_provision_label: Text,
+  pub suppl_provision_label: Text,
   /// 範囲
-  article_range: Option<Text>,
+  pub article_range: Option<Text>,
   /// 子要素
-  children: Vec<TOCSupplProvisionContents>,
+  pub children: Vec<TOCSupplProvisionContents>,
 }
 
 impl Parser for TOCSupplProvision {

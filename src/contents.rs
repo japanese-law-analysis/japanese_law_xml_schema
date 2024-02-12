@@ -15,7 +15,7 @@ use serde::{Deserialize, Serialize};
 /// `any`とあるが、現実的にありえるパターンを列挙する
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct Contents {
-  contents: Vec<ContentsElement>,
+  pub contents: Vec<ContentsElement>,
 }
 
 impl parser::Parser for Contents {
@@ -98,7 +98,7 @@ pub enum ContentsElement {
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct Style {
-  contentes: Contents,
+  pub contentes: Contents,
 }
 
 impl Parser for Style {
@@ -109,7 +109,7 @@ impl Parser for Style {
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct Note {
-  contentes: Contents,
+  pub contentes: Contents,
 }
 
 impl Parser for Note {
@@ -121,7 +121,7 @@ impl Parser for Note {
 /// 様式
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct Format {
-  contentes: Contents,
+  pub contentes: Contents,
 }
 
 impl Parser for Format {
@@ -133,8 +133,8 @@ impl Parser for Format {
 /// 数式
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct ArithFormula {
-  num: Option<usize>,
-  contentes: Contents,
+  pub num: Option<usize>,
+  pub contentes: Contents,
 }
 
 impl Parser for ArithFormula {

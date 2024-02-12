@@ -13,11 +13,11 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct AppdxTable {
-  title: Option<TextWithWritingMode>,
-  related_article_num: Option<Text>,
-  children: Vec<AppdxTableContents>,
-  remarks: Option<Remarks>,
-  num: Option<usize>,
+  pub title: Option<TextWithWritingMode>,
+  pub related_article_num: Option<Text>,
+  pub children: Vec<AppdxTableContents>,
+  pub remarks: Option<Remarks>,
+  pub num: Option<usize>,
 }
 
 impl Parser for AppdxTable {
@@ -71,11 +71,11 @@ pub enum AppdxTableContents {
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct AppdxNote {
-  title: Option<TextWithWritingMode>,
-  related_article_num: Option<Text>,
-  children: Vec<AppdxNoteContents>,
-  remarks: Option<Remarks>,
-  num: Option<usize>,
+  pub title: Option<TextWithWritingMode>,
+  pub related_article_num: Option<Text>,
+  pub children: Vec<AppdxNoteContents>,
+  pub remarks: Option<Remarks>,
+  pub num: Option<usize>,
 }
 
 impl Parser for AppdxNote {
@@ -134,11 +134,11 @@ pub enum AppdxNoteContents {
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct AppdxStyle {
-  title: Option<TextWithWritingMode>,
-  related_article_num: Option<Text>,
-  children: Vec<StyleStruct>,
-  remarks: Option<Remarks>,
-  num: Option<usize>,
+  pub title: Option<TextWithWritingMode>,
+  pub related_article_num: Option<Text>,
+  pub children: Vec<StyleStruct>,
+  pub remarks: Option<Remarks>,
+  pub num: Option<usize>,
 }
 
 impl Parser for AppdxStyle {
@@ -182,11 +182,11 @@ impl Parser for AppdxStyle {
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct AppdxFormat {
-  title: Option<TextWithWritingMode>,
-  related_article_num: Option<Text>,
-  children: Vec<FormatStruct>,
-  remarks: Option<Remarks>,
-  num: Option<usize>,
+  pub title: Option<TextWithWritingMode>,
+  pub related_article_num: Option<Text>,
+  pub children: Vec<FormatStruct>,
+  pub remarks: Option<Remarks>,
+  pub num: Option<usize>,
 }
 
 impl Parser for AppdxFormat {
@@ -230,10 +230,10 @@ impl Parser for AppdxFormat {
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct Appdx {
-  arith_formula_num: Option<Text>,
-  related_article_num: Option<Text>,
-  arith_formula: Vec<ArithFormula>,
-  remarks: Option<Remarks>,
+  pub arith_formula_num: Option<Text>,
+  pub related_article_num: Option<Text>,
+  pub arith_formula: Vec<ArithFormula>,
+  pub remarks: Option<Remarks>,
 }
 
 impl Parser for Appdx {
@@ -272,10 +272,10 @@ impl Parser for Appdx {
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct AppdxFig {
-  title: Option<TextWithWritingMode>,
-  related_article_num: Option<Text>,
-  children: Vec<AppdxFigContents>,
-  num: Option<usize>,
+  pub title: Option<TextWithWritingMode>,
+  pub related_article_num: Option<Text>,
+  pub children: Vec<AppdxFigContents>,
+  pub num: Option<usize>,
 }
 
 impl Parser for AppdxFig {

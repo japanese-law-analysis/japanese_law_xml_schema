@@ -1,3 +1,5 @@
+//! 画像
+
 use crate::parser::*;
 use crate::*;
 use roxmltree::Node;
@@ -5,7 +7,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize)]
 pub struct Fig {
-  src: String,
+  pub src: String,
 }
 
 impl Parser for Fig {
