@@ -13,6 +13,7 @@ pub mod law;
 pub mod line;
 pub mod list;
 pub mod paragraph;
+mod parse_from_text;
 pub mod parser;
 pub mod remarks;
 pub mod result;
@@ -23,6 +24,7 @@ pub mod table;
 pub mod table_of_contents;
 pub mod text;
 
+use koyomi::{era, Date};
 use result::*;
 use roxmltree::{Document, Node};
 
@@ -41,11 +43,53 @@ pub trait ToText {
 }
 
 /// XML文字列を法律の構造体に変換する
-pub fn parse(text: &str) -> Result<law::Law> {
-  let document = Document::parse(text).map_err(Error::XMLParing)?;
+pub fn parse_xml(xml: &str) -> Result<law::Law> {
+  let document = Document::parse(xml).map_err(Error::XMLParing)?;
   let node = document.root_element();
   let law = law::Law::parser(&node)?;
   Ok(law)
+}
+
+/// テキスト情報を法律の構造体に変換する
+#[allow(clippy::too_many_arguments)]
+pub fn parse_text(
+  text: &str,
+  year: usize,
+  month: Option<usize>,
+  day: Option<usize>,
+  law_type: law::LawType,
+  lang: law::Lang,
+  num: usize,
+  law_num: String,
+  title: &str,
+) -> Result<law::Law> {
+  let date = Date::from_ymd(
+    year as i32,
+    month.unwrap_or(1) as u32,
+    day.unwrap_or(1) as u32,
+  )
+  .unwrap();
+  let e = era(&date).unwrap();
+  let era = match e.name().as_str() {
+    "明治" => law::Era::Meiji,
+    "大正" => law::Era::Taisho,
+    "昭和" => law::Era::Showa,
+    "平成" => law::Era::Heisei,
+    "令和" => law::Era::Reiwa,
+    _ => unreachable!(),
+  };
+  let body = parse_from_text::parse_body(title, text)?;
+  Ok(law::Law {
+    era,
+    year,
+    num,
+    promulgate_month: month,
+    promulgate_day: day,
+    law_type,
+    lang,
+    law_num,
+    law_body: body,
+  })
 }
 
 pub(crate) fn get_attribute(node: &Node, name: &str) -> Result<String> {

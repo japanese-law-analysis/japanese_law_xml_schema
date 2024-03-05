@@ -11,18 +11,18 @@ pub enum Error {
   //Tag,
   //#[error("")]
   //Attribute,
-  #[error("Missing required attribute of \"{attribute_name}\" at {tag_name} tag({} - {})", .range.start, .range.end)]
+  #[error("Missing required attribute of "{attribute_name}" at {tag_name} tag({} - {})", .range.start, .range.end)]
   MissingRequiredAttribute {
     range: Range<usize>,
     tag_name: String,
     attribute_name: String,
   },
-  #[error("Missing required tag of \"{tag_name}\" tag({} - {})", .range.start, .range.end)]
+  #[error("Missing required tag of "{tag_name}" tag({} - {})", .range.start, .range.end)]
   MissingRequiredTag {
     range: Range<usize>,
     tag_name: String,
   },
-  #[error("Attribure parse error of \"{attribute_name}\" at {tag_name} tag({} - {})", .range.start, .range.end)]
+  #[error("Attribure parse error of "{attribute_name}" at {tag_name} tag({} - {})", .range.start, .range.end)]
   AttributeParseError {
     range: Range<usize>,
     tag_name: String,
