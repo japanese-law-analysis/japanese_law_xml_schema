@@ -58,6 +58,14 @@ impl Text {
     }
     text
   }
+
+  /// 値から
+  pub fn from_value<T: ToString>(t: T) -> Self {
+    Text {
+      contents: vec![TextElement::Text(t.to_string())],
+    }
+  }
+
   /// テキストを追加する
   pub fn add_text(&mut self, text2: Text) {
     for t in text2.contents {

@@ -5,12 +5,45 @@ use regex::Regex;
 
 pub(crate) fn parse_body(title: &str, text: &str) -> Result<law::LawBody> {
   let lines = text.lines().map(|s| s.trim());
-  let mut contents = Vec::new();
+  let mut preamble_para = Vec::new();
+  let mut main_provision_children = Vec::new();
+  let mut suppl_provision = Vec::new();
   for line in lines {
     let line_contents = parse_line_contents(line);
-    contents.push(line_contents)
   }
-  todo!()
+
+  let preamble = if preamble_para.is_empty() {
+    None
+  } else {
+    Some(law::Preamble {
+      children: preamble_para,
+    })
+  };
+  let main_provision = law::MainProvision {
+    children: main_provision_children,
+    extract: None,
+  };
+  let law_title = law::LawTitle {
+    kana: None,
+    abbrev: None,
+    abbrev_kana: None,
+    text: text::Text::from_value(title),
+  };
+  Ok(law::LawBody {
+    law_title: Some(law_title),
+    enact_statement: Vec::new(),
+    subject: None,
+    toc: None,
+    preamble,
+    main_provision,
+    suppl_provision,
+    appdx_table: Vec::new(),
+    appdx_note: Vec::new(),
+    appdx_style: Vec::new(),
+    appdx: Vec::new(),
+    appdx_fig: Vec::new(),
+    appdx_format: Vec::new(),
+  })
 }
 
 /// 各行が何に当てはまるのかの種類
@@ -91,13 +124,13 @@ enum ItemPattern {
 fn parse_line_contents(line: &str) -> LineContents {
   use ItemPattern::*;
   use LineContents::*;
-  let re_caption = Regex::new("（(?<caption>[^）]+)）$").unwrap();
-  let re_article = Regex::new(r"第((?<arabic_num>[0-9]+)|(?<zenkaku_num>[０-９]+)|(?<kansuji>[一二三四五六七八九十百千]+))(?<suffix>(編|章|節|款|目|条))([　\s]*)(?<text>(.+))$").unwrap();
-  let re_paragraph = Regex::new(r"(?<num>[０-９]+)([　\s]*)(?<text>(.+))$").unwrap();
-  let re_item = Regex::new(r"(（((?<paren_iroha_katakana>[ア-ン]+)|(?<paren_iroha_hiragana>[あ-ん]+)|(?<paren_kansuji>[一二三四五六七八九十百千]+)|(?<paren_zenkaku_num>[０-９]+)|(?<paren_zenkaku_upper>[Ａ-Ｚ]+)|(?<paren_zenkaku_lower>[ａ-ｚ]+))）|((?<no_paren_iroha_katakana>[ア-ン]+)|(?<no_paren_iroha_hiragana>[あ-ん]+)|(?<no_paren_kansuji>[一二三四五六七八九十百千]+)|(?<no_paren_zenkaku_num>[０-９]+)|(?<no_paren_zenkaku_upper>[Ａ-Ｚ]+)|(?<no_paren_zenkaku_lower>[ａ-ｚ]+)))([　\s]*)(?<text>(.+))$").unwrap();
+  let re_caption = Regex::new("^（(?<caption>[^）]+)）$").unwrap();
+  let re_article = Regex::new(r"^第((?<arabic_num>[0-9]+)|(?<zenkaku_num>[０-９]+)|(?<kansuji>[一二三四五六七八九十百千]+))(?<suffix>(編|章|節|款|目|条))([　\s]*)(?<text>(.+))$").unwrap();
+  let re_paragraph = Regex::new(r"^(?<num>[０-９]+)([　\s]*)(?<text>(.+))$").unwrap();
+  let re_item = Regex::new(r"^(（((?<paren_iroha_katakana>[ア-ン]+)|(?<paren_iroha_hiragana>[あ-ん]+)|(?<paren_kansuji>[一二三四五六七八九十百千]+)|(?<paren_zenkaku_num>[０-９]+)|(?<paren_zenkaku_upper>[Ａ-Ｚ]+)|(?<paren_zenkaku_lower>[ａ-ｚ]+))）|((?<no_paren_iroha_katakana>[ア-ン]+)|(?<no_paren_iroha_hiragana>[あ-ん]+)|(?<no_paren_kansuji>[一二三四五六七八九十百千]+)|(?<no_paren_zenkaku_num>[０-９]+)|(?<no_paren_zenkaku_upper>[Ａ-Ｚ]+)|(?<no_paren_zenkaku_lower>[ａ-ｚ]+)))([　\s]*)(?<text>(.+))$").unwrap();
   let re_is_roman = Regex::new(r"[ixvlcIXVLCｉｘｖｌｃＩＸＶＬＣ]+").unwrap();
   let re_suppl_provision =
-    Regex::new(r"附([　\s]*)則([　\s]*)(（(?<law_num>.+)）)?[^（）]*").unwrap();
+    Regex::new(r"^附([　\s]*)則([　\s]*)(（(?<law_num>.+)）)?[^（）]*$").unwrap();
   if let Some(caps) = re_caption.captures(line) {
     Caption(caps["caption"].to_string())
   } else if let Some(caps) = re_article.captures(line) {
