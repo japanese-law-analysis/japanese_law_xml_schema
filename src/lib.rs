@@ -6,6 +6,7 @@
 
 pub mod appdx;
 pub mod article;
+pub mod article_number;
 pub mod class;
 pub mod contents;
 pub mod fig;

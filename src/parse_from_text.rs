@@ -1,15 +1,16 @@
+use crate::article_number::*;
 use crate::result::*;
 use crate::*;
 use kansuji::Kansuji;
 use regex::Regex;
 
 fn parse_part(
-  n: usize,
+  n: &article_number::ArticleNumber,
   title: &str,
   lines: &mut std::iter::Peekable<std::slice::Iter<LineContents>>,
 ) -> article::Part {
   let part_title = text::Text::from_value(title);
-  let num = n.to_string();
+  let num = n.num_str.clone();
   let delete = title.trim() == "削除" || title.trim() == "（削除）";
   let hide = false;
   let mut children = Vec::new();
@@ -23,13 +24,13 @@ fn parse_part(
       }
       Some(LineContents::Article(n, text)) => {
         lines.next();
-        let article = parse_article(caption_opt, *n, text, lines);
+        let article = parse_article(caption_opt, n, text, lines);
         children.push(article::PartContents::Article(article));
         caption_opt = None;
       }
       Some(LineContents::Chapter(n, title)) => {
         lines.next();
-        let chap = parse_chapter(*n, title, lines);
+        let chap = parse_chapter(n, title, lines);
         children.push(article::PartContents::Chapter(chap));
         caption_opt = None;
       }
@@ -46,12 +47,12 @@ fn parse_part(
 }
 
 fn parse_chapter(
-  n: usize,
+  n: &article_number::ArticleNumber,
   title: &str,
   lines: &mut std::iter::Peekable<std::slice::Iter<LineContents>>,
 ) -> article::Chapter {
   let chapter_title = text::Text::from_value(title);
-  let num = n.to_string();
+  let num = n.num_str.clone();
   let delete = title.trim() == "削除" || title.trim() == "（削除）";
   let hide = false;
   let mut children = Vec::new();
@@ -65,13 +66,13 @@ fn parse_chapter(
       }
       Some(LineContents::Article(n, text)) => {
         lines.next();
-        let article = parse_article(caption_opt, *n, text, lines);
+        let article = parse_article(caption_opt, n, text, lines);
         children.push(article::ChapterContents::Article(article));
         caption_opt = None;
       }
       Some(LineContents::Section(n, title)) => {
         lines.next();
-        let sec = parse_section(*n, title, lines);
+        let sec = parse_section(n, title, lines);
         children.push(article::ChapterContents::Section(sec));
         caption_opt = None;
       }
@@ -88,12 +89,12 @@ fn parse_chapter(
 }
 
 fn parse_section(
-  n: usize,
+  n: &article_number::ArticleNumber,
   title: &str,
   lines: &mut std::iter::Peekable<std::slice::Iter<LineContents>>,
 ) -> article::Section {
   let section_title = text::Text::from_value(title);
-  let num = n.to_string();
+  let num = n.num_str.clone();
   let delete = title.trim() == "削除" || title.trim() == "（削除）";
   let hide = false;
   let mut children = Vec::new();
@@ -107,13 +108,13 @@ fn parse_section(
       }
       Some(LineContents::Article(n, text)) => {
         lines.next();
-        let article = parse_article(caption_opt, *n, text, lines);
+        let article = parse_article(caption_opt, n, text, lines);
         children.push(article::SectionContents::Article(article));
         caption_opt = None;
       }
       Some(LineContents::Subsection(n, title)) => {
         lines.next();
-        let subsec = parse_subsection(*n, title, lines);
+        let subsec = parse_subsection(n, title, lines);
         children.push(article::SectionContents::Subsection(subsec));
         caption_opt = None;
       }
@@ -130,12 +131,12 @@ fn parse_section(
 }
 
 fn parse_subsection(
-  n: usize,
+  n: &article_number::ArticleNumber,
   title: &str,
   lines: &mut std::iter::Peekable<std::slice::Iter<LineContents>>,
 ) -> article::Subsection {
   let subsection_title = text::Text::from_value(title);
-  let num = n.to_string();
+  let num = n.num_str.clone();
   let delete = title.trim() == "削除" || title.trim() == "（削除）";
   let hide = false;
   let mut children = Vec::new();
@@ -149,13 +150,13 @@ fn parse_subsection(
       }
       Some(LineContents::Article(n, text)) => {
         lines.next();
-        let article = parse_article(caption_opt, *n, text, lines);
+        let article = parse_article(caption_opt, n, text, lines);
         children.push(article::SubsectionContents::Article(article));
         caption_opt = None;
       }
       Some(LineContents::Division(n, title)) => {
         lines.next();
-        let div = parse_division(*n, title, lines);
+        let div = parse_division(n, title, lines);
         children.push(article::SubsectionContents::Division(div));
         caption_opt = None;
       }
@@ -172,12 +173,12 @@ fn parse_subsection(
 }
 
 fn parse_division(
-  n: usize,
+  n: &article_number::ArticleNumber,
   title: &str,
   lines: &mut std::iter::Peekable<std::slice::Iter<LineContents>>,
 ) -> article::Division {
   let division_title = text::Text::from_value(title);
-  let num = n.to_string();
+  let num = n.num_str.clone();
   let delete = title.trim() == "削除" || title.trim() == "（削除）";
   let hide = false;
   let mut children = Vec::new();
@@ -191,7 +192,7 @@ fn parse_division(
       }
       Some(LineContents::Article(n, text)) => {
         lines.next();
-        let article = parse_article(caption_opt, *n, text, lines);
+        let article = parse_article(caption_opt, n, text, lines);
         children.push(article);
         caption_opt = None;
       }
@@ -209,7 +210,7 @@ fn parse_division(
 
 fn parse_article(
   caption_opt: Option<&String>,
-  n: usize,
+  n: &article_number::ArticleNumber,
   text: &str,
   lines: &mut std::iter::Peekable<std::slice::Iter<LineContents>>,
 ) -> article::Article {
@@ -221,7 +222,7 @@ fn parse_article(
   let mut paragraph = vec![para];
   while let Some(LineContents::Paragraph(n, text)) = lines.peek() {
     lines.next();
-    let para = parse_paragraph(*n, text, lines);
+    let para = parse_paragraph(n.base_number, text, lines);
     paragraph.push(para)
   }
   let article = article::Article {
@@ -229,7 +230,7 @@ fn parse_article(
     title: text::Text::from_value(String::new()), // TODO 「第○条」に生成
     paragraph,
     suppl_note: None,
-    num: n.to_string(),
+    num: n.num_str.clone(),
     delete: text.trim() == "削除" || text.trim() == "（削除）",
     hide: false,
   };
@@ -762,14 +763,14 @@ pub(crate) fn parse_body(title: &str, text: &str) -> Result<law::LawBody> {
     match line_contents {
       LineContents::Part(n, text) => {
         lines.next();
-        let part = parse_part(*n, text, &mut lines);
+        let part = parse_part(n, text, &mut lines);
         main_provision_children.push(law::MainProvisionContents::Part(part));
         caption_opt = None;
         is_preamble = false;
       }
       LineContents::Chapter(n, text) => {
         lines.next();
-        let chap = parse_chapter(*n, text, &mut lines);
+        let chap = parse_chapter(n, text, &mut lines);
         if suppl_provision_law_num_opt.is_some() {
           suppl_provision_children.push(suppl_provision::SupplProvisionChildrenElement::Chapter(
             chap,
@@ -782,7 +783,7 @@ pub(crate) fn parse_body(title: &str, text: &str) -> Result<law::LawBody> {
       }
       LineContents::Section(n, text) => {
         lines.next();
-        let sec = parse_section(*n, text, &mut lines);
+        let sec = parse_section(n, text, &mut lines);
         main_provision_children.push(law::MainProvisionContents::Section(sec));
         caption_opt = None;
         is_preamble = false;
@@ -794,7 +795,7 @@ pub(crate) fn parse_body(title: &str, text: &str) -> Result<law::LawBody> {
       }
       LineContents::Article(n, text) => {
         lines.next();
-        let article = parse_article(caption_opt, *n, text, &mut lines);
+        let article = parse_article(caption_opt, n, text, &mut lines);
         if suppl_provision_law_num_opt.is_some() {
           suppl_provision_children.push(suppl_provision::SupplProvisionChildrenElement::Article(
             article,
@@ -903,19 +904,19 @@ enum LineContents {
   /// 見出し：（見出し）
   Caption(String),
   /// 編：第一編　タイトル
-  Part(usize, String),
+  Part(article_number::ArticleNumber, String),
   /// 章：第一章　タイトル
-  Chapter(usize, String),
+  Chapter(article_number::ArticleNumber, String),
   /// 節：第一節　タイトル
-  Section(usize, String),
+  Section(article_number::ArticleNumber, String),
   /// 款：第一款　タイトル
-  Subsection(usize, String),
+  Subsection(article_number::ArticleNumber, String),
   /// 目：第一目　タイトル
-  Division(usize, String),
+  Division(article_number::ArticleNumber, String),
   /// 条：第二条 本文
-  Article(usize, String),
+  Article(article_number::ArticleNumber, String),
   /// 項：２　本文
-  Paragraph(usize, String),
+  Paragraph(article_number::ArticleNumber, String),
   /// 号：
   /// - 一　本文
   /// - イ　本文
@@ -935,90 +936,35 @@ enum LineContents {
   Text(String),
 }
 
-/// 号の数字を表す記号の種類
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-enum ItemPattern {
-  /// 括弧なし漢数字
-  NoParenKansuji,
-  /// 括弧なしイロハ
-  NoParenIrohaKatakana,
-  /// 括弧なしいろは
-  NoParenIrohaHiragana,
-  /// 括弧なし全角数字
-  NoParenZenkakuNum,
-  /// 括弧なしローマ数字大文字
-  NoParenZenkakuRomanUpper,
-  /// 括弧なしローマ数字小文字
-  NoParenZenkakuRomanLower,
-  /// 括弧なし大文字
-  NoParenZenkakuUpper,
-  /// 括弧なし小文字
-  NoParenZenkakuLower,
-  /// 括弧あり漢数字
-  ParenKansuji,
-  /// 括弧ありイロハ
-  ParenIrohaKatakana,
-  /// 括弧ありいろは
-  ParenIrohaHiragana,
-  /// 括弧あり全角数字
-  ParenZenkakuNum,
-  /// 括弧ありローマ数字大文字
-  ParenZenkakuRomanUpper,
-  /// 括弧ありローマ数字小文字
-  ParenZenkakuRomanLower,
-  /// 括弧あり大文字
-  ParenZenkakuUpper,
-  /// 括弧あり小文字
-  ParenZenkakuLower,
-}
-
 fn parse_line_contents(line: &str) -> LineContents {
   use ItemPattern::*;
   use LineContents::*;
   let line = line.trim();
   let re_caption = Regex::new("^（(?<caption>[^）]+)）$").unwrap();
   // TODO 枝番号に対応させる
-  let re_article = Regex::new(r"^第((?<arabic_num>[0-9]+)|(?<zenkaku_num>[０-９]+)|(?<kansuji>[一二三四五六七八九十百千]+))(?<suffix>(編|章|節|款|目|条))([　\s]*)(?<text>(.+))$").unwrap();
-  let re_paragraph = Regex::new(r"^(?<num>[０-９]+)([　\s]*)(?<text>(.+))$").unwrap();
   let re_item = Regex::new(r"^(（((?<paren_iroha_katakana>[ア-ン]+)|(?<paren_iroha_hiragana>[あ-ん]+)|(?<paren_kansuji>[一二三四五六七八九十百千]+)|(?<paren_zenkaku_num>[０-９]+)|(?<paren_zenkaku_upper>[Ａ-Ｚ]+)|(?<paren_zenkaku_lower>[ａ-ｚ]+))）|((?<no_paren_iroha_katakana>[ア-ン]+)|(?<no_paren_iroha_hiragana>[あ-ん]+)|(?<no_paren_kansuji>[一二三四五六七八九十百千]+)|(?<no_paren_zenkaku_num>[０-９]+)|(?<no_paren_zenkaku_upper>[Ａ-Ｚ]+)|(?<no_paren_zenkaku_lower>[ａ-ｚ]+)))([　\s]*)(?<text>(.+))$").unwrap();
   let re_is_roman = Regex::new(r"[ixvlcIXVLCｉｘｖｌｃＩＸＶＬＣ]+").unwrap();
   let re_suppl_provision =
     Regex::new(r"^附([　\s]*)則([　\s]*)(（(?<law_num>.+)）)?[^（）]*$").unwrap();
   if let Some(caps) = re_caption.captures(line) {
     Caption(caps["caption"].to_string())
-  } else if let Some(caps) = re_article.captures(line) {
-    let num = if let Some(arabic_num) = caps.name("arabic_num") {
-      arabic_num.as_str().parse::<usize>().unwrap()
-    } else if let Some(zenkaku_num) = caps.name("zenkaku_num") {
-      parse_zenkaku_num(zenkaku_num.as_str())
-    } else if let Some(kansuji) = caps.name("kansuji") {
-      let kansuji = Kansuji::try_from(kansuji.as_str()).unwrap();
-      let n: u128 = kansuji.into();
-      n as usize
+  } else if let Some((article_number, text)) = article_number::parse_article_number(line) {
+    let s = &article_number.str;
+    if s.contains("編") {
+      Part(article_number, text)
+    } else if s.contains("章") {
+      Chapter(article_number, text)
+    } else if s.contains("節") {
+      Section(article_number, text)
+    } else if s.contains("款") {
+      Subsection(article_number, text)
+    } else if s.contains("目") {
+      Division(article_number, text)
+    } else if s.contains("条") {
+      Article(article_number, text)
     } else {
-      unreachable!()
-    };
-    let text = caps["text"].to_string();
-    let suffix = &caps["suffix"];
-    if suffix == "編" {
-      Part(num, text)
-    } else if suffix == "章" {
-      Chapter(num, text)
-    } else if suffix == "節" {
-      Section(num, text)
-    } else if suffix == "款" {
-      Subsection(num, text)
-    } else if suffix == "目" {
-      Division(num, text)
-    } else if suffix == "条" {
-      Article(num, text)
-    } else {
-      unreachable!()
+      Paragraph(article_number, text)
     }
-  } else if let Some(caps) = re_paragraph.captures(line) {
-    let num = parse_zenkaku_num(&caps["num"]);
-    let text = caps["text"].to_string();
-    Paragraph(num, text.to_string())
   } else if let Some(caps) = re_item.captures(line) {
     let (item_pattern, num) = if let Some(s) = caps.name("paren_iroha_katakana") {
       (ParenIrohaKatakana, parse_iroha_katakana(s.as_str()))
@@ -1249,6 +1195,7 @@ fn check_parse_zenkaku_alphabet_upper() {
 
 #[test]
 fn check_parse_line_contents_1() {
+  use article_number::ArticleNumber;
   let s = r"第一編　総則
   第一章　通則
   （基本原則）
@@ -1256,7 +1203,7 @@ fn check_parse_line_contents_1() {
   ２　権利の行使及び義務の履行は、信義に従い誠実に行わなければならない。
   ３　権利の濫用は、これを許さない。
   （解釈の基準）
-  第二条　この法律は、個人の尊厳と両性の本質的平等を旨として、解釈しなければならない。
+  第二条の二　この法律は、個人の尊厳と両性の本質的平等を旨として、解釈しなければならない。
   第十三条　被保佐人が次に掲げる行為をするには、その保佐人の同意を得なければならない。ただし、第九条ただし書に規定する行為については、この限りでない。
   一　元本を領収し、又は利用すること。
   二　主たる債務者が法人である場合の次に掲げる者
@@ -1267,32 +1214,32 @@ fn check_parse_line_contents_1() {
   assert_eq!(
     r,
     vec![
-      LineContents::Part(1, "総則".to_string()),
-      LineContents::Chapter(1, "通則".to_string()),
+      LineContents::Part(ArticleNumber { str: "第一編".to_string(), num_str: "1".to_string(), base_number: 1, eda_numbers: Vec::new() }, "総則".to_string()),
+      LineContents::Chapter(ArticleNumber { str: "第一章".to_string(), num_str: "1".to_string(), base_number: 1, eda_numbers: Vec::new() }, "通則".to_string()),
       LineContents::Caption("基本原則".to_string()),
       LineContents::Article(
-        1,
+        ArticleNumber { str: "第一条".to_string(), num_str: "1".to_string(), base_number: 1, eda_numbers: Vec::new() },
         "私権は、公共の福祉に適合しなければならない。".to_string()
       ),
       LineContents::Paragraph(
-        2,
+        ArticleNumber { str: "２".to_string(), num_str: "2".to_string(), base_number: 2, eda_numbers: Vec::new() },
         "権利の行使及び義務の履行は、信義に従い誠実に行わなければならない。".to_string()
       ),
-      LineContents::Paragraph(3, "権利の濫用は、これを許さない。".to_string()),
+      LineContents::Paragraph(ArticleNumber { str: "３".to_string(), num_str: "3".to_string(), base_number: 3, eda_numbers: Vec::new() }, "権利の濫用は、これを許さない。".to_string()),
       LineContents::Caption("解釈の基準".to_string()),
       LineContents::Article(
-        2,
+        ArticleNumber { str: "第二条の二".to_string(), num_str: "2_2".to_string(), base_number: 2, eda_numbers: vec![2] },
         "この法律は、個人の尊厳と両性の本質的平等を旨として、解釈しなければならない。".to_string()
       ),
       LineContents::Article(
-        13,
+        ArticleNumber { str: "第十三条".to_string(), num_str: "13".to_string(), base_number: 13, eda_numbers: Vec::new() },
         "被保佐人が次に掲げる行為をするには、その保佐人の同意を得なければならない。ただし、第九条ただし書に規定する行為については、この限りでない。".to_string()
       ),
       LineContents::Item(ItemPattern::NoParenKansuji, 1, "元本を領収し、又は利用すること。".to_string()),
       LineContents::Item(ItemPattern::NoParenKansuji, 2, "主たる債務者が法人である場合の次に掲げる者".to_string()),
       LineContents::Item(ItemPattern::NoParenIrohaKatakana, 1, "主たる債務者の総株主の議決権（株主総会において決議をすることができる事項の全部につき議決権を行使することができない株式についての議決権を除く。以下この号において同じ。）の過半数を有する者".to_string()),
       LineContents::Item(ItemPattern::NoParenKansuji, 3, "不動産その他重要な財産に関する権利の得喪を目的とする行為をすること。".to_string()),
-      LineContents::Paragraph(2, "家庭裁判所は、第十一条本文に規定する者又は保佐人若しくは保佐監督人の請求により、被保佐人が前項各号に掲げる行為以外の行為をする場合であってもその保佐人の同意を得なければならない旨の審判をすることができる。ただし、第九条ただし書に規定する行為については、この限りでない。".to_string()),
+      LineContents::Paragraph(ArticleNumber { str: "２".to_string(), num_str: "2".to_string(), base_number: 2, eda_numbers: Vec::new() }, "家庭裁判所は、第十一条本文に規定する者又は保佐人若しくは保佐監督人の請求により、被保佐人が前項各号に掲げる行為以外の行為をする場合であってもその保佐人の同意を得なければならない旨の審判をすることができる。ただし、第九条ただし書に規定する行為については、この限りでない。".to_string()),
     ]
   )
 }
