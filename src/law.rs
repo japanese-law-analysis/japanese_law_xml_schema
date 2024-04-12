@@ -18,7 +18,7 @@ use roxmltree::Node;
 use serde::{Deserialize, Serialize};
 
 /// 法令そのもの
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Law {
   /// 年号
   pub era: Era,
@@ -124,7 +124,7 @@ impl Parser for Law {
 }
 
 /// 年号
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub enum Era {
   /// 明治
   Meiji,
@@ -139,7 +139,7 @@ pub enum Era {
 }
 
 /// 法令の種類
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub enum LawType {
   /// 憲法
   Constitution,
@@ -158,14 +158,14 @@ pub enum LawType {
 }
 
 /// 言語
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub enum Lang {
   Ja,
   En,
 }
 
 /// 法令の中身
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct LawBody {
   /// 法令名
   pub law_title: Option<LawTitle>,
@@ -287,7 +287,7 @@ impl Parser for LawBody {
 }
 
 /// 法令名
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct LawTitle {
   /// ひらがなでの読み
   pub kana: Option<String>,
@@ -319,7 +319,7 @@ impl Parser for LawTitle {
 }
 
 /// 前文
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Preamble {
   pub children: Vec<Paragraph>,
 }
@@ -342,7 +342,7 @@ impl Parser for Preamble {
 }
 
 /// 本文
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct MainProvision {
   /// 本文の要素
   pub children: Vec<MainProvisionContents>,
@@ -387,7 +387,7 @@ impl Parser for MainProvision {
 }
 
 /// 本文の要素
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub enum MainProvisionContents {
   /// 編
   Part(Part),
@@ -402,7 +402,7 @@ pub enum MainProvisionContents {
 }
 
 /// 改正
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct AmendProvision {
   pub sentence: Option<Sentence>,
   pub new_provision: Vec<NewProvision>,
@@ -641,7 +641,7 @@ impl Parser for AmendProvision {
   }
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub enum NewProvision {
   LawTitle(LawTitle),
   Preamble(Preamble),

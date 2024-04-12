@@ -909,7 +909,7 @@ pub(crate) fn parse_body(title: &str, text: &str) -> Result<law::LawBody> {
 }
 
 /// 各行が何に当てはまるのかの種類
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 enum LineContents {
   /// 見出し：（見出し）
   Caption(String),

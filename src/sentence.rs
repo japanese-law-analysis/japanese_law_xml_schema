@@ -5,7 +5,7 @@ use crate::result::Error;
 use crate::*;
 use roxmltree::Node;
 use serde::{Deserialize, Serialize};
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Sentence {
   pub contents: Vec<SentenceElement>,
   pub num: usize,
@@ -105,7 +105,7 @@ impl Parser for Sentence {
   }
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub enum SentenceElement {
   Line(line::Line),
   QuoteStruct(structs::QuoteStruct),
@@ -116,13 +116,13 @@ pub enum SentenceElement {
   String(String),
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub enum SentenceFunction {
   Main,
   Proviso,
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub enum SentenceIndent {
   Paragraph,
   Item,

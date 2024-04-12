@@ -13,7 +13,7 @@ use serde::{Deserialize, Serialize};
 
 /// AritchFormulaやQuoteStructの中身
 /// `any`とあるが、現実的にありえるパターンを列挙する
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Contents {
   pub contents: Vec<ContentsElement>,
 }
@@ -80,7 +80,7 @@ impl parser::Parser for Contents {
 }
 
 /// Contentsの中身
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub enum ContentsElement {
   Table(Table),
   TableStruct(TableStruct),
@@ -96,7 +96,7 @@ pub enum ContentsElement {
   Sentence(sentence::Sentence),
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Style {
   pub contentes: Contents,
 }
@@ -107,7 +107,7 @@ impl Parser for Style {
   }
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Note {
   pub contentes: Contents,
 }
@@ -119,7 +119,7 @@ impl Parser for Note {
 }
 
 /// 様式
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Format {
   pub contentes: Contents,
 }
@@ -131,7 +131,7 @@ impl Parser for Format {
 }
 
 /// 数式
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ArithFormula {
   pub num: Option<usize>,
   pub contentes: Contents,

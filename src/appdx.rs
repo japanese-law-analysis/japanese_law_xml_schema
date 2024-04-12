@@ -11,7 +11,7 @@ use crate::*;
 use roxmltree::Node;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct AppdxTable {
   pub title: Option<TextWithWritingMode>,
   pub related_article_num: Option<Text>,
@@ -63,13 +63,13 @@ impl Parser for AppdxTable {
   }
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub enum AppdxTableContents {
   TableStruct(TableStruct),
   Item(Item),
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct AppdxNote {
   pub title: Option<TextWithWritingMode>,
   pub related_article_num: Option<Text>,
@@ -125,14 +125,14 @@ impl Parser for AppdxNote {
   }
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub enum AppdxNoteContents {
   NoteStruct(NoteStruct),
   FigStruct(FigStruct),
   TableStruct(TableStruct),
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct AppdxStyle {
   pub title: Option<TextWithWritingMode>,
   pub related_article_num: Option<Text>,
@@ -180,7 +180,7 @@ impl Parser for AppdxStyle {
   }
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct AppdxFormat {
   pub title: Option<TextWithWritingMode>,
   pub related_article_num: Option<Text>,
@@ -228,7 +228,7 @@ impl Parser for AppdxFormat {
   }
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Appdx {
   pub arith_formula_num: Option<Text>,
   pub related_article_num: Option<Text>,
@@ -270,7 +270,7 @@ impl Parser for Appdx {
   }
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct AppdxFig {
   pub title: Option<TextWithWritingMode>,
   pub related_article_num: Option<Text>,
@@ -315,7 +315,7 @@ impl Parser for AppdxFig {
   }
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub enum AppdxFigContents {
   FigStruct(FigStruct),
   TableStruct(TableStruct),

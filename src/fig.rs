@@ -5,7 +5,7 @@ use crate::*;
 use roxmltree::Node;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Fig {
   pub src: String,
 }

@@ -12,7 +12,7 @@ use roxmltree::Node;
 use serde::{Deserialize, Serialize};
 
 /// 附則
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SupplProvision {
   pub label: Text,
   pub children: Vec<SupplProvisionChildrenElement>,
@@ -92,7 +92,7 @@ impl Parser for SupplProvision {
   }
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub enum SupplProvisionChildrenElement {
   Chapter(article::Chapter),
   Article(article::Article),
@@ -102,13 +102,13 @@ pub enum SupplProvisionChildrenElement {
   SupplProvisionAppdx(SupplProvisionAppdx),
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub enum SupplProvisionType {
   New,
   Amend,
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SupplProvisionAppdxTable {
   pub title: TextWithWritingMode,
   pub related_article_num: Option<Text>,
@@ -158,7 +158,7 @@ impl Parser for SupplProvisionAppdxTable {
   }
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SupplProvisionAppdxStyle {
   pub title: text::TextWithWritingMode,
   pub related_article_num: Option<Text>,
@@ -208,7 +208,7 @@ impl Parser for SupplProvisionAppdxStyle {
   }
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SupplProvisionAppdx {
   pub arith_formula_num: Option<Text>,
   pub related_article_num: Option<Text>,

@@ -7,7 +7,7 @@ use crate::*;
 use roxmltree::Node;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Remarks {
   pub label: RemarksLabel,
   pub children: Vec<RemarksContents>,
@@ -49,7 +49,7 @@ impl Parser for Remarks {
   }
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct RemarksLabel {
   pub text: Text,
   pub line_break: bool,
@@ -67,7 +67,7 @@ impl Parser for RemarksLabel {
   }
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub enum RemarksContents {
   Item(Item),
   Sentence(Sentence),

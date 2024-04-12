@@ -11,7 +11,7 @@ use crate::*;
 use roxmltree::Node;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub enum Struct {
   TableStruct(TableStruct),
   FigStruct(FigStruct),
@@ -32,7 +32,7 @@ impl Parser for Struct {
 }
 
 /// 引用
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct QuoteStruct {
   pub contentes: contents::Contents,
 }
@@ -43,7 +43,7 @@ impl Parser for QuoteStruct {
   }
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct NoteStruct {
   pub title: Option<Text>,
   pub title_remarks: Vec<Remarks>,
@@ -98,7 +98,7 @@ impl Parser for NoteStruct {
   }
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct StyleStruct {
   pub title: Option<Text>,
   pub title_remarks: Vec<Remarks>,
@@ -153,7 +153,7 @@ impl Parser for StyleStruct {
   }
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct FormatStruct {
   title: Option<Text>,
   title_remarks: Vec<Remarks>,
@@ -208,7 +208,7 @@ impl Parser for FormatStruct {
   }
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct FigStruct {
   pub title: Option<Text>,
   pub title_remarks: Vec<Remarks>,
@@ -263,7 +263,7 @@ impl Parser for FigStruct {
   }
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct TableStruct {
   pub title: Option<TextWithWritingMode>,
   pub title_remarks: Vec<Remarks>,

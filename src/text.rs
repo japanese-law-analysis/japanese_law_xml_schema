@@ -8,7 +8,7 @@ use roxmltree::{Children, Node};
 use serde::{Deserialize, Serialize};
 
 /// テキスト
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Text {
   pub contents: Vec<TextElement>,
 }
@@ -157,14 +157,14 @@ impl Parser for Text {
   }
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub enum WritingMode {
   Vertical,
   Horizontal,
 }
 
 /// 段落方向の情報がついたテキスト
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct TextWithWritingMode {
   pub contents: Vec<TextElement>,
   pub writing_mode: WritingMode,
@@ -192,7 +192,7 @@ impl Parser for TextWithWritingMode {
 }
 
 /// テキストの要素
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub enum TextElement {
   Ruby(Ruby),
   Line(Line),
@@ -202,7 +202,7 @@ pub enum TextElement {
 }
 
 /// ルビ
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Ruby {
   /// 本文
   pub text: Text,
@@ -250,7 +250,7 @@ impl Parser for Ruby {
 }
 
 /// 上付き文字
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Sup {
   pub text: String,
 }
@@ -279,7 +279,7 @@ impl Parser for Sup {
 }
 
 /// 下付き文字
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Sub {
   pub text: String,
 }
