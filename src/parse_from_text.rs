@@ -217,19 +217,8 @@ fn parse_article(
     text: text::Text::from_value(s),
     common_caption: None,
   });
-  let mut paragraph = vec![paragraph::Paragraph {
-    caption: None,
-    paragraph_num: text::Text::new(), // TODO 謎
-    amend_provision: Vec::new(),      // TODO
-    class: Vec::new(),                // TODO
-    sentence: Vec::new(),             // TODO textをここに入れる
-    struct_list: Vec::new(),          // TODO
-    children: Vec::new(),             // TODO
-    num: 1,
-    old_style: false,
-    old_num: false,
-    hide: false,
-  }];
+  let para = parse_paragraph(1, text, lines);
+  let mut paragraph = vec![para];
   while let Some(LineContents::Paragraph(n, text)) = lines.peek() {
     lines.next();
     let para = parse_paragraph(*n, text, lines);
@@ -260,7 +249,7 @@ fn parse_paragraph(
   let sentence = sentence_text
     .iter()
     .enumerate()
-    .map(|(n, s)| text_to_sentence(n, s))
+    .map(|(n, s)| text_to_sentence(n + 1, s))
     .collect::<Vec<_>>();
 
   let mut children = Vec::new();
@@ -283,7 +272,7 @@ fn parse_paragraph(
         sentence_text
           .iter()
           .enumerate()
-          .map(|(n, s)| text_to_sentence(n, s))
+          .map(|(n, s)| text_to_sentence(n + 1, s))
           .collect(),
       ),
       children: subitem1,
@@ -338,7 +327,7 @@ fn parse_subitem1(
           sentence_text
             .iter()
             .enumerate()
-            .map(|(n, s)| text_to_sentence(n, s))
+            .map(|(n, s)| text_to_sentence(n + 1, s))
             .collect(),
         ),
         children: subitem2,
@@ -382,7 +371,7 @@ fn parse_subitem2(
           sentence_text
             .iter()
             .enumerate()
-            .map(|(n, s)| text_to_sentence(n, s))
+            .map(|(n, s)| text_to_sentence(n + 1, s))
             .collect(),
         ),
         children: subitem3,
@@ -426,7 +415,7 @@ fn parse_subitem3(
           sentence_text
             .iter()
             .enumerate()
-            .map(|(n, s)| text_to_sentence(n, s))
+            .map(|(n, s)| text_to_sentence(n + 1, s))
             .collect(),
         ),
         children: subitem4,
@@ -470,7 +459,7 @@ fn parse_subitem4(
           sentence_text
             .iter()
             .enumerate()
-            .map(|(n, s)| text_to_sentence(n, s))
+            .map(|(n, s)| text_to_sentence(n + 1, s))
             .collect(),
         ),
         children: subitem5,
@@ -514,7 +503,7 @@ fn parse_subitem5(
           sentence_text
             .iter()
             .enumerate()
-            .map(|(n, s)| text_to_sentence(n, s))
+            .map(|(n, s)| text_to_sentence(n + 1, s))
             .collect(),
         ),
         children: subitem6,
@@ -558,7 +547,7 @@ fn parse_subitem6(
           sentence_text
             .iter()
             .enumerate()
-            .map(|(n, s)| text_to_sentence(n, s))
+            .map(|(n, s)| text_to_sentence(n + 1, s))
             .collect(),
         ),
         children: subitem7,
@@ -602,7 +591,7 @@ fn parse_subitem7(
           sentence_text
             .iter()
             .enumerate()
-            .map(|(n, s)| text_to_sentence(n, s))
+            .map(|(n, s)| text_to_sentence(n + 1, s))
             .collect(),
         ),
         children: subitem8,
@@ -646,7 +635,7 @@ fn parse_subitem8(
           sentence_text
             .iter()
             .enumerate()
-            .map(|(n, s)| text_to_sentence(n, s))
+            .map(|(n, s)| text_to_sentence(n + 1, s))
             .collect(),
         ),
         children: subitem9,
@@ -690,7 +679,7 @@ fn parse_subitem9(
           sentence_text
             .iter()
             .enumerate()
-            .map(|(n, s)| text_to_sentence(n, s))
+            .map(|(n, s)| text_to_sentence(n + 1, s))
             .collect(),
         ),
         children: subitem10,
@@ -728,7 +717,7 @@ fn parse_subitem10(
           sentence_text
             .iter()
             .enumerate()
-            .map(|(n, s)| text_to_sentence(n, s))
+            .map(|(n, s)| text_to_sentence(n + 1, s))
             .collect(),
         ),
         struct_list: Vec::new(),
@@ -986,6 +975,7 @@ enum ItemPattern {
 fn parse_line_contents(line: &str) -> LineContents {
   use ItemPattern::*;
   use LineContents::*;
+  let line = line.trim();
   let re_caption = Regex::new("^（(?<caption>[^）]+)）$").unwrap();
   // TODO 枝番号に対応させる
   let re_article = Regex::new(r"^第((?<arabic_num>[0-9]+)|(?<zenkaku_num>[０-９]+)|(?<kansuji>[一二三四五六七八九十百千]+))(?<suffix>(編|章|節|款|目|条))([　\s]*)(?<text>(.+))$").unwrap();
@@ -1255,4 +1245,179 @@ fn check_parse_zenkaku_alphabet_lower() {
 #[test]
 fn check_parse_zenkaku_alphabet_upper() {
   assert_eq!(parse_zenkaku_alphabet("Ｂ"), 2)
+}
+
+#[test]
+fn check_parse_line_contents_1() {
+  let s = r"第一編　総則
+  第一章　通則
+  （基本原則）
+  第一条　私権は、公共の福祉に適合しなければならない。
+  ２　権利の行使及び義務の履行は、信義に従い誠実に行わなければならない。
+  ３　権利の濫用は、これを許さない。
+  （解釈の基準）
+  第二条　この法律は、個人の尊厳と両性の本質的平等を旨として、解釈しなければならない。";
+  let r = s.lines().map(parse_line_contents).collect::<Vec<_>>();
+  assert_eq!(
+    r,
+    vec![
+      LineContents::Part(1, "総則".to_string()),
+      LineContents::Chapter(1, "通則".to_string()),
+      LineContents::Caption("基本原則".to_string()),
+      LineContents::Article(
+        1,
+        "私権は、公共の福祉に適合しなければならない。".to_string()
+      ),
+      LineContents::Paragraph(
+        2,
+        "権利の行使及び義務の履行は、信義に従い誠実に行わなければならない。".to_string()
+      ),
+      LineContents::Paragraph(3, "権利の濫用は、これを許さない。".to_string()),
+      LineContents::Caption("解釈の基準".to_string()),
+      LineContents::Article(
+        2,
+        "この法律は、個人の尊厳と両性の本質的平等を旨として、解釈しなければならない。".to_string()
+      ),
+    ]
+  )
+}
+
+#[test]
+fn check_parse_body_1() {
+  let s = r"第一編　総則
+  第一章　通則
+  （基本原則）
+  第一条　私権は、公共の福祉に適合しなければならない。
+  ２　権利の行使及び義務の履行は、信義に従い誠実に行わなければならない。
+  ３　権利の濫用は、これを許さない。
+  （解釈の基準）
+  第二条　この法律は、個人の尊厳と両性の本質的平等を旨として、解釈しなければならない。";
+  let main_provision = parse_body("title", s).unwrap().main_provision.children;
+  assert_eq!(
+    main_provision,
+    vec![law::MainProvisionContents::Part(article::Part {
+      part_title: text::Text::from_value("総則"),
+      children: vec![article::PartContents::Chapter(article::Chapter {
+        chapter_title: text::Text::from_value("通則"),
+        children: vec![
+          article::ChapterContents::Article(article::Article {
+            caption: Some(class::Caption {
+              text: text::Text::from_value("基本原則"),
+              common_caption: None
+            }),
+            title: text::Text::from_value(""),
+            paragraph: vec![
+              paragraph::Paragraph {
+                caption: None,
+                paragraph_num: text::Text::new(),
+                amend_provision: Vec::new(),
+                class: Vec::new(),
+                sentence: vec![sentence::Sentence {
+                  contents: vec![sentence::SentenceElement::String(
+                    "私権は、公共の福祉に適合しなければならない。".to_string()
+                  )],
+                  num: 1,
+                  function: None,
+                  indent: None,
+                  writing_mode: text::WritingMode::Vertical
+                }],
+                struct_list: Vec::new(),
+                children: Vec::new(),
+                num: 1,
+                old_style: false,
+                old_num: false,
+                hide: false,
+              },
+              paragraph::Paragraph {
+                caption: None,
+                paragraph_num: text::Text::new(),
+                amend_provision: Vec::new(),
+                class: Vec::new(),
+                sentence: vec![sentence::Sentence {
+                  contents: vec![sentence::SentenceElement::String(
+                    "権利の行使及び義務の履行は、信義に従い誠実に行わなければならない。"
+                      .to_string()
+                  )],
+                  num: 1,
+                  function: None,
+                  indent: None,
+                  writing_mode: text::WritingMode::Vertical
+                }],
+                struct_list: Vec::new(),
+                children: Vec::new(),
+                num: 2,
+                old_style: false,
+                old_num: false,
+                hide: false,
+              },
+              paragraph::Paragraph {
+                caption: None,
+                paragraph_num: text::Text::new(),
+                amend_provision: Vec::new(),
+                class: Vec::new(),
+                sentence: vec![sentence::Sentence {
+                  contents: vec![sentence::SentenceElement::String(
+                    "権利の濫用は、これを許さない。".to_string()
+                  )],
+                  num: 1,
+                  function: None,
+                  indent: None,
+                  writing_mode: text::WritingMode::Vertical
+                }],
+                struct_list: Vec::new(),
+                children: Vec::new(),
+                num: 3,
+                old_style: false,
+                old_num: false,
+                hide: false,
+              }
+            ],
+            suppl_note: None,
+            num: "1".to_string(),
+            delete: false,
+            hide: false
+          }),
+          article::ChapterContents::Article(article::Article {
+            caption: Some(class::Caption {
+              text: text::Text::from_value("解釈の基準"),
+              common_caption: None
+            }),
+            title: text::Text::from_value(""),
+            paragraph: vec![paragraph::Paragraph {
+              caption: None,
+              paragraph_num: text::Text::new(),
+              amend_provision: Vec::new(),
+              class: Vec::new(),
+              sentence: vec![sentence::Sentence {
+                contents: vec![sentence::SentenceElement::String(
+                  "この法律は、個人の尊厳と両性の本質的平等を旨として、解釈しなければならない。"
+                    .to_string()
+                )],
+                num: 1,
+                function: None,
+                indent: None,
+                writing_mode: text::WritingMode::Vertical
+              }],
+              struct_list: Vec::new(),
+              children: Vec::new(),
+              num: 1,
+              old_style: false,
+              old_num: false,
+              hide: false,
+            }],
+            suppl_note: None,
+            num: "2".to_string(),
+            delete: false,
+            hide: false
+          })
+        ],
+        num: "1".to_string(),
+        delete: false,
+        hide: false
+      }),],
+      num: "1".to_string(),
+      delete: false,
+      hide: false
+    })]
+  )
 }
