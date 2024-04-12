@@ -3,7 +3,7 @@ name = "japanese_law_xml_schema"
 description = "法令標準XMLスキーマ対応ライブラリ"
 version = "0.0.1"
 edition = "2021"
-rust-version = "1.60.0"
+rust-version = "1.65.0"
 license = "MIT"
 authors = ["Naoki Kaneko a.k.a. puripuri2100"]
 repository = "https://github.com/japanese-law-analysis/japanese_law_xml_schema.git"
@@ -12,6 +12,10 @@ readme = "README.md"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+kansuji = "0.1.1"
+koyomi = "0.4.0"
+regex = "1.10.3"
+roman = "0.1.6"
 roxmltree = "0.19.0"
 serde = { version = "1.0.192", features = ["derive"] }
 thiserror = "1.0.56"

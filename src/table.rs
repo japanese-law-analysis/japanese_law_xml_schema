@@ -12,7 +12,7 @@ use crate::text::*;
 use crate::*;
 use roxmltree::Node;
 use serde::{Deserialize, Serialize};
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Table {
   pub table_header_row: Vec<TableHeaderRow>,
   pub table_row: Vec<TableRow>,
@@ -53,7 +53,7 @@ impl Parser for Table {
   }
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct TableHeaderRow {
   pub columns: Vec<Text>,
 }
@@ -75,7 +75,7 @@ impl Parser for TableHeaderRow {
   }
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct TableRow {
   pub columns: Vec<TableColumn>,
 }
@@ -97,7 +97,7 @@ impl Parser for TableRow {
   }
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct TableColumn {
   pub contents: Vec<TableColumnContents>,
   pub border_top: LineStyle,
@@ -237,7 +237,7 @@ impl Parser for TableColumn {
   }
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub enum TableColumnContents {
   Part(Part),
   Chapter(Chapter),
@@ -264,7 +264,7 @@ pub enum TableColumnContents {
   String(String),
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub enum Position {
   Top,
   Middle,

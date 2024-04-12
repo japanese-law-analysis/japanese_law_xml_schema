@@ -9,7 +9,7 @@ use roxmltree::Node;
 use serde::{Deserialize, Serialize};
 
 /// 列挙
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct List {
   pub sentence: Vec<ListSentence>,
   pub children: Vec<Sublist1>,
@@ -56,13 +56,13 @@ impl Parser for List {
   }
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub enum ListSentence {
   Sentence(Sentence),
   Column(Column),
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Sublist1 {
   pub sentence: Vec<ListSentence>,
   pub children: Vec<Sublist2>,
@@ -109,7 +109,7 @@ impl Parser for Sublist1 {
   }
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Sublist2 {
   pub sentence: Vec<ListSentence>,
   pub children: Vec<Sublist3>,
@@ -156,7 +156,7 @@ impl Parser for Sublist2 {
   }
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Sublist3 {
   pub sentence: Vec<ListSentence>,
 }

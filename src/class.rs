@@ -8,7 +8,7 @@ use crate::*;
 use roxmltree::Node;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Class {
   pub class_title: Option<Text>,
   pub class_sentence: SentenceOrColumnOrTable,
@@ -58,7 +58,7 @@ impl Parser for Class {
   }
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub enum SentenceOrColumnOrTable {
   Sentence(Vec<Sentence>),
   Column(Vec<Column>),
@@ -104,7 +104,7 @@ impl SentenceOrColumnOrTable {
   }
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Caption {
   pub text: Text,
   pub common_caption: Option<bool>,
@@ -127,7 +127,7 @@ impl Parser for Caption {
   }
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Column {
   pub sentence: Vec<Sentence>,
   pub num: Option<usize>,
@@ -158,7 +158,7 @@ impl Parser for Column {
   }
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub enum Align {
   Left,
   Center,

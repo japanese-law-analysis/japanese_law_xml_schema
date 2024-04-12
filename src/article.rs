@@ -10,7 +10,7 @@ use roxmltree::Node;
 use serde::{Deserialize, Serialize};
 
 /// 編
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Part {
   pub part_title: Text,
   pub children: Vec<PartContents>,
@@ -72,14 +72,14 @@ impl Parser for Part {
   }
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub enum PartContents {
   Article(Article),
   Chapter(Chapter),
 }
 
 /// 章
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Chapter {
   pub chapter_title: Text,
   pub children: Vec<ChapterContents>,
@@ -141,14 +141,14 @@ impl Parser for Chapter {
   }
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub enum ChapterContents {
   Article(Article),
   Section(Section),
 }
 
 /// 節
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Section {
   pub section_title: Text,
   pub children: Vec<SectionContents>,
@@ -210,14 +210,14 @@ impl Parser for Section {
   }
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub enum SectionContents {
   Article(Article),
   Subsection(Subsection),
 }
 
 /// 款
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Subsection {
   pub subsection_title: Text,
   pub children: Vec<SubsectionContents>,
@@ -286,14 +286,14 @@ impl Parser for Subsection {
   }
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub enum SubsectionContents {
   Article(Article),
   Division(Division),
 }
 
 /// 目
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Division {
   pub division_title: Text,
   pub children: Vec<Article>,
@@ -352,7 +352,7 @@ impl Parser for Division {
 }
 
 /// 条
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Article {
   pub caption: Option<Caption>,
   pub title: Text,

@@ -8,7 +8,7 @@ use crate::*;
 use roxmltree::Node;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Line {
   pub contents: Vec<LineContents>,
   pub style: LineStyle,
@@ -67,7 +67,7 @@ impl Parser for Line {
   }
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub enum LineContents {
   QuoteStruct(QuoteStruct),
   ArithFormula(ArithFormula),
@@ -78,7 +78,7 @@ pub enum LineContents {
 }
 
 /// 線の引き方
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub enum LineStyle {
   Dotted,
   Double,

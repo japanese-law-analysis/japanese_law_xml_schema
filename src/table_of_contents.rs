@@ -8,7 +8,7 @@ use roxmltree::Node;
 use serde::{Deserialize, Serialize};
 
 /// 目次
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct TOC {
   /// 目次タイトル（概ね「目次」）
   pub toc_label: Option<Text>,
@@ -77,7 +77,7 @@ impl Parser for TOC {
   }
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub enum TOCMainContents {
   /// 編の目次
   TOCPart(TOCPart),
@@ -90,7 +90,7 @@ pub enum TOCMainContents {
 }
 
 /// 編の目次
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct TOCPart {
   /// 編のタイトル
   pub part_title: Text,
@@ -141,7 +141,7 @@ impl Parser for TOCPart {
 }
 
 /// 章の目次
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct TOCChapter {
   /// 章のタイトル
   pub chapter_title: Text,
@@ -192,7 +192,7 @@ impl Parser for TOCChapter {
 }
 
 /// 節の目次
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct TOCSection {
   /// 節のタイトル
   pub section_title: Text,
@@ -247,7 +247,7 @@ impl Parser for TOCSection {
 }
 
 /// 節目次の子要素
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub enum TOCSectionContents {
   /// 款
   TOCSubsection(TOCSubsection),
@@ -256,7 +256,7 @@ pub enum TOCSectionContents {
 }
 
 /// 款の目次
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct TOCSubsection {
   /// 款のタイトル
   pub subsection_title: Text,
@@ -307,7 +307,7 @@ impl Parser for TOCSubsection {
 }
 
 /// 目の目次
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct TOCDivision {
   /// 目のタイトル
   pub division_title: Text,
@@ -350,7 +350,7 @@ impl Parser for TOCDivision {
 }
 
 /// 条の目次
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct TOCArticle {
   /// 条のタイトル
   pub article_title: Text,
@@ -401,7 +401,7 @@ impl Parser for TOCArticle {
 }
 
 /// 附則の目次
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct TOCSupplProvision {
   /// 見出し（概ね「附則」）
   pub suppl_provision_label: Text,
@@ -448,7 +448,7 @@ impl Parser for TOCSupplProvision {
 }
 
 /// 附則の目次の中身
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub enum TOCSupplProvisionContents {
   /// 条
   TOCArticle(TOCArticle),

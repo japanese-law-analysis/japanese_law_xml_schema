@@ -12,7 +12,7 @@ use crate::*;
 use roxmltree::Node;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Paragraph {
   pub caption: Option<Caption>,
   pub paragraph_num: Text,
@@ -102,7 +102,7 @@ impl Parser for Paragraph {
   }
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Item {
   pub title: Option<Text>,
   pub sentence: SentenceOrColumnOrTable,
@@ -199,7 +199,7 @@ impl Parser for Item {
   }
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Subitem1 {
   pub title: Option<text::Text>,
   pub sentence: SentenceOrColumnOrTable,
@@ -296,7 +296,7 @@ impl Parser for Subitem1 {
   }
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Subitem2 {
   pub title: Option<text::Text>,
   pub sentence: SentenceOrColumnOrTable,
@@ -393,7 +393,7 @@ impl Parser for Subitem2 {
   }
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Subitem3 {
   pub title: Option<text::Text>,
   pub sentence: SentenceOrColumnOrTable,
@@ -490,7 +490,7 @@ impl Parser for Subitem3 {
   }
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Subitem4 {
   pub title: Option<text::Text>,
   pub sentence: SentenceOrColumnOrTable,
@@ -587,7 +587,7 @@ impl Parser for Subitem4 {
   }
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Subitem5 {
   pub title: Option<text::Text>,
   pub sentence: SentenceOrColumnOrTable,
@@ -684,7 +684,7 @@ impl Parser for Subitem5 {
   }
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Subitem6 {
   pub title: Option<text::Text>,
   pub sentence: SentenceOrColumnOrTable,
@@ -781,7 +781,7 @@ impl Parser for Subitem6 {
   }
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Subitem7 {
   pub title: Option<text::Text>,
   pub sentence: SentenceOrColumnOrTable,
@@ -878,7 +878,7 @@ impl Parser for Subitem7 {
   }
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Subitem8 {
   pub title: Option<text::Text>,
   pub sentence: SentenceOrColumnOrTable,
@@ -975,7 +975,7 @@ impl Parser for Subitem8 {
   }
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Subitem9 {
   pub title: Option<text::Text>,
   pub sentence: SentenceOrColumnOrTable,
@@ -1072,7 +1072,7 @@ impl Parser for Subitem9 {
   }
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Subitem10 {
   pub title: Option<text::Text>,
   pub sentence: SentenceOrColumnOrTable,

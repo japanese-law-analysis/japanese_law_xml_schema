@@ -5,12 +5,12 @@ use crate::result::Error;
 use crate::*;
 use roxmltree::Node;
 use serde::{Deserialize, Serialize};
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Sentence {
   pub contents: Vec<SentenceElement>,
   pub num: usize,
-  pub function: SentenceFunction,
-  pub indent: SentenceIndent,
+  pub function: Option<SentenceFunction>,
+  pub indent: Option<SentenceIndent>,
   pub writing_mode: text::WritingMode,
 }
 
@@ -19,8 +19,9 @@ impl Parser for Sentence {
     if node.tag_name().name() == "Sentence" {
       let num = get_attribute_with_parse(node, "Num")?;
       let function = match node.attribute("Function") {
-        Some("main") => SentenceFunction::Main,
-        Some("proviso") => SentenceFunction::Proviso,
+        Some("main") => Some(SentenceFunction::Main),
+        Some("proviso") => Some(SentenceFunction::Proviso),
+        None => None,
         _ => {
           return Err(Error::AttributeParseError {
             range: node.range(),
@@ -30,18 +31,19 @@ impl Parser for Sentence {
         }
       };
       let indent = match node.attribute("Indent") {
-        Some("Paragraph") => SentenceIndent::Paragraph,
-        Some("Item") => SentenceIndent::Item,
-        Some("Subitem1") => SentenceIndent::Subitem1,
-        Some("Subitem2") => SentenceIndent::Subitem2,
-        Some("Subitem3") => SentenceIndent::Subitem3,
-        Some("Subitem4") => SentenceIndent::Subitem4,
-        Some("Subitem5") => SentenceIndent::Subitem5,
-        Some("Subitem6") => SentenceIndent::Subitem6,
-        Some("Subitem7") => SentenceIndent::Subitem7,
-        Some("Subitem8") => SentenceIndent::Subitem8,
-        Some("Subitem9") => SentenceIndent::Subitem9,
-        Some("Subitem10") => SentenceIndent::Subitem10,
+        Some("Paragraph") => Some(SentenceIndent::Paragraph),
+        Some("Item") => Some(SentenceIndent::Item),
+        Some("Subitem1") => Some(SentenceIndent::Subitem1),
+        Some("Subitem2") => Some(SentenceIndent::Subitem2),
+        Some("Subitem3") => Some(SentenceIndent::Subitem3),
+        Some("Subitem4") => Some(SentenceIndent::Subitem4),
+        Some("Subitem5") => Some(SentenceIndent::Subitem5),
+        Some("Subitem6") => Some(SentenceIndent::Subitem6),
+        Some("Subitem7") => Some(SentenceIndent::Subitem7),
+        Some("Subitem8") => Some(SentenceIndent::Subitem8),
+        Some("Subitem9") => Some(SentenceIndent::Subitem9),
+        Some("Subitem10") => Some(SentenceIndent::Subitem10),
+        None => None,
         _ => {
           return Err(Error::AttributeParseError {
             range: node.range(),
@@ -103,7 +105,7 @@ impl Parser for Sentence {
   }
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub enum SentenceElement {
   Line(line::Line),
   QuoteStruct(structs::QuoteStruct),
@@ -114,13 +116,13 @@ pub enum SentenceElement {
   String(String),
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub enum SentenceFunction {
   Main,
   Proviso,
 }
 
-#[derive(Debug, Clone, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub enum SentenceIndent {
   Paragraph,
   Item,
