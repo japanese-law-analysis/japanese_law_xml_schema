@@ -102,8 +102,18 @@ pub fn parse_article_number(str: &str) -> Option<(ArticleNumber, String)> {
   }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
+pub struct ItemNumber {
+  /// 実際の文字列
+  pub str: String,
+  /// 番号
+  pub number: usize,
+  /// 番号のパターン
+  pub pattern: ItemPattern,
+}
+
 /// 号の数字を表す記号の種類
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize)]
 pub enum ItemPattern {
   /// 括弧なし漢数字
   NoParenKansuji,
@@ -137,6 +147,99 @@ pub enum ItemPattern {
   ParenZenkakuUpper,
   /// 括弧あり小文字
   ParenZenkakuLower,
+}
+
+pub fn parse_item_number(str: &str) -> Option<(ItemNumber, String)> {
+  use ItemPattern::*;
+  let re_item = Regex::new(r"^(?<str>(（((?<paren_iroha_katakana>[ア-ン]+)|(?<paren_iroha_hiragana>[あ-ん]+)|(?<paren_kansuji>[一二三四五六七八九十百千]+)|(?<paren_zenkaku_num>[０-９]+)|(?<paren_zenkaku_upper>[Ａ-Ｚ]+)|(?<paren_zenkaku_lower>[ａ-ｚ]+))）|((?<no_paren_iroha_katakana>[ア-ン]+)|(?<no_paren_iroha_hiragana>[あ-ん]+)|(?<no_paren_kansuji>[一二三四五六七八九十百千]+)|(?<no_paren_zenkaku_num>[０-９]+)|(?<no_paren_zenkaku_upper>[Ａ-Ｚ]+)|(?<no_paren_zenkaku_lower>[ａ-ｚ]+))))([　\s]*)(?<text>(.+))$").unwrap();
+  let re_is_roman = Regex::new(r"[ixvlcIXVLCｉｘｖｌｃＩＸＶＬＣ]+").unwrap();
+  if let Some(caps) = re_item.captures(str) {
+    let (pattern, number) = if let Some(s) = caps.name("paren_iroha_katakana") {
+      (
+        ParenIrohaKatakana,
+        parse_iroha_katakana(s.as_str()).unwrap(),
+      )
+    } else if let Some(s) = caps.name("paren_iroha_hiragana") {
+      (
+        ParenIrohaHiragana,
+        parse_iroha_hiragana(s.as_str()).unwrap(),
+      )
+    } else if let Some(s) = caps.name("paren_kansuji") {
+      let kansuji = Kansuji::try_from(s.as_str()).unwrap();
+      let n: u128 = kansuji.into();
+      (ParenKansuji, n as usize)
+    } else if let Some(s) = caps.name("paren_zenkaku_num") {
+      (ParenZenkakuNum, parse_zenkaku_num(s.as_str()).unwrap())
+    } else if let Some(s) = caps.name("paren_zenkaku_upper") {
+      if re_is_roman.is_match(s.as_str()) {
+        (ParenZenkakuRomanUpper, parse_roman(s.as_str()).unwrap())
+      } else {
+        (
+          ParenZenkakuUpper,
+          parse_zenkaku_alphabet(s.as_str()).unwrap(),
+        )
+      }
+    } else if let Some(s) = caps.name("paren_zenkaku_lower") {
+      if re_is_roman.is_match(s.as_str()) {
+        (ParenZenkakuRomanLower, parse_roman(s.as_str()).unwrap())
+      } else {
+        (
+          ParenZenkakuLower,
+          parse_zenkaku_alphabet(s.as_str()).unwrap(),
+        )
+      }
+    }
+    // 括弧なし
+    else if let Some(s) = caps.name("no_paren_iroha_katakana") {
+      (
+        NoParenIrohaKatakana,
+        parse_iroha_katakana(s.as_str()).unwrap(),
+      )
+    } else if let Some(s) = caps.name("no_paren_iroha_hiragana") {
+      (
+        NoParenIrohaHiragana,
+        parse_iroha_hiragana(s.as_str()).unwrap(),
+      )
+    } else if let Some(s) = caps.name("no_paren_kansuji") {
+      let kansuji = Kansuji::try_from(s.as_str()).unwrap();
+      let n: u128 = kansuji.into();
+      (NoParenKansuji, n as usize)
+    } else if let Some(s) = caps.name("no_paren_zenkaku_num") {
+      (NoParenZenkakuNum, parse_zenkaku_num(s.as_str()).unwrap())
+    } else if let Some(s) = caps.name("no_paren_zenkaku_upper") {
+      if re_is_roman.is_match(s.as_str()) {
+        (NoParenZenkakuRomanUpper, parse_roman(s.as_str()).unwrap())
+      } else {
+        (
+          NoParenZenkakuUpper,
+          parse_zenkaku_alphabet(s.as_str()).unwrap(),
+        )
+      }
+    } else if let Some(s) = caps.name("no_paren_zenkaku_lower") {
+      if re_is_roman.is_match(s.as_str()) {
+        (NoParenZenkakuRomanLower, parse_roman(s.as_str()).unwrap())
+      } else {
+        (
+          NoParenZenkakuLower,
+          parse_zenkaku_alphabet(s.as_str()).unwrap(),
+        )
+      }
+    } else {
+      unreachable!()
+    };
+    let text = caps["text"].to_string();
+    let str = caps["str"].to_string();
+    Some((
+      ItemNumber {
+        str,
+        number,
+        pattern,
+      },
+      text,
+    ))
+  } else {
+    None
+  }
 }
 
 fn parse_zenkaku_num(str: &str) -> Option<usize> {
