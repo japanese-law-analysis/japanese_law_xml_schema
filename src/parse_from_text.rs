@@ -317,7 +317,7 @@ fn parse_subitem1(
       }
       let mut subitem2 = Vec::new();
       if let Some(LineContents::Item(pat, _, _)) = lines.peek() {
-        if pat != now_pat {
+        if pat != now_pat && pat != parent_pattern {
           subitem2 = parse_subitem2(now_pat, pat, lines);
         }
       }
@@ -361,7 +361,7 @@ fn parse_subitem2(
       }
       let mut subitem3 = Vec::new();
       if let Some(LineContents::Item(pat, _, _)) = lines.peek() {
-        if pat != now_pat {
+        if pat != now_pat && pat != parent_pattern {
           subitem3 = parse_subitem3(now_pat, pat, lines);
         }
       }
@@ -405,7 +405,7 @@ fn parse_subitem3(
       }
       let mut subitem4 = Vec::new();
       if let Some(LineContents::Item(pat, _, _)) = lines.peek() {
-        if pat != now_pat {
+        if pat != now_pat && pat != parent_pattern {
           subitem4 = parse_subitem4(now_pat, pat, lines);
         }
       }
@@ -449,7 +449,7 @@ fn parse_subitem4(
       }
       let mut subitem5 = Vec::new();
       if let Some(LineContents::Item(pat, _, _)) = lines.peek() {
-        if pat != now_pat {
+        if pat != now_pat && pat != parent_pattern {
           subitem5 = parse_subitem5(now_pat, pat, lines);
         }
       }
@@ -493,7 +493,7 @@ fn parse_subitem5(
       }
       let mut subitem6 = Vec::new();
       if let Some(LineContents::Item(pat, _, _)) = lines.peek() {
-        if pat != now_pat {
+        if pat != now_pat && pat != parent_pattern {
           subitem6 = parse_subitem6(now_pat, pat, lines);
         }
       }
@@ -537,7 +537,7 @@ fn parse_subitem6(
       }
       let mut subitem7 = Vec::new();
       if let Some(LineContents::Item(pat, _, _)) = lines.peek() {
-        if pat != now_pat {
+        if pat != now_pat && pat != parent_pattern {
           subitem7 = parse_subitem7(now_pat, pat, lines);
         }
       }
@@ -581,7 +581,7 @@ fn parse_subitem7(
       }
       let mut subitem8 = Vec::new();
       if let Some(LineContents::Item(pat, _, _)) = lines.peek() {
-        if pat != now_pat {
+        if pat != now_pat && pat != parent_pattern {
           subitem8 = parse_subitem8(now_pat, pat, lines);
         }
       }
@@ -625,7 +625,7 @@ fn parse_subitem8(
       }
       let mut subitem9 = Vec::new();
       if let Some(LineContents::Item(pat, _, _)) = lines.peek() {
-        if pat != now_pat {
+        if pat != now_pat && pat != parent_pattern {
           subitem9 = parse_subitem9(now_pat, pat, lines);
         }
       }
@@ -669,7 +669,7 @@ fn parse_subitem9(
       }
       let mut subitem10 = Vec::new();
       if let Some(LineContents::Item(pat, _, _)) = lines.peek() {
-        if pat != now_pat {
+        if pat != now_pat && pat != parent_pattern {
           subitem10 = parse_subitem10(now_pat, pat, lines);
         }
       }
@@ -1256,7 +1256,13 @@ fn check_parse_line_contents_1() {
   ２　権利の行使及び義務の履行は、信義に従い誠実に行わなければならない。
   ３　権利の濫用は、これを許さない。
   （解釈の基準）
-  第二条　この法律は、個人の尊厳と両性の本質的平等を旨として、解釈しなければならない。";
+  第二条　この法律は、個人の尊厳と両性の本質的平等を旨として、解釈しなければならない。
+  第十三条　被保佐人が次に掲げる行為をするには、その保佐人の同意を得なければならない。ただし、第九条ただし書に規定する行為については、この限りでない。
+  一　元本を領収し、又は利用すること。
+  二　主たる債務者が法人である場合の次に掲げる者
+    イ　主たる債務者の総株主の議決権（株主総会において決議をすることができる事項の全部につき議決権を行使することができない株式についての議決権を除く。以下この号において同じ。）の過半数を有する者
+  三　不動産その他重要な財産に関する権利の得喪を目的とする行為をすること。
+  ２　家庭裁判所は、第十一条本文に規定する者又は保佐人若しくは保佐監督人の請求により、被保佐人が前項各号に掲げる行為以外の行為をする場合であってもその保佐人の同意を得なければならない旨の審判をすることができる。ただし、第九条ただし書に規定する行為については、この限りでない。";
   let r = s.lines().map(parse_line_contents).collect::<Vec<_>>();
   assert_eq!(
     r,
@@ -1278,6 +1284,15 @@ fn check_parse_line_contents_1() {
         2,
         "この法律は、個人の尊厳と両性の本質的平等を旨として、解釈しなければならない。".to_string()
       ),
+      LineContents::Article(
+        13,
+        "被保佐人が次に掲げる行為をするには、その保佐人の同意を得なければならない。ただし、第九条ただし書に規定する行為については、この限りでない。".to_string()
+      ),
+      LineContents::Item(ItemPattern::NoParenKansuji, 1, "元本を領収し、又は利用すること。".to_string()),
+      LineContents::Item(ItemPattern::NoParenKansuji, 2, "主たる債務者が法人である場合の次に掲げる者".to_string()),
+      LineContents::Item(ItemPattern::NoParenIrohaKatakana, 1, "主たる債務者の総株主の議決権（株主総会において決議をすることができる事項の全部につき議決権を行使することができない株式についての議決権を除く。以下この号において同じ。）の過半数を有する者".to_string()),
+      LineContents::Item(ItemPattern::NoParenKansuji, 3, "不動産その他重要な財産に関する権利の得喪を目的とする行為をすること。".to_string()),
+      LineContents::Paragraph(2, "家庭裁判所は、第十一条本文に規定する者又は保佐人若しくは保佐監督人の請求により、被保佐人が前項各号に掲げる行為以外の行為をする場合であってもその保佐人の同意を得なければならない旨の審判をすることができる。ただし、第九条ただし書に規定する行為については、この限りでない。".to_string()),
     ]
   )
 }
@@ -1291,7 +1306,13 @@ fn check_parse_body_1() {
   ２　権利の行使及び義務の履行は、信義に従い誠実に行わなければならない。
   ３　権利の濫用は、これを許さない。
   （解釈の基準）
-  第二条　この法律は、個人の尊厳と両性の本質的平等を旨として、解釈しなければならない。";
+  第二条　この法律は、個人の尊厳と両性の本質的平等を旨として、解釈しなければならない。
+  第十三条　被保佐人が次に掲げる行為をするには、その保佐人の同意を得なければならない。ただし、第九条ただし書に規定する行為については、この限りでない。
+  一　元本を領収し、又は利用すること。
+  二　主たる債務者が法人である場合の次に掲げる者
+    イ　主たる債務者の総株主の議決権（株主総会において決議をすることができる事項の全部につき議決権を行使することができない株式についての議決権を除く。以下この号において同じ。）の過半数を有する者
+  三　不動産その他重要な財産に関する権利の得喪を目的とする行為をすること。
+  ２　家庭裁判所は、第十一条本文に規定する者又は保佐人若しくは保佐監督人の請求により、被保佐人が前項各号に掲げる行為以外の行為をする場合であってもその保佐人の同意を得なければならない旨の審判をすることができる。ただし、第九条ただし書に規定する行為については、この限りでない。";
   let main_provision = parse_body("title", s).unwrap().main_provision.children;
   assert_eq!(
     main_provision,
@@ -1409,7 +1430,96 @@ fn check_parse_body_1() {
             num: "2".to_string(),
             delete: false,
             hide: false
-          })
+          }),
+          article::ChapterContents::Article(article::Article {
+            caption: None,
+            title: text::Text::from_value(""),
+            paragraph: vec![paragraph::Paragraph {
+              caption: None,
+              paragraph_num: text::Text::new(),
+              amend_provision: Vec::new(),
+              class: Vec::new(),
+              sentence: vec![sentence::Sentence {
+                contents: vec![sentence::SentenceElement::String(
+                  "被保佐人が次に掲げる行為をするには、その保佐人の同意を得なければならない。ただし、第九条ただし書に規定する行為については、この限りでない。"
+                    .to_string()
+                )],
+                num: 1,
+                function: None,
+                indent: None,
+                writing_mode: text::WritingMode::Vertical
+              }],
+              struct_list: Vec::new(),
+              children: vec![
+                paragraph::Item {
+                  title: None,
+                  sentence: class::SentenceOrColumnOrTable::Sentence(vec![text_to_sentence(1, "元本を領収し、又は利用すること。")]),
+                  children: Vec::new(),
+                  struct_list: Vec::new(),
+                  num: "1".to_string(),
+                  delete: false,
+                  hide: false
+                },
+                paragraph::Item {
+                  title: None,
+                  sentence: class::SentenceOrColumnOrTable::Sentence(vec![text_to_sentence(1, "主たる債務者が法人である場合の次に掲げる者")]),
+                  children: vec![
+                    paragraph::Subitem1 {
+                      title: None,
+                      sentence: class::SentenceOrColumnOrTable::Sentence(vec![text_to_sentence(1, "主たる債務者の総株主の議決権（株主総会において決議をすることができる事項の全部につき議決権を行使することができない株式についての議決権を除く。以下この号において同じ。）の過半数を有する者")]),
+                      children: Vec::new(),
+                      struct_list: Vec::new(),
+                      num: "1".to_string(),
+                      delete: false,
+                      hide: false
+                    }
+                  ],
+                  struct_list: Vec::new(),
+                  num: "2".to_string(),
+                  delete: false,
+                  hide: false
+                },
+                paragraph::Item {
+                  title: None,
+                  sentence: class::SentenceOrColumnOrTable::Sentence(vec![text_to_sentence(1, "不動産その他重要な財産に関する権利の得喪を目的とする行為をすること。")]),
+                  children: Vec::new(),
+                  struct_list: Vec::new(),
+                  num: "3".to_string(),
+                  delete: false,
+                  hide: false
+                }
+              ],
+              num: 1,
+              old_style: false,
+              old_num: false,
+              hide: false,
+            },paragraph::Paragraph {
+              caption: None,
+              paragraph_num: text::Text::new(),
+              amend_provision: Vec::new(),
+              class: Vec::new(),
+              sentence: vec![sentence::Sentence {
+                contents: vec![sentence::SentenceElement::String(
+                  "家庭裁判所は、第十一条本文に規定する者又は保佐人若しくは保佐監督人の請求により、被保佐人が前項各号に掲げる行為以外の行為をする場合であってもその保佐人の同意を得なければならない旨の審判をすることができる。ただし、第九条ただし書に規定する行為については、この限りでない。"
+                    .to_string()
+                )],
+                num: 1,
+                function: None,
+                indent: None,
+                writing_mode: text::WritingMode::Vertical
+              }],
+              struct_list: Vec::new(),
+              children: Vec::new(),
+              num: 2,
+              old_style: false,
+              old_num: false,
+              hide: false,
+            }],
+            suppl_note: None,
+            num: "13".to_string(),
+            delete: false,
+            hide: false
+          }),
         ],
         num: "1".to_string(),
         delete: false,
