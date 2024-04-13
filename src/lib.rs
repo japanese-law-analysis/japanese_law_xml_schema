@@ -24,6 +24,7 @@ pub mod suppl_provision;
 pub mod table;
 pub mod table_of_contents;
 pub mod text;
+pub mod to_xml;
 
 use koyomi::{era, Date};
 use result::*;
