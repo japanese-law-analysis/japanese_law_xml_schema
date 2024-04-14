@@ -5,8 +5,8 @@ use crate::result::*;
 use crate::structs::*;
 use crate::text::*;
 use crate::*;
-use roxmltree::Node;
 use serde::{Deserialize, Serialize};
+use xmltree::{Element, XMLNode};
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Line {
@@ -21,48 +21,47 @@ impl ToHtml for Line {
 }
 
 impl Parser for Line {
-  fn parser(node: &Node) -> result::Result<Self> {
-    if node.tag_name().name() == "Line" {
-      let style =
-        LineStyle::from_attribute(node.attribute("Style")).ok_or(Error::AttributeParseError {
-          range: node.range(),
+  fn parser(element: &Element) -> result::Result<Self> {
+    if element.name.as_str() == "Line" {
+      let style = LineStyle::from_attribute(element.attributes.get("Style")).ok_or(
+        Error::AttributeParseError {
           tag_name: "Line".to_string(),
           attribute_name: "Style".to_string(),
-        })?;
+        },
+      )?;
       let mut contents = Vec::new();
-      for node in node.children() {
-        match node.tag_name().name() {
-          "QuoteStruct" => {
-            let v = QuoteStruct::parser(&node)?;
-            contents.push(LineContents::QuoteStruct(v))
-          }
-          "ArithFormula" => {
-            let v = ArithFormula::parser(&node)?;
-            contents.push(LineContents::ArithFormula(v))
-          }
-          "Ruby" => {
-            let v = Ruby::parser(&node)?;
-            contents.push(LineContents::Ruby(v))
-          }
-          "Sup" => {
-            let v = Sup::parser(&node)?;
-            contents.push(LineContents::Sup(v))
-          }
-          "Sub" => {
-            let v = Sub::parser(&node)?;
-            contents.push(LineContents::Sub(v))
-          }
-          "" => {
-            if let Some(v) = node.text() {
-              contents.push(LineContents::String(v.to_string()));
+      for node in element.children.iter() {
+        if let XMLNode::Element(e) = node {
+          match e.name.as_str() {
+            "QuoteStruct" => {
+              let v = QuoteStruct::parser(e)?;
+              contents.push(LineContents::QuoteStruct(v))
             }
+            "ArithFormula" => {
+              let v = ArithFormula::parser(e)?;
+              contents.push(LineContents::ArithFormula(v))
+            }
+            "Ruby" => {
+              let v = Ruby::parser(e)?;
+              contents.push(LineContents::Ruby(v))
+            }
+            "Sup" => {
+              let v = Sup::parser(e)?;
+              contents.push(LineContents::Sup(v))
+            }
+            "Sub" => {
+              let v = Sub::parser(e)?;
+              contents.push(LineContents::Sub(v))
+            }
+            s => return Err(Error::unexpected_tag(e, s)),
           }
-          s => return Err(Error::unexpected_tag(&node, s)),
+        } else if let XMLNode::Text(s) = node {
+          contents.push(LineContents::String(s.clone()))
         }
       }
       Ok(Line { contents, style })
     } else {
-      Err(Error::wrong_tag_name(node, "Line"))
+      Err(Error::wrong_tag_name(element, "Line"))
     }
   }
 }
@@ -87,8 +86,8 @@ pub enum LineStyle {
 }
 
 impl LineStyle {
-  pub fn from_attribute(att: Option<&str>) -> Option<Self> {
-    match att {
+  pub fn from_attribute(att: Option<&String>) -> Option<Self> {
+    match att.map(|s| s.as_str()) {
       Some("solid") => Some(LineStyle::Solid),
       Some("none") => Some(LineStyle::None),
       Some("dotted") => Some(LineStyle::Dotted),

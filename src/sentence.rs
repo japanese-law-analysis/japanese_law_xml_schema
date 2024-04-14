@@ -3,8 +3,8 @@
 use crate::parser::*;
 use crate::result::Error;
 use crate::*;
-use roxmltree::Node;
 use serde::{Deserialize, Serialize};
+use xmltree::{Element, XMLNode};
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Sentence {
   pub contents: Vec<SentenceElement>,
@@ -15,22 +15,21 @@ pub struct Sentence {
 }
 
 impl Parser for Sentence {
-  fn parser(node: &Node) -> result::Result<Self> {
-    if node.tag_name().name() == "Sentence" {
-      let num = get_attribute_with_parse(node, "Num")?;
-      let function = match node.attribute("Function") {
+  fn parser(element: &Element) -> result::Result<Self> {
+    if element.name.as_str() == "Sentence" {
+      let num = get_attribute_with_parse(element, "Num")?;
+      let function = match element.attributes.get("Function").map(|s| s.as_str()) {
         Some("main") => Some(SentenceFunction::Main),
         Some("proviso") => Some(SentenceFunction::Proviso),
         None => None,
         _ => {
           return Err(Error::AttributeParseError {
-            range: node.range(),
-            tag_name: node.tag_name().name().to_string(),
+            tag_name: element.name.clone(),
             attribute_name: "Function".to_string(),
           })
         }
       };
-      let indent = match node.attribute("Indent") {
+      let indent = match element.attributes.get("Indent").map(|s| s.as_str()) {
         Some("Paragraph") => Some(SentenceIndent::Paragraph),
         Some("Item") => Some(SentenceIndent::Item),
         Some("Subitem1") => Some(SentenceIndent::Subitem1),
@@ -46,50 +45,48 @@ impl Parser for Sentence {
         None => None,
         _ => {
           return Err(Error::AttributeParseError {
-            range: node.range(),
-            tag_name: node.tag_name().name().to_string(),
+            tag_name: element.name.clone(),
             attribute_name: "Indent".to_string(),
           })
         }
       };
-      let writing_mode = match node.attribute("WritingMode") {
+      let writing_mode = match element.attributes.get("WritingMode").map(|s| s.as_str()) {
         Some("vertical") => text::WritingMode::Vertical,
         Some("horizontal") => text::WritingMode::Horizontal,
         _ => text::WritingMode::Vertical,
       };
       let mut contents = Vec::new();
-      for node in node.children() {
-        match node.tag_name().name() {
-          "Line" => {
-            let v = line::Line::parser(&node)?;
-            contents.push(SentenceElement::Line(v));
-          }
-          "QuoteStruct" => {
-            let v = structs::QuoteStruct::parser(&node)?;
-            contents.push(SentenceElement::QuoteStruct(v));
-          }
-          "ArithFormula" => {
-            let v = contents::ArithFormula::parser(&node)?;
-            contents.push(SentenceElement::ArithFormula(v));
-          }
-          "Ruby" => {
-            let v = text::Ruby::parser(&node)?;
-            contents.push(SentenceElement::Ruby(v));
-          }
-          "Sup" => {
-            let v = text::Sup::parser(&node)?;
-            contents.push(SentenceElement::Sup(v));
-          }
-          "Sub" => {
-            let v = text::Sub::parser(&node)?;
-            contents.push(SentenceElement::Sub(v));
-          }
-          "" => {
-            if let Some(t) = node.text() {
-              contents.push(SentenceElement::String(t.to_string()))
+      for node in element.children.iter() {
+        if let XMLNode::Element(e) = node {
+          match e.name.as_str() {
+            "Line" => {
+              let v = line::Line::parser(e)?;
+              contents.push(SentenceElement::Line(v));
             }
+            "QuoteStruct" => {
+              let v = structs::QuoteStruct::parser(e)?;
+              contents.push(SentenceElement::QuoteStruct(v));
+            }
+            "ArithFormula" => {
+              let v = contents::ArithFormula::parser(e)?;
+              contents.push(SentenceElement::ArithFormula(v));
+            }
+            "Ruby" => {
+              let v = text::Ruby::parser(e)?;
+              contents.push(SentenceElement::Ruby(v));
+            }
+            "Sup" => {
+              let v = text::Sup::parser(e)?;
+              contents.push(SentenceElement::Sup(v));
+            }
+            "Sub" => {
+              let v = text::Sub::parser(e)?;
+              contents.push(SentenceElement::Sub(v));
+            }
+            s => return Err(Error::unexpected_tag(e, s)),
           }
-          s => return Err(Error::unexpected_tag(&node, s)),
+        } else if let XMLNode::Text(s) = node {
+          contents.push(SentenceElement::String(s.clone()))
         }
       }
       Ok(Sentence {
@@ -100,7 +97,7 @@ impl Parser for Sentence {
         writing_mode,
       })
     } else {
-      Err(Error::wrong_tag_name(node, "Sentence"))
+      Err(Error::wrong_tag_name(element, "Sentence"))
     }
   }
 }

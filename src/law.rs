@@ -14,8 +14,8 @@ use crate::table::*;
 use crate::table_of_contents::*;
 use crate::text::*;
 use crate::*;
-use roxmltree::Node;
 use serde::{Deserialize, Serialize};
+use xmltree::{Element, XMLNode};
 
 /// 法令そのもの
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
@@ -41,9 +41,9 @@ pub struct Law {
 }
 
 impl Parser for Law {
-  fn parser(node: &Node) -> result::Result<Self> {
-    if node.tag_name().name() == "Law" {
-      let era = match node.attribute("Era") {
+  fn parser(element: &Element) -> result::Result<Self> {
+    if element.name.as_str() == "Law" {
+      let era = match element.attributes.get("Era").map(|s| s.as_str()) {
         Some("Meiji") => Era::Meiji,
         Some("Taisho") => Era::Taisho,
         Some("Showa") => Era::Showa,
@@ -51,17 +51,16 @@ impl Parser for Law {
         Some("Reiwa") => Era::Reiwa,
         _ => {
           return Err(Error::AttributeParseError {
-            range: node.range(),
-            tag_name: node.tag_name().name().to_string(),
+            tag_name: element.name.clone(),
             attribute_name: "Era".to_string(),
           })
         }
       };
-      let year = get_attribute_with_parse(node, "Year")?;
-      let num = get_attribute_with_parse(node, "Num")?;
-      let promulgate_month = get_attribute_opt_with_parse(node, "PromulgateMonth")?;
-      let promulgate_day = get_attribute_opt_with_parse(node, "PromulgateDay")?;
-      let law_type = match node.attribute("LawType") {
+      let year = get_attribute_with_parse(element, "Year")?;
+      let num = get_attribute_with_parse(element, "Num")?;
+      let promulgate_month = get_attribute_opt_with_parse(element, "PromulgateMonth")?;
+      let promulgate_day = get_attribute_opt_with_parse(element, "PromulgateDay")?;
+      let law_type = match element.attributes.get("LawType").map(|s| s.as_str()) {
         Some("Constitution") => LawType::Constitution,
         Some("Act") => LawType::Act,
         Some("CabinetOrder") => LawType::CabinetOrder,
@@ -71,41 +70,62 @@ impl Parser for Law {
         Some("Misc") => LawType::Misc,
         _ => {
           return Err(Error::AttributeParseError {
-            range: node.range(),
-            tag_name: node.tag_name().name().to_string(),
+            tag_name: element.name.clone(),
             attribute_name: "LawType".to_string(),
           })
         }
       };
-      let lang = match node.attribute("Lang") {
+      let lang = match element.attributes.get("Lang").map(|s| s.as_str()) {
         Some("ja") => Lang::Ja,
         Some("en") => Lang::En,
         _ => {
           return Err(Error::AttributeParseError {
-            range: node.range(),
-            tag_name: node.tag_name().name().to_string(),
+            tag_name: element.name.clone(),
             attribute_name: "Lang".to_string(),
           })
         }
       };
-      let mut children = node.children();
-      let law_num_node = children
+      let mut children = element.children.iter();
+      let law_num_element = children
         .next()
-        .ok_or(Error::missing_required_tag(&node.range(), "LawNum"))?;
-      let law_num_node_tag_name = law_num_node.tag_name().name();
-      let law_num = if law_num_node_tag_name == "LawNum" {
-        law_num_node.text().unwrap_or_default().to_string()
+        .and_then(|n| {
+          if let XMLNode::Element(e) = n {
+            Some(e)
+          } else {
+            None
+          }
+        })
+        .ok_or(Error::missing_required_tag("LawNum"))?;
+      let law_num_element_tag_name = law_num_element.name.clone();
+      let law_num = if law_num_element_tag_name == "LawNum" {
+        law_num_element
+          .children
+          .iter()
+          .map(|n| {
+            if let XMLNode::Text(s) = n {
+              s.clone()
+            } else {
+              String::new()
+            }
+          })
+          .collect::<String>()
       } else {
         return Err(Error::UnexpectedTag {
-          range: law_num_node.range(),
-          wrong_name: law_num_node_tag_name.to_string(),
+          wrong_name: law_num_element_tag_name,
           tag: "LawNum".to_string(),
         });
       };
-      let law_body_node = children
+      let law_body_element = children
         .next()
-        .ok_or(Error::missing_required_tag(&node.range(), "LawBody"))?;
-      let law_body = LawBody::parser(&law_body_node)?;
+        .and_then(|n| {
+          if let XMLNode::Element(e) = n {
+            Some(e)
+          } else {
+            None
+          }
+        })
+        .ok_or(Error::missing_required_tag("LawBody"))?;
+      let law_body = LawBody::parser(law_body_element)?;
       Ok(Law {
         era,
         year,
@@ -118,7 +138,7 @@ impl Parser for Law {
         law_body,
       })
     } else {
-      Err(Error::wrong_tag_name(node, "Law"))
+      Err(Error::wrong_tag_name(element, "Law"))
     }
   }
 }
@@ -196,9 +216,9 @@ pub struct LawBody {
 }
 
 impl Parser for LawBody {
-  fn parser(node: &Node) -> result::Result<Self> {
-    if node.tag_name().name() == "LawBody" {
-      let subject = get_attribute_opt_with_parse(node, "Subject")?;
+  fn parser(element: &Element) -> result::Result<Self> {
+    if element.name.as_str() == "LawBody" {
+      let subject = get_attribute_opt_with_parse(element, "Subject")?;
       let mut law_title = None;
       let mut enact_statement = Vec::new();
       let mut toc = None;
@@ -211,54 +231,56 @@ impl Parser for LawBody {
       let mut appdx = Vec::new();
       let mut appdx_fig = Vec::new();
       let mut appdx_format = Vec::new();
-      for node in node.children() {
-        match node.tag_name().name() {
-          "LawTitle" => {
-            let v = LawTitle::parser(&node)?;
-            law_title = Some(v);
+      for node in element.children.iter() {
+        if let XMLNode::Element(e) = node {
+          match e.name.as_str() {
+            "LawTitle" => {
+              let v = LawTitle::parser(e)?;
+              law_title = Some(v);
+            }
+            "EnactStatement" => enact_statement.push(Text::from_children(&e.children)),
+            "TOC" => {
+              let v = TOC::parser(e)?;
+              toc = Some(v);
+            }
+            "Preamble" => {
+              let v = Preamble::parser(e)?;
+              preamble = Some(v);
+            }
+            "MainProvision" => {
+              let v = MainProvision::parser(e)?;
+              main_provision = Some(v);
+            }
+            "SupplProvision" => {
+              let v = SupplProvision::parser(e)?;
+              suppl_provision.push(v);
+            }
+            "AppdxTable" => {
+              let v = AppdxTable::parser(e)?;
+              appdx_table.push(v);
+            }
+            "AppdxNote" => {
+              let v = AppdxNote::parser(e)?;
+              appdx_note.push(v);
+            }
+            "AppdxStyle" => {
+              let v = AppdxStyle::parser(e)?;
+              appdx_style.push(v);
+            }
+            "Appdx" => {
+              let v = Appdx::parser(e)?;
+              appdx.push(v);
+            }
+            "AppdxFig" => {
+              let v = AppdxFig::parser(e)?;
+              appdx_fig.push(v);
+            }
+            "AppdxFormat" => {
+              let v = AppdxFormat::parser(e)?;
+              appdx_format.push(v);
+            }
+            s => return Err(Error::unexpected_tag(e, s)),
           }
-          "EnactStatement" => enact_statement.push(Text::from_children(node.children())),
-          "TOC" => {
-            let v = TOC::parser(&node)?;
-            toc = Some(v);
-          }
-          "Preamble" => {
-            let v = Preamble::parser(&node)?;
-            preamble = Some(v);
-          }
-          "MainProvision" => {
-            let v = MainProvision::parser(&node)?;
-            main_provision = Some(v);
-          }
-          "SupplProvision" => {
-            let v = SupplProvision::parser(&node)?;
-            suppl_provision.push(v);
-          }
-          "AppdxTable" => {
-            let v = AppdxTable::parser(&node)?;
-            appdx_table.push(v);
-          }
-          "AppdxNote" => {
-            let v = AppdxNote::parser(&node)?;
-            appdx_note.push(v);
-          }
-          "AppdxStyle" => {
-            let v = AppdxStyle::parser(&node)?;
-            appdx_style.push(v);
-          }
-          "Appdx" => {
-            let v = Appdx::parser(&node)?;
-            appdx.push(v);
-          }
-          "AppdxFig" => {
-            let v = AppdxFig::parser(&node)?;
-            appdx_fig.push(v);
-          }
-          "AppdxFormat" => {
-            let v = AppdxFormat::parser(&node)?;
-            appdx_format.push(v);
-          }
-          s => return Err(Error::unexpected_tag(&node, s)),
         }
       }
       if let Some(main_provision) = main_provision {
@@ -278,10 +300,10 @@ impl Parser for LawBody {
           appdx_format,
         })
       } else {
-        Err(Error::missing_required_tag(&node.range(), "MainProvision"))
+        Err(Error::missing_required_tag("MainProvision"))
       }
     } else {
-      Err(Error::wrong_tag_name(node, "LawBody"))
+      Err(Error::wrong_tag_name(element, "LawBody"))
     }
   }
 }
@@ -300,12 +322,12 @@ pub struct LawTitle {
 }
 
 impl Parser for LawTitle {
-  fn parser(node: &Node) -> result::Result<Self> {
-    if node.tag_name().name() == "LawTitle" {
-      let kana = get_attribute_opt_with_parse(node, "Kana")?;
-      let abbrev = get_attribute_opt_with_parse(node, "Abbrev")?;
-      let abbrev_kana = get_attribute_opt_with_parse(node, "AbbrevKana")?;
-      let text = Text::from_children(node.children());
+  fn parser(element: &Element) -> result::Result<Self> {
+    if element.name.as_str() == "LawTitle" {
+      let kana = get_attribute_opt_with_parse(element, "Kana")?;
+      let abbrev = get_attribute_opt_with_parse(element, "Abbrev")?;
+      let abbrev_kana = get_attribute_opt_with_parse(element, "AbbrevKana")?;
+      let text = Text::from_children(&element.children);
       Ok(LawTitle {
         kana,
         abbrev,
@@ -313,7 +335,7 @@ impl Parser for LawTitle {
         text,
       })
     } else {
-      Err(Error::wrong_tag_name(node, "LawTitle"))
+      Err(Error::wrong_tag_name(element, "LawTitle"))
     }
   }
 }
@@ -325,18 +347,20 @@ pub struct Preamble {
 }
 
 impl Parser for Preamble {
-  fn parser(node: &Node) -> result::Result<Self> {
-    if node.tag_name().name() == "Preamble" {
+  fn parser(element: &Element) -> result::Result<Self> {
+    if element.name.as_str() == "Preamble" {
       let mut children = Vec::new();
-      for node in node.children() {
-        if node.tag_name().name() == "Paragraph" {
-          let v = Paragraph::parser(&node)?;
-          children.push(v)
+      for node in element.children.iter() {
+        if let XMLNode::Element(e) = node {
+          if e.name.as_str() == "Paragraph" {
+            let v = Paragraph::parser(e)?;
+            children.push(v)
+          }
         }
       }
       Ok(Preamble { children })
     } else {
-      Err(Error::wrong_tag_name(node, "Preamble"))
+      Err(Error::wrong_tag_name(element, "Preamble"))
     }
   }
 }
@@ -350,38 +374,40 @@ pub struct MainProvision {
 }
 
 impl Parser for MainProvision {
-  fn parser(node: &Node) -> result::Result<Self> {
-    if node.tag_name().name() == "MainProvision" {
-      let extract = get_attribute_opt_with_parse(node, "Extract")?;
+  fn parser(element: &Element) -> result::Result<Self> {
+    if element.name.as_str() == "MainProvision" {
+      let extract = get_attribute_opt_with_parse(element, "Extract")?;
       let mut children = Vec::new();
-      for node in node.children() {
-        match node.tag_name().name() {
-          "Part" => {
-            let v = Part::parser(&node)?;
-            children.push(MainProvisionContents::Part(v))
+      for node in element.children.iter() {
+        if let XMLNode::Element(e) = node {
+          match e.name.as_str() {
+            "Part" => {
+              let v = Part::parser(e)?;
+              children.push(MainProvisionContents::Part(v))
+            }
+            "Chapter" => {
+              let v = Chapter::parser(e)?;
+              children.push(MainProvisionContents::Chapter(v))
+            }
+            "Section" => {
+              let v = Section::parser(e)?;
+              children.push(MainProvisionContents::Section(v))
+            }
+            "Article" => {
+              let v = Article::parser(e)?;
+              children.push(MainProvisionContents::Article(v))
+            }
+            "Paragraph" => {
+              let v = Paragraph::parser(e)?;
+              children.push(MainProvisionContents::Paragraph(v))
+            }
+            s => return Err(Error::unexpected_tag(e, s)),
           }
-          "Chapter" => {
-            let v = Chapter::parser(&node)?;
-            children.push(MainProvisionContents::Chapter(v))
-          }
-          "Section" => {
-            let v = Section::parser(&node)?;
-            children.push(MainProvisionContents::Section(v))
-          }
-          "Article" => {
-            let v = Article::parser(&node)?;
-            children.push(MainProvisionContents::Article(v))
-          }
-          "Paragraph" => {
-            let v = Paragraph::parser(&node)?;
-            children.push(MainProvisionContents::Paragraph(v))
-          }
-          s => return Err(Error::unexpected_tag(&node, s)),
         }
       }
       Ok(MainProvision { children, extract })
     } else {
-      Err(Error::wrong_tag_name(node, "MainProvision"))
+      Err(Error::wrong_tag_name(element, "MainProvision"))
     }
   }
 }
@@ -409,226 +435,231 @@ pub struct AmendProvision {
 }
 
 impl Parser for AmendProvision {
-  fn parser(node: &Node) -> result::Result<Self> {
-    if node.tag_name().name() == "AmendProvision" {
+  fn parser(element: &Element) -> result::Result<Self> {
+    if element.name.as_str() == "AmendProvision" {
       let mut sentence = None;
       let mut new_provision = Vec::new();
-      for node in node.children() {
-        match node.tag_name().name() {
-          "AmendProvisionSentence" => {
-            let n = node
-              .children()
-              .next()
-              .ok_or(Error::missing_required_tag(&node.range(), "AmendProvision"))?;
-            let v = Sentence::parser(&n)?;
-            sentence = Some(v)
-          }
-          "NewProvision" => {
-            for node in node.children() {
-              match node.tag_name().name() {
-                "LawTitle" => {
-                  let v = LawTitle::parser(&node)?;
-                  new_provision.push(NewProvision::LawTitle(v));
+      for node in element.children.iter() {
+        if let XMLNode::Element(e) = node {
+          match e.name.as_str() {
+            "AmendProvisionSentence" => {
+              let n = e
+                .children
+                .first()
+                .and_then(|n| {
+                  if let XMLNode::Element(e) = n {
+                    Some(e)
+                  } else {
+                    None
+                  }
+                })
+                .ok_or(Error::missing_required_tag("AmendProvision"))?;
+              let v = Sentence::parser(n)?;
+              sentence = Some(v)
+            }
+            "NewProvision" => {
+              for node in e.children.iter() {
+                if let XMLNode::Element(e) = node {
+                  match e.name.as_str() {
+                    "LawTitle" => {
+                      let v = LawTitle::parser(e)?;
+                      new_provision.push(NewProvision::LawTitle(v));
+                    }
+                    "Preamble" => {
+                      let v = Preamble::parser(e)?;
+                      new_provision.push(NewProvision::Preamble(v));
+                    }
+                    "TOC" => {
+                      let v = TOC::parser(e)?;
+                      new_provision.push(NewProvision::TOC(v));
+                    }
+                    "Part" => {
+                      let v = Part::parser(e)?;
+                      new_provision.push(NewProvision::Part(v));
+                    }
+                    "PartTitle" => {
+                      new_provision.push(NewProvision::PartTitle(Text::from_children(&e.children)));
+                    }
+                    "Chapter" => {
+                      let v = Chapter::parser(e)?;
+                      new_provision.push(NewProvision::Chapter(v));
+                    }
+                    "ChapterTitle" => {
+                      new_provision
+                        .push(NewProvision::ChapterTitle(Text::from_children(&e.children)));
+                    }
+                    "Section" => {
+                      let v = Section::parser(e)?;
+                      new_provision.push(NewProvision::Section(v));
+                    }
+                    "SectionTitle" => {
+                      new_provision
+                        .push(NewProvision::SectionTitle(Text::from_children(&e.children)));
+                    }
+                    "Subsection" => {
+                      let v = Subsection::parser(e)?;
+                      new_provision.push(NewProvision::Subsection(v));
+                    }
+                    "SubsectionTitle" => {
+                      new_provision.push(NewProvision::SubsectionTitle(Text::from_children(
+                        &e.children,
+                      )));
+                    }
+                    "Division" => {
+                      let v = Division::parser(e)?;
+                      new_provision.push(NewProvision::Division(v));
+                    }
+                    "DivisionTitle" => {
+                      new_provision.push(NewProvision::DivisionTitle(Text::from_children(
+                        &e.children,
+                      )));
+                    }
+                    "Article" => {
+                      let v = Article::parser(e)?;
+                      new_provision.push(NewProvision::Article(v));
+                    }
+                    "SupplNote" => {
+                      new_provision.push(NewProvision::SupplNote(Text::from_children(&e.children)));
+                    }
+                    "Paragraph" => {
+                      let v = Paragraph::parser(e)?;
+                      new_provision.push(NewProvision::Paragraph(v));
+                    }
+                    "Item" => {
+                      let v = Item::parser(e)?;
+                      new_provision.push(NewProvision::Item(v));
+                    }
+                    "Subitem1" => {
+                      let v = Subitem1::parser(e)?;
+                      new_provision.push(NewProvision::Subitem1(v));
+                    }
+                    "Subitem2" => {
+                      let v = Subitem2::parser(e)?;
+                      new_provision.push(NewProvision::Subitem2(v));
+                    }
+                    "Subitem3" => {
+                      let v = Subitem3::parser(e)?;
+                      new_provision.push(NewProvision::Subitem3(v));
+                    }
+                    "Subitem4" => {
+                      let v = Subitem4::parser(e)?;
+                      new_provision.push(NewProvision::Subitem4(v));
+                    }
+                    "Subitem5" => {
+                      let v = Subitem5::parser(e)?;
+                      new_provision.push(NewProvision::Subitem5(v));
+                    }
+                    "Subitem6" => {
+                      let v = Subitem6::parser(e)?;
+                      new_provision.push(NewProvision::Subitem6(v));
+                    }
+                    "Subitem7" => {
+                      let v = Subitem7::parser(e)?;
+                      new_provision.push(NewProvision::Subitem7(v));
+                    }
+                    "Subitem8" => {
+                      let v = Subitem8::parser(e)?;
+                      new_provision.push(NewProvision::Subitem8(v));
+                    }
+                    "Subitem9" => {
+                      let v = Subitem9::parser(e)?;
+                      new_provision.push(NewProvision::Subitem9(v));
+                    }
+                    "Subitem10" => {
+                      let v = Subitem10::parser(e)?;
+                      new_provision.push(NewProvision::Subitem10(v));
+                    }
+                    "List" => {
+                      let v = List::parser(e)?;
+                      new_provision.push(NewProvision::List(v));
+                    }
+                    "Sentence" => {
+                      let v = Sentence::parser(e)?;
+                      new_provision.push(NewProvision::Sentence(v));
+                    }
+                    "AmendProvision" => {
+                      let v = AmendProvision::parser(e)?;
+                      new_provision.push(NewProvision::AmendProvision(v));
+                    }
+                    "AppdxTable" => {
+                      let v = AppdxTable::parser(e)?;
+                      new_provision.push(NewProvision::AppdxTable(v));
+                    }
+                    "AppdxNote" => {
+                      let v = AppdxNote::parser(e)?;
+                      new_provision.push(NewProvision::AppdxNote(v));
+                    }
+                    "AppdxStyle" => {
+                      let v = AppdxStyle::parser(e)?;
+                      new_provision.push(NewProvision::AppdxStyle(v));
+                    }
+                    "Appdx" => {
+                      let v = Appdx::parser(e)?;
+                      new_provision.push(NewProvision::Appdx(v));
+                    }
+                    "AppdxFig" => {
+                      let v = AppdxFig::parser(e)?;
+                      new_provision.push(NewProvision::AppdxFig(v));
+                    }
+                    "AppdxFormat" => {
+                      let v = AppdxFormat::parser(e)?;
+                      new_provision.push(NewProvision::AppdxFormat(v));
+                    }
+                    "SupplProvisionAppdxStyle" => {
+                      let v = SupplProvisionAppdxStyle::parser(e)?;
+                      new_provision.push(NewProvision::SupplProvisionAppdxStyle(v));
+                    }
+                    "SupplProvisionAppdxTable" => {
+                      let v = SupplProvisionAppdxTable::parser(e)?;
+                      new_provision.push(NewProvision::SupplProvisionAppdxTable(v));
+                    }
+                    "SupplProvisionAppdx" => {
+                      let v = SupplProvisionAppdx::parser(e)?;
+                      new_provision.push(NewProvision::SupplProvisionAppdx(v));
+                    }
+                    "TableStruct" => {
+                      let v = TableStruct::parser(e)?;
+                      new_provision.push(NewProvision::TableStruct(v));
+                    }
+                    "TableRow" => {
+                      let v = TableRow::parser(e)?;
+                      new_provision.push(NewProvision::TableRow(v));
+                    }
+                    "TableColumn" => {
+                      let v = TableColumn::parser(e)?;
+                      new_provision.push(NewProvision::TableColumn(v));
+                    }
+                    "FigStruct" => {
+                      let v = FigStruct::parser(e)?;
+                      new_provision.push(NewProvision::FigStruct(v));
+                    }
+                    "NoteStruct" => {
+                      let v = NoteStruct::parser(e)?;
+                      new_provision.push(NewProvision::NoteStruct(v));
+                    }
+                    "StyleStruct" => {
+                      let v = StyleStruct::parser(e)?;
+                      new_provision.push(NewProvision::StyleStruct(v));
+                    }
+                    "FormatStruct" => {
+                      let v = FormatStruct::parser(e)?;
+                      new_provision.push(NewProvision::FormatStruct(v));
+                    }
+                    "Remarks" => {
+                      let v = Remarks::parser(e)?;
+                      new_provision.push(NewProvision::Remarks(v));
+                    }
+                    "LawBody" => {
+                      let v = LawBody::parser(e)?;
+                      new_provision.push(NewProvision::LawBody(v));
+                    }
+                    s => return Err(Error::unexpected_tag(e, s)),
+                  }
                 }
-                "Preamble" => {
-                  let v = Preamble::parser(&node)?;
-                  new_provision.push(NewProvision::Preamble(v));
-                }
-                "TOC" => {
-                  let v = TOC::parser(&node)?;
-                  new_provision.push(NewProvision::TOC(v));
-                }
-                "Part" => {
-                  let v = Part::parser(&node)?;
-                  new_provision.push(NewProvision::Part(v));
-                }
-                "PartTitle" => {
-                  new_provision.push(NewProvision::PartTitle(Text::from_children(
-                    node.children(),
-                  )));
-                }
-                "Chapter" => {
-                  let v = Chapter::parser(&node)?;
-                  new_provision.push(NewProvision::Chapter(v));
-                }
-                "ChapterTitle" => {
-                  new_provision.push(NewProvision::ChapterTitle(Text::from_children(
-                    node.children(),
-                  )));
-                }
-                "Section" => {
-                  let v = Section::parser(&node)?;
-                  new_provision.push(NewProvision::Section(v));
-                }
-                "SectionTitle" => {
-                  new_provision.push(NewProvision::SectionTitle(Text::from_children(
-                    node.children(),
-                  )));
-                }
-                "Subsection" => {
-                  let v = Subsection::parser(&node)?;
-                  new_provision.push(NewProvision::Subsection(v));
-                }
-                "SubsectionTitle" => {
-                  new_provision.push(NewProvision::SubsectionTitle(Text::from_children(
-                    node.children(),
-                  )));
-                }
-                "Division" => {
-                  let v = Division::parser(&node)?;
-                  new_provision.push(NewProvision::Division(v));
-                }
-                "DivisionTitle" => {
-                  new_provision.push(NewProvision::DivisionTitle(Text::from_children(
-                    node.children(),
-                  )));
-                }
-                "Article" => {
-                  let v = Article::parser(&node)?;
-                  new_provision.push(NewProvision::Article(v));
-                }
-                "SupplNote" => {
-                  new_provision.push(NewProvision::SupplNote(Text::from_children(
-                    node.children(),
-                  )));
-                }
-                "Paragraph" => {
-                  let v = Paragraph::parser(&node)?;
-                  new_provision.push(NewProvision::Paragraph(v));
-                }
-                "Item" => {
-                  let v = Item::parser(&node)?;
-                  new_provision.push(NewProvision::Item(v));
-                }
-                "Subitem1" => {
-                  let v = Subitem1::parser(&node)?;
-                  new_provision.push(NewProvision::Subitem1(v));
-                }
-                "Subitem2" => {
-                  let v = Subitem2::parser(&node)?;
-                  new_provision.push(NewProvision::Subitem2(v));
-                }
-                "Subitem3" => {
-                  let v = Subitem3::parser(&node)?;
-                  new_provision.push(NewProvision::Subitem3(v));
-                }
-                "Subitem4" => {
-                  let v = Subitem4::parser(&node)?;
-                  new_provision.push(NewProvision::Subitem4(v));
-                }
-                "Subitem5" => {
-                  let v = Subitem5::parser(&node)?;
-                  new_provision.push(NewProvision::Subitem5(v));
-                }
-                "Subitem6" => {
-                  let v = Subitem6::parser(&node)?;
-                  new_provision.push(NewProvision::Subitem6(v));
-                }
-                "Subitem7" => {
-                  let v = Subitem7::parser(&node)?;
-                  new_provision.push(NewProvision::Subitem7(v));
-                }
-                "Subitem8" => {
-                  let v = Subitem8::parser(&node)?;
-                  new_provision.push(NewProvision::Subitem8(v));
-                }
-                "Subitem9" => {
-                  let v = Subitem9::parser(&node)?;
-                  new_provision.push(NewProvision::Subitem9(v));
-                }
-                "Subitem10" => {
-                  let v = Subitem10::parser(&node)?;
-                  new_provision.push(NewProvision::Subitem10(v));
-                }
-                "List" => {
-                  let v = List::parser(&node)?;
-                  new_provision.push(NewProvision::List(v));
-                }
-                "Sentence" => {
-                  let v = Sentence::parser(&node)?;
-                  new_provision.push(NewProvision::Sentence(v));
-                }
-                "AmendProvision" => {
-                  let v = AmendProvision::parser(&node)?;
-                  new_provision.push(NewProvision::AmendProvision(v));
-                }
-                "AppdxTable" => {
-                  let v = AppdxTable::parser(&node)?;
-                  new_provision.push(NewProvision::AppdxTable(v));
-                }
-                "AppdxNote" => {
-                  let v = AppdxNote::parser(&node)?;
-                  new_provision.push(NewProvision::AppdxNote(v));
-                }
-                "AppdxStyle" => {
-                  let v = AppdxStyle::parser(&node)?;
-                  new_provision.push(NewProvision::AppdxStyle(v));
-                }
-                "Appdx" => {
-                  let v = Appdx::parser(&node)?;
-                  new_provision.push(NewProvision::Appdx(v));
-                }
-                "AppdxFig" => {
-                  let v = AppdxFig::parser(&node)?;
-                  new_provision.push(NewProvision::AppdxFig(v));
-                }
-                "AppdxFormat" => {
-                  let v = AppdxFormat::parser(&node)?;
-                  new_provision.push(NewProvision::AppdxFormat(v));
-                }
-                "SupplProvisionAppdxStyle" => {
-                  let v = SupplProvisionAppdxStyle::parser(&node)?;
-                  new_provision.push(NewProvision::SupplProvisionAppdxStyle(v));
-                }
-                "SupplProvisionAppdxTable" => {
-                  let v = SupplProvisionAppdxTable::parser(&node)?;
-                  new_provision.push(NewProvision::SupplProvisionAppdxTable(v));
-                }
-                "SupplProvisionAppdx" => {
-                  let v = SupplProvisionAppdx::parser(&node)?;
-                  new_provision.push(NewProvision::SupplProvisionAppdx(v));
-                }
-                "TableStruct" => {
-                  let v = TableStruct::parser(&node)?;
-                  new_provision.push(NewProvision::TableStruct(v));
-                }
-                "TableRow" => {
-                  let v = TableRow::parser(&node)?;
-                  new_provision.push(NewProvision::TableRow(v));
-                }
-                "TableColumn" => {
-                  let v = TableColumn::parser(&node)?;
-                  new_provision.push(NewProvision::TableColumn(v));
-                }
-                "FigStruct" => {
-                  let v = FigStruct::parser(&node)?;
-                  new_provision.push(NewProvision::FigStruct(v));
-                }
-                "NoteStruct" => {
-                  let v = NoteStruct::parser(&node)?;
-                  new_provision.push(NewProvision::NoteStruct(v));
-                }
-                "StyleStruct" => {
-                  let v = StyleStruct::parser(&node)?;
-                  new_provision.push(NewProvision::StyleStruct(v));
-                }
-                "FormatStruct" => {
-                  let v = FormatStruct::parser(&node)?;
-                  new_provision.push(NewProvision::FormatStruct(v));
-                }
-                "Remarks" => {
-                  let v = Remarks::parser(&node)?;
-                  new_provision.push(NewProvision::Remarks(v));
-                }
-                "LawBody" => {
-                  let v = LawBody::parser(&node)?;
-                  new_provision.push(NewProvision::LawBody(v));
-                }
-                s => return Err(Error::unexpected_tag(&node, s)),
               }
             }
+            s => return Err(Error::unexpected_tag(e, s)),
           }
-          s => return Err(Error::unexpected_tag(&node, s)),
         }
       }
       Ok(AmendProvision {
@@ -636,7 +667,7 @@ impl Parser for AmendProvision {
         new_provision,
       })
     } else {
-      Err(Error::wrong_tag_name(node, "AmendProvision"))
+      Err(Error::wrong_tag_name(element, "AmendProvision"))
     }
   }
 }

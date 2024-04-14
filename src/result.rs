@@ -1,6 +1,5 @@
 //! エラーハンドリング
 
-use std::ops::Range;
 use thiserror::Error;
 
 pub type Result<T> = std::result::Result<T, Error>;
@@ -11,60 +10,47 @@ pub enum Error {
   //Tag,
   //#[error("")]
   //Attribute,
-  #[error("Missing required attribute of {attribute_name} at {tag_name} tag({} - {})", .range.start, .range.end)]
+  #[error("Missing required attribute of {attribute_name} at {tag_name} tag")]
   MissingRequiredAttribute {
-    range: Range<usize>,
     tag_name: String,
     attribute_name: String,
   },
-  #[error("Missing required tag of {tag_name} tag({} - {})", .range.start, .range.end)]
-  MissingRequiredTag {
-    range: Range<usize>,
-    tag_name: String,
-  },
-  #[error("Attribure parse error of {attribute_name} at {tag_name} tag({} - {})", .range.start, .range.end)]
+  #[error("Missing required tag of {tag_name} tag")]
+  MissingRequiredTag { tag_name: String },
+  #[error("Attribure parse error of {attribute_name} at {tag_name} tag")]
   AttributeParseError {
-    range: Range<usize>,
     tag_name: String,
     attribute_name: String,
   },
-  #[error("Tag name is {wrong_name} but expected {expected_name} ({} - {})", .range.start, .range.end)]
+  #[error("Tag name is {wrong_name} but expected {expected_name}")]
   WrongTagName {
-    range: Range<usize>,
     wrong_name: String,
     expected_name: String,
   },
-  #[error("Unexpected {wrong_name} tag at {tag} ({} - {})", .range.start, .range.end)]
-  UnexpectedTag {
-    range: Range<usize>,
-    wrong_name: String,
-    tag: String,
-  },
-  #[error("parsing error({0})")]
-  XMLParing(roxmltree::Error),
+  #[error("Unexpected {wrong_name} tag at {tag}")]
+  UnexpectedTag { wrong_name: String, tag: String },
+  #[error("parsing error")]
+  XMLParing,
 }
 
 impl Error {
-  pub(crate) fn missing_required_tag(range: &Range<usize>, tag_name: &str) -> Self {
+  pub(crate) fn missing_required_tag(tag_name: &str) -> Self {
     Error::MissingRequiredTag {
-      range: range.clone(),
       tag_name: tag_name.to_string(),
     }
   }
 
-  pub(crate) fn wrong_tag_name(node: &roxmltree::Node, expected: &str) -> Self {
+  pub(crate) fn wrong_tag_name(element: &xmltree::Element, expected: &str) -> Self {
     Error::WrongTagName {
-      range: node.range().clone(),
-      wrong_name: node.tag_name().name().to_string(),
+      wrong_name: element.name.to_string(),
       expected_name: expected.to_string(),
     }
   }
 
-  pub(crate) fn unexpected_tag(node: &roxmltree::Node, wrong: &str) -> Self {
+  pub(crate) fn unexpected_tag(element: &xmltree::Element, wrong: &str) -> Self {
     Error::UnexpectedTag {
-      range: node.range().clone(),
       wrong_name: wrong.to_string(),
-      tag: node.tag_name().name().to_string(),
+      tag: element.name.to_string(),
     }
   }
 }

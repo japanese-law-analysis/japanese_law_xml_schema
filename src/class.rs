@@ -5,8 +5,8 @@ use crate::sentence::*;
 use crate::table::*;
 use crate::text::*;
 use crate::*;
-use roxmltree::Node;
 use serde::{Deserialize, Serialize};
+use xmltree::{Element, XMLNode};
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Class {
@@ -17,26 +17,28 @@ pub struct Class {
 }
 
 impl Parser for Class {
-  fn parser(node: &Node) -> Result<Self> {
-    if node.tag_name().name() == "Class" {
-      let num = get_attribute(node, "Num")?;
+  fn parser(element: &Element) -> Result<Self> {
+    if element.name.as_str() == "Class" {
+      let num = get_attribute(element, "Num")?;
       let mut class_title = None;
       let mut class_sentence_opt = None;
       let mut children = Vec::new();
-      for node in node.children() {
-        match node.tag_name().name() {
-          "ClassTitle" => {
-            class_title = Some(Text::from_children(node.children()));
+      for node in element.children.iter() {
+        if let XMLNode::Element(e) = node {
+          match e.name.as_str() {
+            "ClassTitle" => {
+              class_title = Some(Text::from_children(&e.children));
+            }
+            "ClassSentence" => {
+              let v = SentenceOrColumnOrTable::from_element(e)?;
+              class_sentence_opt = Some(v);
+            }
+            "Item" => {
+              let v = Item::parser(e)?;
+              children.push(v)
+            }
+            s => return Err(Error::unexpected_tag(e, s)),
           }
-          "ClassSentence" => {
-            let v = SentenceOrColumnOrTable::from_node(&node)?;
-            class_sentence_opt = Some(v);
-          }
-          "Item" => {
-            let v = Item::parser(&node)?;
-            children.push(v)
-          }
-          s => return Err(Error::unexpected_tag(&node, s)),
         }
       }
       if let Some(class_sentence) = class_sentence_opt {
@@ -47,13 +49,10 @@ impl Parser for Class {
           num,
         })
       } else {
-        Err(Error::missing_required_tag(
-          &node.range(),
-          "Sentence or Column",
-        ))
+        Err(Error::missing_required_tag("Sentence or Column"))
       }
     } else {
-      Err(Error::wrong_tag_name(node, "Class"))
+      Err(Error::wrong_tag_name(element, "Class"))
     }
   }
 }
@@ -66,25 +65,27 @@ pub enum SentenceOrColumnOrTable {
 }
 
 impl SentenceOrColumnOrTable {
-  pub(crate) fn from_node(node: &Node) -> Result<Self> {
+  pub(crate) fn from_element(element: &Element) -> Result<Self> {
     let mut sentence_opt = None;
     let mut sentence_list = Vec::new();
     let mut column_list = Vec::new();
-    for node in node.children() {
-      match node.tag_name().name() {
-        "Sentence" => {
-          let v = Sentence::parser(&node)?;
-          sentence_list.push(v);
+    for node in element.children.iter() {
+      if let XMLNode::Element(e) = node {
+        match e.name.as_str() {
+          "Sentence" => {
+            let v = Sentence::parser(e)?;
+            sentence_list.push(v);
+          }
+          "Column" => {
+            let v = Column::parser(e)?;
+            column_list.push(v);
+          }
+          "Table" => {
+            let v = Table::parser(e)?;
+            sentence_opt = Some(SentenceOrColumnOrTable::Table(v));
+          }
+          s => return Err(Error::unexpected_tag(e, s)),
         }
-        "Column" => {
-          let v = Column::parser(&node)?;
-          column_list.push(v);
-        }
-        "Table" => {
-          let v = Table::parser(&node)?;
-          sentence_opt = Some(SentenceOrColumnOrTable::Table(v));
-        }
-        s => return Err(Error::unexpected_tag(&node, s)),
       }
     }
     if !sentence_list.is_empty() {
@@ -97,7 +98,6 @@ impl SentenceOrColumnOrTable {
       Ok(sentence)
     } else {
       Err(Error::MissingRequiredTag {
-        range: node.range(),
         tag_name: "Sentence or Column or Table".to_string(),
       })
     }
@@ -120,9 +120,9 @@ impl Caption {
 }
 
 impl Parser for Caption {
-  fn parser(node: &Node) -> Result<Self> {
-    let text = text::Text::from_children(node.children());
-    let common_caption = get_attribute_opt_with_parse::<bool>(node, "CommonCaption")?;
+  fn parser(element: &Element) -> Result<Self> {
+    let text = text::Text::from_children(&element.children);
+    let common_caption = get_attribute_opt_with_parse::<bool>(element, "CommonCaption")?;
     Ok(Caption::new(text, common_caption))
   }
 }
@@ -136,15 +136,17 @@ pub struct Column {
 }
 
 impl Parser for Column {
-  fn parser(node: &Node) -> Result<Self> {
-    if node.tag_name().name() == "Column" {
-      let num = get_attribute_opt_with_parse(node, "Num")?;
-      let line_break = get_attribute_opt_with_parse(node, "LineBreak")?.unwrap_or(false);
-      let align = Align::from_attribute(node.attribute("Align"));
+  fn parser(element: &Element) -> Result<Self> {
+    if element.name.as_str() == "Column" {
+      let num = get_attribute_opt_with_parse(element, "Num")?;
+      let line_break = get_attribute_opt_with_parse(element, "LineBreak")?.unwrap_or(false);
+      let align = Align::from_attribute(element.attributes.get("Align"));
       let mut sentence = Vec::new();
-      for node in node.children() {
-        let v = Sentence::parser(&node)?;
-        sentence.push(v);
+      for node in element.children.iter() {
+        if let XMLNode::Element(e) = node {
+          let v = Sentence::parser(e)?;
+          sentence.push(v);
+        }
       }
       Ok(Column {
         sentence,
@@ -153,7 +155,7 @@ impl Parser for Column {
         align,
       })
     } else {
-      Err(Error::wrong_tag_name(node, "Column"))
+      Err(Error::wrong_tag_name(element, "Column"))
     }
   }
 }
@@ -167,8 +169,8 @@ pub enum Align {
 }
 
 impl Align {
-  pub fn from_attribute(att: Option<&str>) -> Option<Align> {
-    match att {
+  pub fn from_attribute(att: Option<&String>) -> Option<Align> {
+    match att.map(|s| s.as_str()) {
       Some("left") => Some(Align::Left),
       Some("center") => Some(Align::Center),
       Some("right") => Some(Align::Right),

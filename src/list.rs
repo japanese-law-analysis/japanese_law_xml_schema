@@ -5,8 +5,8 @@ use crate::parser::*;
 use crate::result::Error;
 use crate::sentence::*;
 use crate::*;
-use roxmltree::Node;
 use serde::{Deserialize, Serialize};
+use xmltree::{Element, XMLNode};
 
 /// 列挙
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
@@ -22,36 +22,48 @@ impl List {
 }
 
 impl Parser for List {
-  fn parser(node: &Node) -> result::Result<Self> {
-    if node.tag_name().name() == "List" {
-      let mut children = node.children();
+  fn parser(element: &Element) -> result::Result<Self> {
+    if element.name.as_str() == "List" {
+      let mut children = element.children.iter();
       let list_sentence = children.next();
       let mut sentence = Vec::new();
-      if let Some("ListSentence") = list_sentence.map(|node| node.tag_name().name()) {
-        for node in list_sentence.unwrap().children() {
-          match node.tag_name().name() {
-            "Sentence" => {
-              let v = Sentence::parser(&node)?;
-              sentence.push(ListSentence::Sentence(v))
+      if let Some("ListSentence") = list_sentence.and_then(|node| {
+        if let XMLNode::Element(e) = node {
+          Some(e.name.as_str())
+        } else {
+          None
+        }
+      }) {
+        if let XMLNode::Element(e) = list_sentence.unwrap() {
+          for node in e.children.iter() {
+            if let XMLNode::Element(e) = node {
+              match e.name.as_str() {
+                "Sentence" => {
+                  let v = Sentence::parser(e)?;
+                  sentence.push(ListSentence::Sentence(v))
+                }
+                "Column" => {
+                  let v = Column::parser(e)?;
+                  sentence.push(ListSentence::Column(v))
+                }
+                s => return Err(Error::unexpected_tag(e, s)),
+              }
             }
-            "Column" => {
-              let v = Column::parser(&node)?;
-              sentence.push(ListSentence::Column(v))
-            }
-            s => return Err(Error::unexpected_tag(&node, s)),
           }
         }
       } else {
-        return Err(Error::wrong_tag_name(node, "LiseSentence"));
+        return Err(Error::wrong_tag_name(element, "LiseSentence"));
       }
       let mut sublist = Vec::new();
       for node in children {
-        let v = Sublist1::parser(&node)?;
-        sublist.push(v)
+        if let XMLNode::Element(e) = node {
+          let v = Sublist1::parser(e)?;
+          sublist.push(v)
+        }
       }
       Ok(List::new(sentence, sublist))
     } else {
-      Err(Error::wrong_tag_name(node, "List"))
+      Err(Error::wrong_tag_name(element, "List"))
     }
   }
 }
@@ -75,36 +87,48 @@ impl Sublist1 {
 }
 
 impl Parser for Sublist1 {
-  fn parser(node: &Node) -> result::Result<Self> {
-    if node.tag_name().name() == "Sublist1" {
-      let mut children = node.children();
+  fn parser(element: &Element) -> result::Result<Self> {
+    if element.name.as_str() == "Sublist1" {
+      let mut children = element.children.iter();
       let list_sentence = children.next();
       let mut sentence = Vec::new();
-      if let Some("Sublist1Sentence") = list_sentence.map(|node| node.tag_name().name()) {
-        for node in list_sentence.unwrap().children() {
-          match node.tag_name().name() {
-            "Sentence" => {
-              let v = Sentence::parser(&node)?;
-              sentence.push(ListSentence::Sentence(v))
+      if let Some("Sublist1Sentence") = list_sentence.and_then(|node| {
+        if let XMLNode::Element(e) = node {
+          Some(e.name.as_str())
+        } else {
+          None
+        }
+      }) {
+        if let XMLNode::Element(e) = list_sentence.unwrap() {
+          for node in e.children.iter() {
+            if let XMLNode::Element(e) = node {
+              match e.name.as_str() {
+                "Sentence" => {
+                  let v = Sentence::parser(e)?;
+                  sentence.push(ListSentence::Sentence(v))
+                }
+                "Column" => {
+                  let v = Column::parser(e)?;
+                  sentence.push(ListSentence::Column(v))
+                }
+                s => return Err(Error::unexpected_tag(e, s)),
+              }
             }
-            "Column" => {
-              let v = Column::parser(&node)?;
-              sentence.push(ListSentence::Column(v))
-            }
-            s => return Err(Error::unexpected_tag(&node, s)),
           }
         }
       } else {
-        return Err(Error::wrong_tag_name(node, "Sublist1Sentence"));
+        return Err(Error::wrong_tag_name(element, "Sublist1Sentence"));
       }
       let mut sublist = Vec::new();
       for node in children {
-        let v = Sublist2::parser(&node)?;
-        sublist.push(v)
+        if let XMLNode::Element(e) = node {
+          let v = Sublist2::parser(e)?;
+          sublist.push(v)
+        }
       }
       Ok(Sublist1::new(sentence, sublist))
     } else {
-      Err(Error::wrong_tag_name(node, "Sublist1"))
+      Err(Error::wrong_tag_name(element, "Sublist1"))
     }
   }
 }
@@ -122,36 +146,48 @@ impl Sublist2 {
 }
 
 impl Parser for Sublist2 {
-  fn parser(node: &Node) -> result::Result<Self> {
-    if node.tag_name().name() == "Sublist2" {
-      let mut children = node.children();
+  fn parser(element: &Element) -> result::Result<Self> {
+    if element.name.as_str() == "Sublist2" {
+      let mut children = element.children.iter();
       let list_sentence = children.next();
       let mut sentence = Vec::new();
-      if let Some("Sublist2Sentence") = list_sentence.map(|node| node.tag_name().name()) {
-        for node in list_sentence.unwrap().children() {
-          match node.tag_name().name() {
-            "Sentence" => {
-              let v = Sentence::parser(&node)?;
-              sentence.push(ListSentence::Sentence(v))
+      if let Some("Sublist2Sentence") = list_sentence.and_then(|node| {
+        if let XMLNode::Element(e) = node {
+          Some(e.name.as_str())
+        } else {
+          None
+        }
+      }) {
+        if let XMLNode::Element(e) = list_sentence.unwrap() {
+          for node in e.children.iter() {
+            if let XMLNode::Element(e) = node {
+              match e.name.as_str() {
+                "Sentence" => {
+                  let v = Sentence::parser(e)?;
+                  sentence.push(ListSentence::Sentence(v))
+                }
+                "Column" => {
+                  let v = Column::parser(e)?;
+                  sentence.push(ListSentence::Column(v))
+                }
+                s => return Err(Error::unexpected_tag(e, s)),
+              }
             }
-            "Column" => {
-              let v = Column::parser(&node)?;
-              sentence.push(ListSentence::Column(v))
-            }
-            s => return Err(Error::unexpected_tag(&node, s)),
           }
         }
       } else {
-        return Err(Error::wrong_tag_name(node, "Sublist2Sentence"));
+        return Err(Error::wrong_tag_name(element, "Sublist2Sentence"));
       }
       let mut sublist = Vec::new();
       for node in children {
-        let v = Sublist3::parser(&node)?;
-        sublist.push(v)
+        if let XMLNode::Element(e) = node {
+          let v = Sublist3::parser(e)?;
+          sublist.push(v)
+        }
       }
       Ok(Sublist2::new(sentence, sublist))
     } else {
-      Err(Error::wrong_tag_name(node, "Sublist2"))
+      Err(Error::wrong_tag_name(element, "Sublist2"))
     }
   }
 }
@@ -168,31 +204,41 @@ impl Sublist3 {
 }
 
 impl Parser for Sublist3 {
-  fn parser(node: &Node) -> result::Result<Self> {
-    if node.tag_name().name() == "Sublist3" {
-      let mut children = node.children();
+  fn parser(element: &Element) -> result::Result<Self> {
+    if element.name.as_str() == "Sublist3" {
+      let mut children = element.children.iter();
       let list_sentence = children.next();
       let mut sentence = Vec::new();
-      if let Some("Sublist3Sentence") = list_sentence.map(|node| node.tag_name().name()) {
-        for node in list_sentence.unwrap().children() {
-          match node.tag_name().name() {
-            "Sentence" => {
-              let v = Sentence::parser(&node)?;
-              sentence.push(ListSentence::Sentence(v))
+      if let Some("Sublist3Sentence") = list_sentence.and_then(|node| {
+        if let XMLNode::Element(e) = node {
+          Some(e.name.as_str())
+        } else {
+          None
+        }
+      }) {
+        if let XMLNode::Element(e) = list_sentence.unwrap() {
+          for node in e.children.iter() {
+            if let XMLNode::Element(e) = node {
+              match e.name.as_str() {
+                "Sentence" => {
+                  let v = Sentence::parser(e)?;
+                  sentence.push(ListSentence::Sentence(v))
+                }
+                "Column" => {
+                  let v = Column::parser(e)?;
+                  sentence.push(ListSentence::Column(v))
+                }
+                s => return Err(Error::unexpected_tag(e, s)),
+              }
             }
-            "Column" => {
-              let v = Column::parser(&node)?;
-              sentence.push(ListSentence::Column(v))
-            }
-            s => return Err(Error::unexpected_tag(&node, s)),
           }
         }
       } else {
-        return Err(Error::wrong_tag_name(node, "Sublist3Sentence"));
+        return Err(Error::wrong_tag_name(element, "Sublist3Sentence"));
       }
       Ok(Sublist3::new(sentence))
     } else {
-      Err(Error::wrong_tag_name(node, "Sublist3"))
+      Err(Error::wrong_tag_name(element, "Sublist3"))
     }
   }
 }

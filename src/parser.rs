@@ -1,8 +1,8 @@
 use crate::result::Result;
-use roxmltree::Node;
+use xmltree::Element;
 
 pub(crate) trait Parser {
-  fn parser(node: &Node) -> Result<Self>
+  fn parser(node: &Element) -> Result<Self>
   where
     Self: Sized;
 }
