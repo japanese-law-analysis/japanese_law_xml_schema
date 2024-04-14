@@ -8,8 +8,8 @@ use crate::result::Error;
 use crate::structs::*;
 use crate::text::*;
 use crate::*;
-use roxmltree::Node;
 use serde::{Deserialize, Serialize};
+use xmltree::{Element, XMLNode};
 
 /// 附則
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
@@ -22,54 +22,55 @@ pub struct SupplProvision {
 }
 
 impl Parser for SupplProvision {
-  fn parser(node: &Node) -> result::Result<Self> {
-    if node.tag_name().name() == "SupplProvision" {
-      let suppl_provision_type = match node.attribute("Type") {
+  fn parser(element: &Element) -> result::Result<Self> {
+    if element.name.as_str() == "SupplProvision" {
+      let suppl_provision_type = match element.attributes.get("Type").map(|s| s.as_str()) {
         Some("New") => Some(SupplProvisionType::New),
         Some("Amend") => Some(SupplProvisionType::Amend),
         None => None,
         _ => {
           return Err(Error::AttributeParseError {
-            range: node.range(),
             tag_name: "SupplProbision".to_string(),
             attribute_name: "Type".to_string(),
           })
         }
       };
-      let amend_law_num = node.attribute("AmendLawNum").map(|s| s.to_string());
-      let extract = get_attribute_opt_with_parse(node, "Extract")?;
+      let amend_law_num = element.attributes.get("AmendLawNum").cloned();
+      let extract = get_attribute_opt_with_parse(element, "Extract")?;
       let mut label = None;
       let mut children = Vec::new();
-      for node in node.children() {
-        match node.tag_name().name() {
-          "SupplProvisionLabel" => {
-            label = Some(Text::from_children(node.children()));
+      for node in element.children.iter() {
+        if let XMLNode::Element(e) = node {
+          match e.name.as_str() {
+            "SupplProvisionLabel" => {
+              label = Some(Text::from_children(&e.children));
+            }
+            "Chapter" => {
+              let v = Chapter::parser(e)?;
+              children.push(SupplProvisionChildrenElement::Chapter(v))
+            }
+            "Article" => {
+              let v = Article::parser(e)?;
+              children.push(SupplProvisionChildrenElement::Article(v))
+            }
+            "Paragraph" => {
+              let v = Paragraph::parser(e)?;
+              children.push(SupplProvisionChildrenElement::Paragraph(v))
+            }
+            "SupplProvisionAppdxTable" => {
+              let v = SupplProvisionAppdxTable::parser(e)?;
+              children.push(SupplProvisionChildrenElement::SupplProvisionAppdxTable(v))
+            }
+            "SupplProvisionAppdxStyle" => {
+              let v = SupplProvisionAppdxStyle::parser(e)?;
+              children.push(SupplProvisionChildrenElement::SupplProvisionAppdxStyle(v))
+            }
+            "SupplProvisionAppdx" => {
+              let v = SupplProvisionAppdx::parser(e)?;
+              children.push(SupplProvisionChildrenElement::SupplProvisionAppdx(v))
+            }
+            s => return Err(Error::unexpected_tag(e, s)),
           }
-          "Chapter" => {
-            let v = Chapter::parser(&node)?;
-            children.push(SupplProvisionChildrenElement::Chapter(v))
-          }
-          "Article" => {
-            let v = Article::parser(&node)?;
-            children.push(SupplProvisionChildrenElement::Article(v))
-          }
-          "Paragraph" => {
-            let v = Paragraph::parser(&node)?;
-            children.push(SupplProvisionChildrenElement::Paragraph(v))
-          }
-          "SupplProvisionAppdxTable" => {
-            let v = SupplProvisionAppdxTable::parser(&node)?;
-            children.push(SupplProvisionChildrenElement::SupplProvisionAppdxTable(v))
-          }
-          "SupplProvisionAppdxStyle" => {
-            let v = SupplProvisionAppdxStyle::parser(&node)?;
-            children.push(SupplProvisionChildrenElement::SupplProvisionAppdxStyle(v))
-          }
-          "SupplProvisionAppdx" => {
-            let v = SupplProvisionAppdx::parser(&node)?;
-            children.push(SupplProvisionChildrenElement::SupplProvisionAppdx(v))
-          }
-          s => return Err(Error::unexpected_tag(&node, s)),
         }
       }
       if let Some(label) = label {
@@ -82,12 +83,11 @@ impl Parser for SupplProvision {
         })
       } else {
         Err(Error::MissingRequiredTag {
-          range: node.range(),
           tag_name: "SupplProbisionLabel".to_string(),
         })
       }
     } else {
-      Err(Error::wrong_tag_name(node, "SupplProbision"))
+      Err(Error::wrong_tag_name(element, "SupplProbision"))
     }
   }
 }
@@ -117,26 +117,28 @@ pub struct SupplProvisionAppdxTable {
 }
 
 impl Parser for SupplProvisionAppdxTable {
-  fn parser(node: &Node) -> result::Result<Self> {
-    if node.tag_name().name() == "SupplProvisionAppdxTable" {
-      let num = get_attribute_opt_with_parse(node, "Num")?;
+  fn parser(element: &Element) -> result::Result<Self> {
+    if element.name.as_str() == "SupplProvisionAppdxTable" {
+      let num = get_attribute_opt_with_parse(element, "Num")?;
       let mut title = None;
       let mut related_article_num = None;
       let mut table_struct = Vec::new();
-      for node in node.children() {
-        match node.tag_name().name() {
-          "SupplProvisionAppdxTableTitle" => {
-            let v = TextWithWritingMode::parser(&node)?;
-            title = Some(v);
+      for node in element.children.iter() {
+        if let XMLNode::Element(e) = node {
+          match e.name.as_str() {
+            "SupplProvisionAppdxTableTitle" => {
+              let v = TextWithWritingMode::parser(e)?;
+              title = Some(v);
+            }
+            "RelatedArticleNum" => {
+              related_article_num = Some(Text::from_children(&e.children));
+            }
+            "TableStruct" => {
+              let v = TableStruct::parser(e)?;
+              table_struct.push(v)
+            }
+            s => return Err(Error::wrong_tag_name(e, s)),
           }
-          "RelatedArticleNum" => {
-            related_article_num = Some(Text::from_children(node.children()));
-          }
-          "TableStruct" => {
-            let v = TableStruct::parser(&node)?;
-            table_struct.push(v)
-          }
-          s => return Err(Error::wrong_tag_name(&node, s)),
         }
       }
       if let Some(title) = title {
@@ -148,12 +150,11 @@ impl Parser for SupplProvisionAppdxTable {
         })
       } else {
         Err(Error::MissingRequiredTag {
-          range: node.range(),
           tag_name: "SupplProbisionAddxTableTitle".to_string(),
         })
       }
     } else {
-      Err(Error::wrong_tag_name(node, "SupplProbisionAppdxTable"))
+      Err(Error::wrong_tag_name(element, "SupplProbisionAppdxTable"))
     }
   }
 }
@@ -167,26 +168,28 @@ pub struct SupplProvisionAppdxStyle {
 }
 
 impl Parser for SupplProvisionAppdxStyle {
-  fn parser(node: &Node) -> result::Result<Self> {
-    if node.tag_name().name() == "SupplProvisionAppdxStyle" {
-      let num = get_attribute_opt_with_parse(node, "Num")?;
+  fn parser(element: &Element) -> result::Result<Self> {
+    if element.name.as_str() == "SupplProvisionAppdxStyle" {
+      let num = get_attribute_opt_with_parse(element, "Num")?;
       let mut title = None;
       let mut related_article_num = None;
       let mut style_struct = Vec::new();
-      for node in node.children() {
-        match node.tag_name().name() {
-          "SupplProvisionAppdxStyleTitle" => {
-            let v = TextWithWritingMode::parser(&node)?;
-            title = Some(v);
+      for node in element.children.iter() {
+        if let XMLNode::Element(e) = node {
+          match e.name.as_str() {
+            "SupplProvisionAppdxStyleTitle" => {
+              let v = TextWithWritingMode::parser(e)?;
+              title = Some(v);
+            }
+            "RelatedArticleNum" => {
+              related_article_num = Some(Text::from_children(&e.children));
+            }
+            "StyleStruct" => {
+              let v = StyleStruct::parser(e)?;
+              style_struct.push(v)
+            }
+            s => return Err(Error::unexpected_tag(e, s)),
           }
-          "RelatedArticleNum" => {
-            related_article_num = Some(Text::from_children(node.children()));
-          }
-          "StyleStruct" => {
-            let v = StyleStruct::parser(&node)?;
-            style_struct.push(v)
-          }
-          s => return Err(Error::unexpected_tag(&node, s)),
         }
       }
       if let Some(title) = title {
@@ -198,12 +201,11 @@ impl Parser for SupplProvisionAppdxStyle {
         })
       } else {
         Err(Error::MissingRequiredTag {
-          range: node.range(),
           tag_name: "SupplProbivionAppdxStyle".to_string(),
         })
       }
     } else {
-      Err(Error::wrong_tag_name(node, "SupplProbisionAppdxStyle"))
+      Err(Error::wrong_tag_name(element, "SupplProbisionAppdxStyle"))
     }
   }
 }
@@ -217,25 +219,27 @@ pub struct SupplProvisionAppdx {
 }
 
 impl Parser for SupplProvisionAppdx {
-  fn parser(node: &Node) -> result::Result<Self> {
-    if node.tag_name().name() == "SupplProvisionAppdx" {
-      let num = get_attribute_opt_with_parse(node, "Num")?;
+  fn parser(element: &Element) -> result::Result<Self> {
+    if element.name.as_str() == "SupplProvisionAppdx" {
+      let num = get_attribute_opt_with_parse(element, "Num")?;
       let mut arith_formula_num = None;
       let mut related_article_num = None;
       let mut arith_formula = Vec::new();
-      for node in node.children() {
-        match node.tag_name().name() {
-          "ArithFormulaNum" => {
-            arith_formula_num = Some(Text::from_children(node.children()));
+      for node in element.children.iter() {
+        if let XMLNode::Element(e) = node {
+          match e.name.as_str() {
+            "ArithFormulaNum" => {
+              arith_formula_num = Some(Text::from_children(&e.children));
+            }
+            "RelatedArticleNum" => {
+              related_article_num = Some(Text::from_children(&e.children));
+            }
+            "ArithFormula" => {
+              let v = ArithFormula::parser(e)?;
+              arith_formula.push(v)
+            }
+            s => return Err(Error::unexpected_tag(e, s)),
           }
-          "RelatedArticleNum" => {
-            related_article_num = Some(Text::from_children(node.children()));
-          }
-          "ArithFormula" => {
-            let v = ArithFormula::parser(&node)?;
-            arith_formula.push(v)
-          }
-          s => return Err(Error::unexpected_tag(&node, s)),
         }
       }
       Ok(SupplProvisionAppdx {
@@ -245,7 +249,7 @@ impl Parser for SupplProvisionAppdx {
         num,
       })
     } else {
-      Err(Error::wrong_tag_name(node, "SupplProbisionAppdx"))
+      Err(Error::wrong_tag_name(element, "SupplProbisionAppdx"))
     }
   }
 }

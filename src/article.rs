@@ -6,8 +6,8 @@ use crate::parser::*;
 use crate::result::Error;
 use crate::text::*;
 use crate::*;
-use roxmltree::Node;
 use serde::{Deserialize, Serialize};
+use xmltree::{Element, XMLNode};
 
 /// 編
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
@@ -32,42 +32,50 @@ impl Part {
 }
 
 impl Parser for Part {
-  fn parser(node: &Node) -> result::Result<Self> {
-    if node.tag_name().name() == "Part" {
-      let num = get_attribute(node, "Num")?;
-      let delete = get_attribute_opt_with_parse(node, "Delete")?.unwrap_or(false);
-      let hide = get_attribute_opt_with_parse(node, "Hide")?.unwrap_or(false);
-      let mut children = node.children();
-      let title_node = children
+  fn parser(element: &Element) -> result::Result<Self> {
+    if element.name.as_str() == "Part" {
+      let num = get_attribute(element, "Num")?;
+      let delete = get_attribute_opt_with_parse(element, "Delete")?.unwrap_or(false);
+      let hide = get_attribute_opt_with_parse(element, "Hide")?.unwrap_or(false);
+      let mut children = element.children.iter();
+      let title_element = children
         .next()
-        .ok_or(Error::missing_required_tag(&node.range(), "PartTitle"))?;
-      let title_node_name = title_node.tag_name().name();
-      let title = if "PartTitle" == title_node_name {
-        Text::from_children(title_node.children())
+        .and_then(|n| {
+          if let XMLNode::Element(e) = n {
+            Some(e)
+          } else {
+            None
+          }
+        })
+        .ok_or(Error::missing_required_tag("PartTitle"))?;
+      let title_element_name = title_element.name.clone();
+      let title = if "PartTitle" == title_element_name.as_str() {
+        Text::from_children(&title_element.children)
       } else {
         return Err(Error::UnexpectedTag {
-          range: title_node.range(),
-          wrong_name: title_node_name.to_string(),
+          wrong_name: title_element_name,
           tag: "PartTitle".to_string(),
         });
       };
       let mut children_list = Vec::new();
       for node in children {
-        match node.tag_name().name() {
-          "Chapter" => {
-            let v = Chapter::parser(&node)?;
-            children_list.push(PartContents::Chapter(v))
+        if let XMLNode::Element(e) = node {
+          match e.name.as_str() {
+            "Chapter" => {
+              let v = Chapter::parser(e)?;
+              children_list.push(PartContents::Chapter(v))
+            }
+            "Article" => {
+              let v = Article::parser(e)?;
+              children_list.push(PartContents::Article(v))
+            }
+            s => return Err(Error::unexpected_tag(e, s)),
           }
-          "Article" => {
-            let v = Article::parser(&node)?;
-            children_list.push(PartContents::Article(v))
-          }
-          s => return Err(Error::unexpected_tag(&node, s)),
         }
       }
       Ok(Part::new(title, &num, delete, hide, children_list))
     } else {
-      Err(Error::wrong_tag_name(node, "Part"))
+      Err(Error::wrong_tag_name(element, "Part"))
     }
   }
 }
@@ -101,42 +109,50 @@ impl Chapter {
 }
 
 impl Parser for Chapter {
-  fn parser(node: &Node) -> result::Result<Self> {
-    if node.tag_name().name() == "Chapter" {
-      let num = get_attribute(node, "Num")?;
-      let delete = get_attribute_opt_with_parse(node, "Delete")?.unwrap_or(false);
-      let hide = get_attribute_opt_with_parse(node, "Hide")?.unwrap_or(false);
-      let mut children = node.children();
-      let title_node = children
+  fn parser(element: &Element) -> result::Result<Self> {
+    if element.name.as_str() == "Chapter" {
+      let num = get_attribute(element, "Num")?;
+      let delete = get_attribute_opt_with_parse(element, "Delete")?.unwrap_or(false);
+      let hide = get_attribute_opt_with_parse(element, "Hide")?.unwrap_or(false);
+      let mut children = element.children.iter();
+      let title_element = children
         .next()
-        .ok_or(Error::missing_required_tag(&node.range(), "ChapterTitle"))?;
-      let title_node_name = title_node.tag_name().name();
-      let title = if "ChapterTitle" == title_node_name {
-        Text::from_children(title_node.children())
+        .and_then(|n| {
+          if let XMLNode::Element(e) = n {
+            Some(e)
+          } else {
+            None
+          }
+        })
+        .ok_or(Error::missing_required_tag("ChapterTitle"))?;
+      let title_element_name = title_element.name.clone();
+      let title = if "ChapterTitle" == title_element_name.as_str() {
+        Text::from_children(&title_element.children)
       } else {
         return Err(Error::UnexpectedTag {
-          range: title_node.range(),
-          wrong_name: title_node_name.to_string(),
+          wrong_name: title_element_name,
           tag: "ChapterTitle".to_string(),
         });
       };
       let mut children_list = Vec::new();
       for node in children {
-        match node.tag_name().name() {
-          "Section" => {
-            let v = Section::parser(&node)?;
-            children_list.push(ChapterContents::Section(v))
+        if let XMLNode::Element(e) = node {
+          match e.name.as_str() {
+            "Section" => {
+              let v = Section::parser(e)?;
+              children_list.push(ChapterContents::Section(v))
+            }
+            "Article" => {
+              let v = Article::parser(e)?;
+              children_list.push(ChapterContents::Article(v))
+            }
+            s => return Err(Error::unexpected_tag(e, s)),
           }
-          "Article" => {
-            let v = Article::parser(&node)?;
-            children_list.push(ChapterContents::Article(v))
-          }
-          s => return Err(Error::unexpected_tag(&node, s)),
         }
       }
       Ok(Chapter::new(title, &num, delete, hide, children_list))
     } else {
-      Err(Error::wrong_tag_name(node, "Chapter"))
+      Err(Error::wrong_tag_name(element, "Chapter"))
     }
   }
 }
@@ -170,42 +186,50 @@ impl Section {
 }
 
 impl Parser for Section {
-  fn parser(node: &Node) -> result::Result<Self> {
-    if node.tag_name().name() == "Section" {
-      let num = get_attribute(node, "Num")?;
-      let delete = get_attribute_opt_with_parse(node, "Delete")?.unwrap_or(false);
-      let hide = get_attribute_opt_with_parse(node, "Hide")?.unwrap_or(false);
-      let mut children = node.children();
-      let title_node = children
+  fn parser(element: &Element) -> result::Result<Self> {
+    if element.name.as_str() == "Section" {
+      let num = get_attribute(element, "Num")?;
+      let delete = get_attribute_opt_with_parse(element, "Delete")?.unwrap_or(false);
+      let hide = get_attribute_opt_with_parse(element, "Hide")?.unwrap_or(false);
+      let mut children = element.children.iter();
+      let title_element = children
         .next()
-        .ok_or(Error::missing_required_tag(&node.range(), "SectionTitle"))?;
-      let title_node_name = title_node.tag_name().name();
-      let title = if "SectionTitle" == title_node_name {
-        Text::from_children(title_node.children())
+        .and_then(|n| {
+          if let XMLNode::Element(e) = n {
+            Some(e)
+          } else {
+            None
+          }
+        })
+        .ok_or(Error::missing_required_tag("SectionTitle"))?;
+      let title_element_name = title_element.name.clone();
+      let title = if "SectionTitle" == title_element_name.as_str() {
+        Text::from_children(&title_element.children)
       } else {
         return Err(Error::UnexpectedTag {
-          range: title_node.range(),
-          wrong_name: title_node_name.to_string(),
+          wrong_name: title_element_name,
           tag: "SectionTitle".to_string(),
         });
       };
       let mut children_list = Vec::new();
       for node in children {
-        match node.tag_name().name() {
-          "Subsection" => {
-            let v = Subsection::parser(&node)?;
-            children_list.push(SectionContents::Subsection(v))
+        if let XMLNode::Element(e) = node {
+          match e.name.as_str() {
+            "Subsection" => {
+              let v = Subsection::parser(e)?;
+              children_list.push(SectionContents::Subsection(v))
+            }
+            "Article" => {
+              let v = Article::parser(e)?;
+              children_list.push(SectionContents::Article(v))
+            }
+            s => return Err(Error::unexpected_tag(e, s)),
           }
-          "Article" => {
-            let v = Article::parser(&node)?;
-            children_list.push(SectionContents::Article(v))
-          }
-          s => return Err(Error::unexpected_tag(&node, s)),
         }
       }
       Ok(Section::new(title, &num, delete, hide, children_list))
     } else {
-      Err(Error::wrong_tag_name(node, "Section"))
+      Err(Error::wrong_tag_name(element, "Section"))
     }
   }
 }
@@ -245,43 +269,50 @@ impl Subsection {
 }
 
 impl Parser for Subsection {
-  fn parser(node: &Node) -> result::Result<Self> {
-    if node.tag_name().name() == "Subsection" {
-      let num = get_attribute(node, "Num")?;
-      let delete = get_attribute_opt_with_parse(node, "Delete")?.unwrap_or(false);
-      let hide = get_attribute_opt_with_parse(node, "Hide")?.unwrap_or(false);
-      let mut children = node.children();
-      let title_node = children.next().ok_or(Error::missing_required_tag(
-        &node.range(),
-        "SubsectionTitle",
-      ))?;
-      let title_node_name = title_node.tag_name().name();
-      let title = if "SubsectionTitle" == title_node_name {
-        Text::from_children(title_node.children())
+  fn parser(element: &Element) -> result::Result<Self> {
+    if element.name.as_str() == "Subsection" {
+      let num = get_attribute(element, "Num")?;
+      let delete = get_attribute_opt_with_parse(element, "Delete")?.unwrap_or(false);
+      let hide = get_attribute_opt_with_parse(element, "Hide")?.unwrap_or(false);
+      let mut children = element.children.iter();
+      let title_element = children
+        .next()
+        .and_then(|n| {
+          if let XMLNode::Element(e) = n {
+            Some(e)
+          } else {
+            None
+          }
+        })
+        .ok_or(Error::missing_required_tag("SubsectionTitle"))?;
+      let title_element_name = title_element.name.clone();
+      let title = if "SubsectionTitle" == title_element_name.as_str() {
+        Text::from_children(&title_element.children)
       } else {
         return Err(Error::UnexpectedTag {
-          range: title_node.range(),
-          wrong_name: title_node_name.to_string(),
+          wrong_name: title_element_name,
           tag: "SubsectionTitle".to_string(),
         });
       };
       let mut children_list = Vec::new();
       for node in children {
-        match node.tag_name().name() {
-          "Division" => {
-            let v = Division::parser(&node)?;
-            children_list.push(SubsectionContents::Division(v))
+        if let XMLNode::Element(e) = node {
+          match e.name.as_str() {
+            "Division" => {
+              let v = Division::parser(e)?;
+              children_list.push(SubsectionContents::Division(v))
+            }
+            "Article" => {
+              let v = Article::parser(e)?;
+              children_list.push(SubsectionContents::Article(v))
+            }
+            s => return Err(Error::unexpected_tag(e, s)),
           }
-          "Article" => {
-            let v = Article::parser(&node)?;
-            children_list.push(SubsectionContents::Article(v))
-          }
-          s => return Err(Error::unexpected_tag(&node, s)),
         }
       }
       Ok(Subsection::new(title, &num, delete, hide, children_list))
     } else {
-      Err(Error::wrong_tag_name(node, "Subsection"))
+      Err(Error::wrong_tag_name(element, "Subsection"))
     }
   }
 }
@@ -315,38 +346,46 @@ impl Division {
 }
 
 impl Parser for Division {
-  fn parser(node: &Node) -> result::Result<Self> {
-    if node.tag_name().name() == "Division" {
-      let num = get_attribute(node, "Num")?;
-      let delete = get_attribute_opt_with_parse(node, "Delete")?.unwrap_or(false);
-      let hide = get_attribute_opt_with_parse(node, "Hide")?.unwrap_or(false);
-      let mut children = node.children();
-      let title_node = children
+  fn parser(element: &Element) -> result::Result<Self> {
+    if element.name.as_str() == "Division" {
+      let num = get_attribute(element, "Num")?;
+      let delete = get_attribute_opt_with_parse(element, "Delete")?.unwrap_or(false);
+      let hide = get_attribute_opt_with_parse(element, "Hide")?.unwrap_or(false);
+      let mut children = element.children.iter();
+      let title_element = children
         .next()
-        .ok_or(Error::missing_required_tag(&node.range(), "DivisionTitle"))?;
-      let title_node_name = title_node.tag_name().name();
-      let title = if "DivisionTitle" == title_node_name {
-        Text::from_children(title_node.children())
+        .and_then(|n| {
+          if let XMLNode::Element(e) = n {
+            Some(e)
+          } else {
+            None
+          }
+        })
+        .ok_or(Error::missing_required_tag("DivisionTitle"))?;
+      let title_element_name = title_element.name.clone();
+      let title = if "DivisionTitle" == title_element_name.as_str() {
+        Text::from_children(&title_element.children)
       } else {
         return Err(Error::UnexpectedTag {
-          range: title_node.range(),
-          wrong_name: title_node_name.to_string(),
+          wrong_name: title_element_name,
           tag: "DivisionTitle".to_string(),
         });
       };
       let mut children_list = Vec::new();
       for node in children {
-        match node.tag_name().name() {
-          "Article" => {
-            let v = Article::parser(&node)?;
-            children_list.push(v)
+        if let XMLNode::Element(e) = node {
+          match e.name.as_str() {
+            "Article" => {
+              let v = Article::parser(e)?;
+              children_list.push(v)
+            }
+            s => return Err(Error::unexpected_tag(e, s)),
           }
-          s => return Err(Error::unexpected_tag(&node, s)),
         }
       }
       Ok(Division::new(title, &num, delete, hide, children_list))
     } else {
-      Err(Error::wrong_tag_name(node, "Division"))
+      Err(Error::wrong_tag_name(element, "Division"))
     }
   }
 }
@@ -386,51 +425,55 @@ impl Article {
 }
 
 impl Parser for Article {
-  fn parser(node: &Node) -> result::Result<Self> {
-    if node.tag_name().name() == "Article" {
-      let num = get_attribute(node, "Num")?;
-      let delete = get_attribute_opt_with_parse(node, "Delete")?.unwrap_or(false);
-      let hide = get_attribute_opt_with_parse(node, "Hide")?.unwrap_or(false);
-      let mut children = node.children().peekable();
+  fn parser(element: &Element) -> result::Result<Self> {
+    if element.name.as_str() == "Article" {
+      let num = get_attribute(element, "Num")?;
+      let delete = get_attribute_opt_with_parse(element, "Delete")?.unwrap_or(false);
+      let hide = get_attribute_opt_with_parse(element, "Hide")?.unwrap_or(false);
+      let mut children = element.children.iter().peekable();
       let mut caption = None;
       let mut title = Text::new();
       loop {
-        if let Some(node) = children.peek() {
-          let tag_name = node.tag_name().name();
+        if let Some(XMLNode::Element(e)) = children.peek() {
+          let tag_name = e.name.as_str();
           if tag_name != "ArticleCaption" && tag_name != "ArticleTitle" {
             break;
           }
         }
         let next = children.next().unwrap();
-        match next.tag_name().name() {
-          "ArticleCaption" => {
-            let v = Caption::parser(&next)?;
-            caption = Some(v);
+        if let XMLNode::Element(e) = next {
+          match e.name.as_str() {
+            "ArticleCaption" => {
+              let v = Caption::parser(e)?;
+              caption = Some(v);
+            }
+            "ArticleTitle" => {
+              title = Text::from_children(&e.children);
+            }
+            s => return Err(Error::unexpected_tag(e, s)),
           }
-          "ArticleTitle" => {
-            title = Text::from_children(next.children());
-          }
-          s => return Err(Error::unexpected_tag(node, s)),
         }
       }
       let mut paragraph = Vec::new();
       let mut suppl_note = None;
       for node in children {
-        match node.tag_name().name() {
-          "Paragraph" => {
-            let v = Paragraph::parser(&node)?;
-            paragraph.push(v);
-          }
-          "SupplNote" => suppl_note = Some(Text::from_children(node.children())),
+        if let XMLNode::Element(e) = node {
+          match e.name.as_str() {
+            "Paragraph" => {
+              let v = Paragraph::parser(e)?;
+              paragraph.push(v);
+            }
+            "SupplNote" => suppl_note = Some(Text::from_children(&e.children)),
 
-          s => return Err(Error::unexpected_tag(&node, s)),
+            s => return Err(Error::unexpected_tag(e, s)),
+          }
         }
       }
       Ok(Article::new(
         title, &num, delete, hide, caption, paragraph, suppl_note,
       ))
     } else {
-      Err(Error::wrong_tag_name(node, "Article"))
+      Err(Error::wrong_tag_name(element, "Article"))
     }
   }
 }

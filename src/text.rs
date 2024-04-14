@@ -4,8 +4,8 @@ use crate::line::*;
 use crate::parser::*;
 use crate::result::Error;
 use crate::*;
-use roxmltree::{Children, Node};
 use serde::{Deserialize, Serialize};
+use xmltree::{Element, XMLNode};
 
 /// テキスト
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
@@ -22,38 +22,35 @@ impl Text {
     }
   }
   /// Node列からの生成
-  pub fn from_children(children: Children) -> Self {
+  pub fn from_children(children: &[XMLNode]) -> Self {
     let mut text = Text::new();
     for node in children {
-      match node.tag_name().name() {
-        "Ruby" => {
-          if let Ok(ruby) = Ruby::parser(&node) {
-            text.add_ruby(ruby)
-          }
-        }
-        "Line" => {
-          if let Ok(line) = Line::parser(&node) {
-            text.add_line(line)
-          }
-        }
-        "Sup" => {
-          if let Ok(sup) = Sup::parser(&node) {
-            text.add_sup(sup)
-          }
-        }
-        "Sub" => {
-          if let Ok(sub) = Sub::parser(&node) {
-            text.add_sub(sub)
-          }
-        }
-        "" => {
-          if node.is_text() {
-            if let Some(s) = node.text() {
-              text.add_string(s)
+      if let XMLNode::Element(element) = node {
+        match element.name.as_str() {
+          "Ruby" => {
+            if let Ok(ruby) = Ruby::parser(element) {
+              text.add_ruby(ruby)
             }
           }
+          "Line" => {
+            if let Ok(line) = Line::parser(element) {
+              text.add_line(line)
+            }
+          }
+          "Sup" => {
+            if let Ok(sup) = Sup::parser(element) {
+              text.add_sup(sup)
+            }
+          }
+          "Sub" => {
+            if let Ok(sub) = Sub::parser(element) {
+              text.add_sub(sub)
+            }
+          }
+          _ => (),
         }
-        _ => (),
+      } else if let XMLNode::Text(s) = node {
+        text.add_string(s)
       }
     }
     text
@@ -121,34 +118,27 @@ impl ToHtml for Text {
 }
 
 impl Parser for Text {
-  fn parser(node: &Node) -> result::Result<Self> {
+  fn parser(element: &Element) -> result::Result<Self> {
     let mut text = Text::new();
-    match node.tag_name().name() {
+    match element.name.as_str() {
       "Ruby" => {
-        if let Ok(ruby) = Ruby::parser(node) {
+        if let Ok(ruby) = Ruby::parser(element) {
           text.add_ruby(ruby)
         }
       }
       "Line" => {
-        if let Ok(line) = Line::parser(node) {
+        if let Ok(line) = Line::parser(element) {
           text.add_line(line)
         }
       }
       "Sup" => {
-        if let Ok(sup) = Sup::parser(node) {
+        if let Ok(sup) = Sup::parser(element) {
           text.add_sup(sup)
         }
       }
       "Sub" => {
-        if let Ok(sub) = Sub::parser(node) {
+        if let Ok(sub) = Sub::parser(element) {
           text.add_sub(sub)
-        }
-      }
-      "" => {
-        if node.is_text() {
-          if let Some(s) = node.text() {
-            text.add_string(s)
-          }
         }
       }
       _ => (),
@@ -171,9 +161,9 @@ pub struct TextWithWritingMode {
 }
 
 impl Parser for TextWithWritingMode {
-  fn parser(node: &Node) -> result::Result<Self> {
-    let writing_mode = node.attribute("WritingMode");
-    let text = Text::from_children(node.children());
+  fn parser(element: &Element) -> result::Result<Self> {
+    let writing_mode = element.attributes.get("WritingMode").map(|s| s.as_str());
+    let text = Text::from_children(&element.children);
     match writing_mode {
       Some("vertical") => Ok(TextWithWritingMode {
         contents: text.contents,
@@ -226,25 +216,35 @@ impl ToHtml for Ruby {
 }
 
 impl Parser for Ruby {
-  fn parser(node: &Node) -> result::Result<Self> {
-    if node.tag_name().name() == "Ruby" {
-      let children = node.children();
+  fn parser(element: &Element) -> result::Result<Self> {
+    if element.name == "Ruby" {
+      let children = &element.children;
       let mut text = Text::new();
       let mut ruby = None;
-      for children_node in children {
-        if "Rt" == children_node.tag_name().name() {
-          if let Some(t) = children_node.children().next().and_then(|n| n.text()) {
-            ruby = Some(t)
+      for children_node in children.iter() {
+        if let XMLNode::Element(element) = children_node {
+          if "Rt" == element.name.as_str() {
+            let s = element
+              .children
+              .iter()
+              .map(|n| {
+                if let XMLNode::Text(s) = n {
+                  s.clone()
+                } else {
+                  String::new()
+                }
+              })
+              .collect::<String>();
+            ruby = Some(s)
           }
-          break;
-        } else if let Ok(t) = Text::parser(&children_node) {
-          text.add_text(t);
+        } else if let XMLNode::Text(s) = children_node {
+          text.add_string(s)
         }
       }
       let r = ruby.unwrap_or_default();
-      Ok(Ruby::new(&text, r))
+      Ok(Ruby::new(&text, r.as_str()))
     } else {
-      Err(Error::wrong_tag_name(node, "Ruby"))
+      Err(Error::wrong_tag_name(element, "Ruby"))
     }
   }
 }
@@ -262,18 +262,22 @@ impl ToHtml for Sup {
 }
 
 impl Parser for Sup {
-  fn parser(node: &Node) -> result::Result<Self> {
-    if node.tag_name().name() == "Sup" {
-      let text = node
-        .children()
-        .next()
-        .and_then(|n| n.text())
+  fn parser(element: &Element) -> result::Result<Self> {
+    if element.name.as_str() == "Sup" {
+      let text = element
+        .children
+        .first()
+        .and_then(|n| {
+          if let XMLNode::Text(s) = n {
+            Some(s.clone())
+          } else {
+            None
+          }
+        })
         .unwrap_or_default();
-      Ok(Sup {
-        text: text.to_string(),
-      })
+      Ok(Sup { text })
     } else {
-      Err(Error::wrong_tag_name(node, "Sup"))
+      Err(Error::wrong_tag_name(element, "Sup"))
     }
   }
 }
@@ -291,18 +295,22 @@ impl ToHtml for Sub {
 }
 
 impl Parser for Sub {
-  fn parser(node: &Node) -> result::Result<Self> {
-    if node.tag_name().name() == "Sub" {
-      let text = node
-        .children()
-        .next()
-        .and_then(|n| n.text())
+  fn parser(element: &Element) -> result::Result<Self> {
+    if element.name.as_str() == "Sub" {
+      let text = element
+        .children
+        .first()
+        .and_then(|n| {
+          if let XMLNode::Text(s) = n {
+            Some(s.clone())
+          } else {
+            None
+          }
+        })
         .unwrap_or_default();
-      Ok(Sub {
-        text: text.to_string(),
-      })
+      Ok(Sub { text })
     } else {
-      Err(Error::wrong_tag_name(node, "Sub"))
+      Err(Error::wrong_tag_name(element, "Sub"))
     }
   }
 }

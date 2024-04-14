@@ -10,8 +10,8 @@ use crate::sentence::*;
 use crate::structs::*;
 use crate::text::*;
 use crate::*;
-use roxmltree::Node;
 use serde::{Deserialize, Serialize};
+use xmltree::{Element, XMLNode};
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Table {
   pub table_header_row: Vec<TableHeaderRow>,
@@ -20,26 +20,28 @@ pub struct Table {
 }
 
 impl Parser for Table {
-  fn parser(node: &Node) -> result::Result<Self> {
-    if node.tag_name().name() == "Table" {
-      let writing_mode = match node.attribute("WritingMode") {
+  fn parser(element: &Element) -> result::Result<Self> {
+    if element.name.as_str() == "Table" {
+      let writing_mode = match element.attributes.get("WritingMode").map(|s| s.as_str()) {
         Some("vetical") => WritingMode::Vertical,
         Some("horizontal") => WritingMode::Horizontal,
         _ => WritingMode::Vertical,
       };
       let mut table_header_row = Vec::new();
       let mut table_row = Vec::new();
-      for node in node.children() {
-        match node.tag_name().name() {
-          "TableHeaderRow" => {
-            let v = TableHeaderRow::parser(&node)?;
-            table_header_row.push(v)
+      for node in element.children.iter() {
+        if let XMLNode::Element(e) = node {
+          match e.name.as_str() {
+            "TableHeaderRow" => {
+              let v = TableHeaderRow::parser(e)?;
+              table_header_row.push(v)
+            }
+            "TableRow" => {
+              let v = TableRow::parser(e)?;
+              table_row.push(v)
+            }
+            s => return Err(Error::unexpected_tag(e, s)),
           }
-          "TableRow" => {
-            let v = TableRow::parser(&node)?;
-            table_row.push(v)
-          }
-          s => return Err(Error::unexpected_tag(&node, s)),
         }
       }
       Ok(Table {
@@ -48,7 +50,7 @@ impl Parser for Table {
         writing_mode,
       })
     } else {
-      Err(Error::wrong_tag_name(node, "Table"))
+      Err(Error::wrong_tag_name(element, "Table"))
     }
   }
 }
@@ -59,18 +61,20 @@ pub struct TableHeaderRow {
 }
 
 impl Parser for TableHeaderRow {
-  fn parser(node: &Node) -> result::Result<Self> {
-    if node.tag_name().name() == "TableHeaderRow" {
+  fn parser(element: &Element) -> result::Result<Self> {
+    if element.name.as_str() == "TableHeaderRow" {
       let mut columns = Vec::new();
-      for node in node.children() {
-        if node.tag_name().name() == "TableHeaderColumn" {
-          let text = Text::from_children(node.children());
-          columns.push(text);
+      for node in element.children.iter() {
+        if let XMLNode::Element(e) = node {
+          if e.name.as_str() == "TableHeaderColumn" {
+            let text = Text::from_children(&e.children);
+            columns.push(text);
+          }
         }
       }
       Ok(TableHeaderRow { columns })
     } else {
-      Err(Error::wrong_tag_name(node, "TableHeaderRow"))
+      Err(Error::wrong_tag_name(element, "TableHeaderRow"))
     }
   }
 }
@@ -81,18 +85,20 @@ pub struct TableRow {
 }
 
 impl Parser for TableRow {
-  fn parser(node: &Node) -> result::Result<Self> {
-    if node.tag_name().name() == "TableRow" {
+  fn parser(element: &Element) -> result::Result<Self> {
+    if element.name.as_str() == "TableRow" {
       let mut columns = Vec::new();
-      for node in node.children() {
-        if node.tag_name().name() == "TableColumn" {
-          let v = TableColumn::parser(&node)?;
-          columns.push(v);
+      for node in element.children.iter() {
+        if let XMLNode::Element(e) = node {
+          if e.name.as_str() == "TableColumn" {
+            let v = TableColumn::parser(e)?;
+            columns.push(v);
+          }
         }
       }
       Ok(TableRow { columns })
     } else {
-      Err(Error::wrong_tag_name(node, "TableRow"))
+      Err(Error::wrong_tag_name(element, "TableRow"))
     }
   }
 }
@@ -111,113 +117,112 @@ pub struct TableColumn {
 }
 
 impl Parser for TableColumn {
-  fn parser(node: &Node) -> result::Result<Self> {
-    if node.tag_name().name() == "TableColumn" {
+  fn parser(element: &Element) -> result::Result<Self> {
+    if element.name.as_str() == "TableColumn" {
       let border_top =
-        LineStyle::from_attribute(node.attribute("BorderTop")).unwrap_or(LineStyle::Solid);
-      let border_bottom =
-        LineStyle::from_attribute(node.attribute("BorderBottom")).unwrap_or(LineStyle::Solid);
+        LineStyle::from_attribute(element.attributes.get("BorderTop")).unwrap_or(LineStyle::Solid);
+      let border_bottom = LineStyle::from_attribute(element.attributes.get("BorderBottom"))
+        .unwrap_or(LineStyle::Solid);
       let border_left =
-        LineStyle::from_attribute(node.attribute("BorderLeft")).unwrap_or(LineStyle::Solid);
-      let border_right =
-        LineStyle::from_attribute(node.attribute("BorderRight")).unwrap_or(LineStyle::Solid);
-      let rowspan = get_attribute_opt_with_parse(node, "rowspan")?;
-      let colspan = get_attribute_opt_with_parse(node, "colspan")?;
-      let align = Align::from_attribute(node.attribute("Align"));
-      let valign = Position::from_attribute(node.attribute("Valign"));
+        LineStyle::from_attribute(element.attributes.get("BorderLeft")).unwrap_or(LineStyle::Solid);
+      let border_right = LineStyle::from_attribute(element.attributes.get("BorderRight"))
+        .unwrap_or(LineStyle::Solid);
+      let rowspan = get_attribute_opt_with_parse(element, "rowspan")?;
+      let colspan = get_attribute_opt_with_parse(element, "colspan")?;
+      let align = Align::from_attribute(element.attributes.get("Align"));
+      let valign = Position::from_attribute(element.attributes.get("Valign"));
       let mut contents = Vec::new();
-      for node in node.children() {
-        match node.tag_name().name() {
-          "Part" => {
-            let v = Part::parser(&node)?;
-            contents.push(TableColumnContents::Part(v));
-          }
-          "Chapter" => {
-            let v = Chapter::parser(&node)?;
-            contents.push(TableColumnContents::Chapter(v));
-          }
-          "Section" => {
-            let v = Section::parser(&node)?;
-            contents.push(TableColumnContents::Section(v));
-          }
-          "Subsection" => {
-            let v = Subsection::parser(&node)?;
-            contents.push(TableColumnContents::Subsection(v));
-          }
-          "Division" => {
-            let v = Division::parser(&node)?;
-            contents.push(TableColumnContents::Division(v));
-          }
-          "Article" => {
-            let v = Article::parser(&node)?;
-            contents.push(TableColumnContents::Article(v));
-          }
-          "Item" => {
-            let v = Item::parser(&node)?;
-            contents.push(TableColumnContents::Item(v));
-          }
-          "Subitem1" => {
-            let v = Subitem1::parser(&node)?;
-            contents.push(TableColumnContents::Subitem1(v));
-          }
-          "Subitem2" => {
-            let v = Subitem2::parser(&node)?;
-            contents.push(TableColumnContents::Subitem2(v));
-          }
-          "Subitem3" => {
-            let v = Subitem3::parser(&node)?;
-            contents.push(TableColumnContents::Subitem3(v));
-          }
-          "Subitem4" => {
-            let v = Subitem4::parser(&node)?;
-            contents.push(TableColumnContents::Subitem4(v));
-          }
-          "Subitem5" => {
-            let v = Subitem5::parser(&node)?;
-            contents.push(TableColumnContents::Subitem5(v));
-          }
-          "Subitem6" => {
-            let v = Subitem6::parser(&node)?;
-            contents.push(TableColumnContents::Subitem6(v));
-          }
-          "Subitem7" => {
-            let v = Subitem7::parser(&node)?;
-            contents.push(TableColumnContents::Subitem7(v));
-          }
-          "Subitem8" => {
-            let v = Subitem8::parser(&node)?;
-            contents.push(TableColumnContents::Subitem8(v));
-          }
-          "Subitem9" => {
-            let v = Subitem9::parser(&node)?;
-            contents.push(TableColumnContents::Subitem9(v));
-          }
-          "Subitem10" => {
-            let v = Subitem10::parser(&node)?;
-            contents.push(TableColumnContents::Subitem10(v));
-          }
-          "FigStruct" => {
-            let v = FigStruct::parser(&node)?;
-            contents.push(TableColumnContents::FigStruct(v));
-          }
-          "Remarks" => {
-            let v = Remarks::parser(&node)?;
-            contents.push(TableColumnContents::Remarks(v));
-          }
-          "Sentence" => {
-            let v = Sentence::parser(&node)?;
-            contents.push(TableColumnContents::Sentence(v));
-          }
-          "Column" => {
-            let v = Column::parser(&node)?;
-            contents.push(TableColumnContents::Column(v));
-          }
-          "" => {
-            if let Some(v) = node.text() {
-              contents.push(TableColumnContents::String(v.to_string()));
+      for node in element.children.iter() {
+        if let XMLNode::Element(e) = node {
+          match e.name.as_str() {
+            "Part" => {
+              let v = Part::parser(e)?;
+              contents.push(TableColumnContents::Part(v));
             }
+            "Chapter" => {
+              let v = Chapter::parser(e)?;
+              contents.push(TableColumnContents::Chapter(v));
+            }
+            "Section" => {
+              let v = Section::parser(e)?;
+              contents.push(TableColumnContents::Section(v));
+            }
+            "Subsection" => {
+              let v = Subsection::parser(e)?;
+              contents.push(TableColumnContents::Subsection(v));
+            }
+            "Division" => {
+              let v = Division::parser(e)?;
+              contents.push(TableColumnContents::Division(v));
+            }
+            "Article" => {
+              let v = Article::parser(e)?;
+              contents.push(TableColumnContents::Article(v));
+            }
+            "Item" => {
+              let v = Item::parser(e)?;
+              contents.push(TableColumnContents::Item(v));
+            }
+            "Subitem1" => {
+              let v = Subitem1::parser(e)?;
+              contents.push(TableColumnContents::Subitem1(v));
+            }
+            "Subitem2" => {
+              let v = Subitem2::parser(e)?;
+              contents.push(TableColumnContents::Subitem2(v));
+            }
+            "Subitem3" => {
+              let v = Subitem3::parser(e)?;
+              contents.push(TableColumnContents::Subitem3(v));
+            }
+            "Subitem4" => {
+              let v = Subitem4::parser(e)?;
+              contents.push(TableColumnContents::Subitem4(v));
+            }
+            "Subitem5" => {
+              let v = Subitem5::parser(e)?;
+              contents.push(TableColumnContents::Subitem5(v));
+            }
+            "Subitem6" => {
+              let v = Subitem6::parser(e)?;
+              contents.push(TableColumnContents::Subitem6(v));
+            }
+            "Subitem7" => {
+              let v = Subitem7::parser(e)?;
+              contents.push(TableColumnContents::Subitem7(v));
+            }
+            "Subitem8" => {
+              let v = Subitem8::parser(e)?;
+              contents.push(TableColumnContents::Subitem8(v));
+            }
+            "Subitem9" => {
+              let v = Subitem9::parser(e)?;
+              contents.push(TableColumnContents::Subitem9(v));
+            }
+            "Subitem10" => {
+              let v = Subitem10::parser(e)?;
+              contents.push(TableColumnContents::Subitem10(v));
+            }
+            "FigStruct" => {
+              let v = FigStruct::parser(e)?;
+              contents.push(TableColumnContents::FigStruct(v));
+            }
+            "Remarks" => {
+              let v = Remarks::parser(e)?;
+              contents.push(TableColumnContents::Remarks(v));
+            }
+            "Sentence" => {
+              let v = Sentence::parser(e)?;
+              contents.push(TableColumnContents::Sentence(v));
+            }
+            "Column" => {
+              let v = Column::parser(e)?;
+              contents.push(TableColumnContents::Column(v));
+            }
+            s => return Err(Error::unexpected_tag(e, s)),
           }
-          s => return Err(Error::unexpected_tag(&node, s)),
+        } else if let XMLNode::Text(s) = node {
+          contents.push(TableColumnContents::String(s.clone()))
         }
       }
       Ok(TableColumn {
@@ -232,7 +237,7 @@ impl Parser for TableColumn {
         valign,
       })
     } else {
-      Err(Error::wrong_tag_name(node, "TableColumn"))
+      Err(Error::wrong_tag_name(element, "TableColumn"))
     }
   }
 }
@@ -272,8 +277,8 @@ pub enum Position {
 }
 
 impl Position {
-  pub fn from_attribute(att: Option<&str>) -> Option<Self> {
-    match att {
+  pub fn from_attribute(att: Option<&String>) -> Option<Self> {
+    match att.map(|s| s.as_str()) {
       Some("top") => Some(Position::Top),
       Some("middle") => Some(Position::Middle),
       Some("bottom") => Some(Position::Bottom),

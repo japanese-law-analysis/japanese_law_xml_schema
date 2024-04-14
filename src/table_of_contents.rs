@@ -4,8 +4,8 @@ use crate::parser::*;
 use crate::result::Error;
 use crate::text::*;
 use crate::*;
-use roxmltree::Node;
 use serde::{Deserialize, Serialize};
+use xmltree::{Element, XMLNode};
 
 /// 目次
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
@@ -23,45 +23,47 @@ pub struct TOC {
 }
 
 impl Parser for TOC {
-  fn parser(node: &Node) -> result::Result<Self> {
-    if node.tag_name().name() == "TOC" {
+  fn parser(element: &Element) -> result::Result<Self> {
+    if element.name.as_str() == "TOC" {
       let mut label = None;
       let mut preamble_label = None;
       let mut main_contents = Vec::new();
       let mut suppl_provision = None;
       let mut appdx_table_lable = Vec::new();
-      for node in node.children() {
-        match node.tag_name().name() {
-          "TOCLabel" => {
-            label = Some(Text::from_children(node.children()));
+      for node in element.children.iter() {
+        if let XMLNode::Element(e) = node {
+          match e.name.as_str() {
+            "TOCLabel" => {
+              label = Some(Text::from_children(&e.children));
+            }
+            "TOCPreambleLabel" => {
+              preamble_label = Some(Text::from_children(&e.children));
+            }
+            "TOCPart" => {
+              let v = TOCPart::parser(e)?;
+              main_contents.push(TOCMainContents::TOCPart(v));
+            }
+            "TOCChapter" => {
+              let v = TOCChapter::parser(e)?;
+              main_contents.push(TOCMainContents::TOCChapter(v));
+            }
+            "TOCSection" => {
+              let v = TOCSection::parser(e)?;
+              main_contents.push(TOCMainContents::TOCSection(v));
+            }
+            "TOCArticle" => {
+              let v = TOCArticle::parser(e)?;
+              main_contents.push(TOCMainContents::TOCArticle(v));
+            }
+            "TOCSupplProvision" => {
+              let v = TOCSupplProvision::parser(e)?;
+              suppl_provision = Some(v);
+            }
+            "TOCAppdxTableLabel" => {
+              appdx_table_lable.push(Text::from_children(&e.children));
+            }
+            s => return Err(Error::unexpected_tag(e, s)),
           }
-          "TOCPreambleLabel" => {
-            preamble_label = Some(Text::from_children(node.children()));
-          }
-          "TOCPart" => {
-            let v = TOCPart::parser(&node)?;
-            main_contents.push(TOCMainContents::TOCPart(v));
-          }
-          "TOCChapter" => {
-            let v = TOCChapter::parser(&node)?;
-            main_contents.push(TOCMainContents::TOCChapter(v));
-          }
-          "TOCSection" => {
-            let v = TOCSection::parser(&node)?;
-            main_contents.push(TOCMainContents::TOCSection(v));
-          }
-          "TOCArticle" => {
-            let v = TOCArticle::parser(&node)?;
-            main_contents.push(TOCMainContents::TOCArticle(v));
-          }
-          "TOCSupplProvision" => {
-            let v = TOCSupplProvision::parser(&node)?;
-            suppl_provision = Some(v);
-          }
-          "TOCAppdxTableLabel" => {
-            appdx_table_lable.push(Text::from_children(node.children()));
-          }
-          s => return Err(Error::unexpected_tag(&node, s)),
         }
       }
       Ok(TOC {
@@ -72,7 +74,7 @@ impl Parser for TOC {
         toc_appdx_table_label: appdx_table_lable,
       })
     } else {
-      Err(Error::wrong_tag_name(node, "TOC"))
+      Err(Error::wrong_tag_name(element, "TOC"))
     }
   }
 }
@@ -105,26 +107,28 @@ pub struct TOCPart {
 }
 
 impl Parser for TOCPart {
-  fn parser(node: &Node) -> result::Result<Self> {
-    if node.tag_name().name() == "TOCPart" {
+  fn parser(element: &Element) -> result::Result<Self> {
+    if element.name.as_str() == "TOCPart" {
       let mut title = Text::new();
       let mut article_range = None;
       let mut children = Vec::new();
-      let num = get_attribute(node, "Num")?;
-      let delete = get_attribute_opt_with_parse(node, "Delete")?.unwrap_or(false);
-      for node in node.children() {
-        match node.tag_name().name() {
-          "PartTitle" => {
-            title = Text::from_children(node.children());
+      let num = get_attribute(element, "Num")?;
+      let delete = get_attribute_opt_with_parse(element, "Delete")?.unwrap_or(false);
+      for node in element.children.iter() {
+        if let XMLNode::Element(e) = node {
+          match e.name.as_str() {
+            "PartTitle" => {
+              title = Text::from_children(&e.children);
+            }
+            "ArticleRange" => {
+              article_range = Some(Text::from_children(&e.children));
+            }
+            "TOCChapter" => {
+              let v = TOCChapter::parser(e)?;
+              children.push(v);
+            }
+            s => return Err(Error::unexpected_tag(e, s)),
           }
-          "ArticleRange" => {
-            article_range = Some(Text::from_children(node.children()));
-          }
-          "TOCChapter" => {
-            let v = TOCChapter::parser(&node)?;
-            children.push(v);
-          }
-          s => return Err(Error::unexpected_tag(&node, s)),
         }
       }
       Ok(TOCPart {
@@ -135,7 +139,7 @@ impl Parser for TOCPart {
         children,
       })
     } else {
-      Err(Error::wrong_tag_name(node, "TOCPart"))
+      Err(Error::wrong_tag_name(element, "TOCPart"))
     }
   }
 }
@@ -156,26 +160,28 @@ pub struct TOCChapter {
 }
 
 impl Parser for TOCChapter {
-  fn parser(node: &Node) -> result::Result<Self> {
-    if node.tag_name().name() == "TOCChapter" {
+  fn parser(element: &Element) -> result::Result<Self> {
+    if element.name.as_str() == "TOCChapter" {
       let mut title = Text::new();
       let mut article_range = None;
       let mut children = Vec::new();
-      let num = get_attribute(node, "Num")?;
-      let delete = get_attribute_opt_with_parse(node, "Delete")?.unwrap_or(false);
-      for node in node.children() {
-        match node.tag_name().name() {
-          "ChapterTitle" => {
-            title = Text::from_children(node.children());
+      let num = get_attribute(element, "Num")?;
+      let delete = get_attribute_opt_with_parse(element, "Delete")?.unwrap_or(false);
+      for node in element.children.iter() {
+        if let XMLNode::Element(e) = node {
+          match e.name.as_str() {
+            "ChapterTitle" => {
+              title = Text::from_children(&e.children);
+            }
+            "ArticleRange" => {
+              article_range = Some(Text::from_children(&e.children));
+            }
+            "TOCSection" => {
+              let v = TOCSection::parser(e)?;
+              children.push(v);
+            }
+            s => return Err(Error::unexpected_tag(e, s)),
           }
-          "ArticleRange" => {
-            article_range = Some(Text::from_children(node.children()));
-          }
-          "TOCSection" => {
-            let v = TOCSection::parser(&node)?;
-            children.push(v);
-          }
-          s => return Err(Error::unexpected_tag(&node, s)),
         }
       }
       Ok(TOCChapter {
@@ -186,7 +192,7 @@ impl Parser for TOCChapter {
         children,
       })
     } else {
-      Err(Error::wrong_tag_name(node, "TOCChapter"))
+      Err(Error::wrong_tag_name(element, "TOCChapter"))
     }
   }
 }
@@ -207,30 +213,32 @@ pub struct TOCSection {
 }
 
 impl Parser for TOCSection {
-  fn parser(node: &Node) -> result::Result<Self> {
-    if node.tag_name().name() == "TOCSection" {
+  fn parser(element: &Element) -> result::Result<Self> {
+    if element.name.as_str() == "TOCSection" {
       let mut title = Text::new();
       let mut article_range = None;
       let mut children = Vec::new();
-      let num = get_attribute(node, "Num")?;
-      let delete = get_attribute_opt_with_parse(node, "Delete")?.unwrap_or(false);
-      for node in node.children() {
-        match node.tag_name().name() {
-          "SectionTitle" => {
-            title = Text::from_children(node.children());
+      let num = get_attribute(element, "Num")?;
+      let delete = get_attribute_opt_with_parse(element, "Delete")?.unwrap_or(false);
+      for node in element.children.iter() {
+        if let XMLNode::Element(e) = node {
+          match e.name.as_str() {
+            "SectionTitle" => {
+              title = Text::from_children(&e.children);
+            }
+            "ArticleRange" => {
+              article_range = Some(Text::from_children(&e.children));
+            }
+            "TOCSubsection" => {
+              let v = TOCSubsection::parser(e)?;
+              children.push(TOCSectionContents::TOCSubsection(v));
+            }
+            "TOCDivision" => {
+              let v = TOCDivision::parser(e)?;
+              children.push(TOCSectionContents::TOCDivision(v));
+            }
+            s => return Err(Error::unexpected_tag(e, s)),
           }
-          "ArticleRange" => {
-            article_range = Some(Text::from_children(node.children()));
-          }
-          "TOCSubsection" => {
-            let v = TOCSubsection::parser(&node)?;
-            children.push(TOCSectionContents::TOCSubsection(v));
-          }
-          "TOCDivision" => {
-            let v = TOCDivision::parser(&node)?;
-            children.push(TOCSectionContents::TOCDivision(v));
-          }
-          s => return Err(Error::unexpected_tag(&node, s)),
         }
       }
       Ok(TOCSection {
@@ -241,7 +249,7 @@ impl Parser for TOCSection {
         children,
       })
     } else {
-      Err(Error::wrong_tag_name(node, "TOCSection"))
+      Err(Error::wrong_tag_name(element, "TOCSection"))
     }
   }
 }
@@ -271,26 +279,28 @@ pub struct TOCSubsection {
 }
 
 impl Parser for TOCSubsection {
-  fn parser(node: &Node) -> result::Result<Self> {
-    if node.tag_name().name() == "TOCSubsection" {
+  fn parser(element: &Element) -> result::Result<Self> {
+    if element.name.as_str() == "TOCSubsection" {
       let mut title = Text::new();
       let mut article_range = None;
       let mut children = Vec::new();
-      let num = get_attribute(node, "Num")?;
-      let delete = get_attribute_opt_with_parse(node, "Delete")?.unwrap_or(false);
-      for node in node.children() {
-        match node.tag_name().name() {
-          "SubsectionTitle" => {
-            title = Text::from_children(node.children());
+      let num = get_attribute(element, "Num")?;
+      let delete = get_attribute_opt_with_parse(element, "Delete")?.unwrap_or(false);
+      for node in element.children.iter() {
+        if let XMLNode::Element(e) = node {
+          match e.name.as_str() {
+            "SubsectionTitle" => {
+              title = Text::from_children(&e.children);
+            }
+            "ArticleRange" => {
+              article_range = Some(Text::from_children(&e.children));
+            }
+            "TOCDivision" => {
+              let v = TOCDivision::parser(e)?;
+              children.push(v);
+            }
+            s => return Err(Error::unexpected_tag(e, s)),
           }
-          "ArticleRange" => {
-            article_range = Some(Text::from_children(node.children()));
-          }
-          "TOCDivision" => {
-            let v = TOCDivision::parser(&node)?;
-            children.push(v);
-          }
-          s => return Err(Error::unexpected_tag(&node, s)),
         }
       }
       Ok(TOCSubsection {
@@ -301,7 +311,7 @@ impl Parser for TOCSubsection {
         children,
       })
     } else {
-      Err(Error::wrong_tag_name(node, "TOCSubsection"))
+      Err(Error::wrong_tag_name(element, "TOCSubsection"))
     }
   }
 }
@@ -320,21 +330,23 @@ pub struct TOCDivision {
 }
 
 impl Parser for TOCDivision {
-  fn parser(node: &Node) -> result::Result<Self> {
-    if node.tag_name().name() == "TOCDivision" {
+  fn parser(element: &Element) -> result::Result<Self> {
+    if element.name.as_str() == "TOCDivision" {
       let mut title = Text::new();
       let mut article_range = None;
-      let num = get_attribute(node, "Num")?;
-      let delete = get_attribute_opt_with_parse(node, "Delete")?.unwrap_or(false);
-      for node in node.children() {
-        match node.tag_name().name() {
-          "DivisionTitle" => {
-            title = Text::from_children(node.children());
+      let num = get_attribute(element, "Num")?;
+      let delete = get_attribute_opt_with_parse(element, "Delete")?.unwrap_or(false);
+      for node in element.children.iter() {
+        if let XMLNode::Element(e) = node {
+          match e.name.as_str() {
+            "DivisionTitle" => {
+              title = Text::from_children(&e.children);
+            }
+            "ArticleRange" => {
+              article_range = Some(Text::from_children(&e.children));
+            }
+            s => return Err(Error::unexpected_tag(e, s)),
           }
-          "ArticleRange" => {
-            article_range = Some(Text::from_children(node.children()));
-          }
-          s => return Err(Error::unexpected_tag(&node, s)),
         }
       }
       Ok(TOCDivision {
@@ -344,7 +356,7 @@ impl Parser for TOCDivision {
         delete,
       })
     } else {
-      Err(Error::wrong_tag_name(node, "TOCDivision"))
+      Err(Error::wrong_tag_name(element, "TOCDivision"))
     }
   }
 }
@@ -363,22 +375,24 @@ pub struct TOCArticle {
 }
 
 impl Parser for TOCArticle {
-  fn parser(node: &Node) -> result::Result<Self> {
-    if node.tag_name().name() == "TOCArticle" {
+  fn parser(element: &Element) -> result::Result<Self> {
+    if element.name.as_str() == "TOCArticle" {
       let mut title = Text::new();
       let mut caption = None;
-      let num = get_attribute(node, "Num")?;
-      let delete = get_attribute_opt_with_parse(node, "Delete")?.unwrap_or(false);
-      for node in node.children() {
-        match node.tag_name().name() {
-          "ArticleTitle" => {
-            title = Text::from_children(node.children());
+      let num = get_attribute(element, "Num")?;
+      let delete = get_attribute_opt_with_parse(element, "Delete")?.unwrap_or(false);
+      for node in element.children.iter() {
+        if let XMLNode::Element(e) = node {
+          match e.name.as_str() {
+            "ArticleTitle" => {
+              title = Text::from_children(&e.children);
+            }
+            "ArticleCaption" => {
+              let v = Caption::parser(e)?;
+              caption = Some(v);
+            }
+            s => return Err(Error::unexpected_tag(e, s)),
           }
-          "ArticleCaption" => {
-            let v = Caption::parser(&node)?;
-            caption = Some(v);
-          }
-          s => return Err(Error::unexpected_tag(&node, s)),
         }
       }
       if let Some(caption) = caption {
@@ -390,12 +404,11 @@ impl Parser for TOCArticle {
         })
       } else {
         Err(Error::MissingRequiredTag {
-          range: node.range(),
           tag_name: "Caption".to_string(),
         })
       }
     } else {
-      Err(Error::wrong_tag_name(node, "TOCArticle"))
+      Err(Error::wrong_tag_name(element, "TOCArticle"))
     }
   }
 }
@@ -412,28 +425,30 @@ pub struct TOCSupplProvision {
 }
 
 impl Parser for TOCSupplProvision {
-  fn parser(node: &Node) -> result::Result<Self> {
-    if node.tag_name().name() == "TOCSupplProvision" {
+  fn parser(element: &Element) -> result::Result<Self> {
+    if element.name == "TOCSupplProvision" {
       let mut label = Text::new();
       let mut range = None;
       let mut children = Vec::new();
-      for node in node.children() {
-        match node.tag_name().name() {
-          "SupplProvisionLabel" => {
-            label = Text::from_children(node.children());
+      for node in element.children.iter() {
+        if let XMLNode::Element(e) = node {
+          match e.name.as_str() {
+            "SupplProvisionLabel" => {
+              label = Text::from_children(&e.children);
+            }
+            "ArticleRange" => {
+              range = Some(Text::from_children(&e.children));
+            }
+            "TOCArticle" => {
+              let v = TOCArticle::parser(e)?;
+              children.push(TOCSupplProvisionContents::TOCArticle(v));
+            }
+            "TOCChapter" => {
+              let v = TOCChapter::parser(e)?;
+              children.push(TOCSupplProvisionContents::TOCChapter(v));
+            }
+            s => return Err(Error::unexpected_tag(e, s)),
           }
-          "ArticleRange" => {
-            range = Some(Text::from_children(node.children()));
-          }
-          "TOCArticle" => {
-            let v = TOCArticle::parser(&node)?;
-            children.push(TOCSupplProvisionContents::TOCArticle(v));
-          }
-          "TOCChapter" => {
-            let v = TOCChapter::parser(&node)?;
-            children.push(TOCSupplProvisionContents::TOCChapter(v));
-          }
-          s => return Err(Error::unexpected_tag(&node, s)),
         }
       }
       Ok(TOCSupplProvision {
@@ -442,7 +457,7 @@ impl Parser for TOCSupplProvision {
         children,
       })
     } else {
-      Err(Error::wrong_tag_name(node, "TOCSupplProbision"))
+      Err(Error::wrong_tag_name(element, "TOCSupplProbision"))
     }
   }
 }

@@ -8,8 +8,8 @@ use crate::structs::*;
 use crate::table::*;
 use crate::text::*;
 use crate::*;
-use roxmltree::Node;
 use serde::{Deserialize, Serialize};
+use xmltree::{Element, XMLNode};
 
 /// AritchFormulaやQuoteStructの中身
 /// `any`とあるが、現実的にありえるパターンを列挙する
@@ -19,60 +19,59 @@ pub struct Contents {
 }
 
 impl parser::Parser for Contents {
-  fn parser(node: &roxmltree::Node) -> result::Result<Self> {
+  fn parser(element: &Element) -> result::Result<Self> {
     let mut lst = Vec::new();
-    for node in node.children() {
-      match node.tag_name().name() {
-        "Table" => {
-          let v = Table::parser(&node)?;
-          lst.push(ContentsElement::Table(v));
-        }
-        "TableStruct" => {
-          let v = TableStruct::parser(&node)?;
-          lst.push(ContentsElement::TableStruct(v));
-        }
-        "Fig" => {
-          let v = Fig::parser(&node)?;
-          lst.push(ContentsElement::Fig(v));
-        }
-        "FigStruct" => {
-          let v = FigStruct::parser(&node)?;
-          lst.push(ContentsElement::FigStruct(v));
-        }
-        "Ruby" => {
-          let v = Ruby::parser(&node)?;
-          lst.push(ContentsElement::Ruby(v));
-        }
-        "Line" => {
-          let v = Line::parser(&node)?;
-          lst.push(ContentsElement::Line(v));
-        }
-        "Sup" => {
-          let v = Sup::parser(&node)?;
-          lst.push(ContentsElement::Sup(v));
-        }
-        "Sub" => {
-          let v = Sub::parser(&node)?;
-          lst.push(ContentsElement::Sub(v));
-        }
-        "Paragraph" => {
-          let v = Paragraph::parser(&node)?;
-          lst.push(ContentsElement::Paragraph(v));
-        }
-        "List" => {
-          let v = List::parser(&node)?;
-          lst.push(ContentsElement::List(v));
-        }
-        "Sentence" => {
-          let v = Sentence::parser(&node)?;
-          lst.push(ContentsElement::Sentence(v));
-        }
-        "" => {
-          if let Some(text) = node.text() {
-            lst.push(ContentsElement::String(text.to_string()));
+    for node in element.children.iter() {
+      if let XMLNode::Element(e) = node {
+        match e.name.as_str() {
+          "Table" => {
+            let v = Table::parser(e)?;
+            lst.push(ContentsElement::Table(v));
           }
+          "TableStruct" => {
+            let v = TableStruct::parser(e)?;
+            lst.push(ContentsElement::TableStruct(v));
+          }
+          "Fig" => {
+            let v = Fig::parser(e)?;
+            lst.push(ContentsElement::Fig(v));
+          }
+          "FigStruct" => {
+            let v = FigStruct::parser(e)?;
+            lst.push(ContentsElement::FigStruct(v));
+          }
+          "Ruby" => {
+            let v = Ruby::parser(e)?;
+            lst.push(ContentsElement::Ruby(v));
+          }
+          "Line" => {
+            let v = Line::parser(e)?;
+            lst.push(ContentsElement::Line(v));
+          }
+          "Sup" => {
+            let v = Sup::parser(e)?;
+            lst.push(ContentsElement::Sup(v));
+          }
+          "Sub" => {
+            let v = Sub::parser(e)?;
+            lst.push(ContentsElement::Sub(v));
+          }
+          "Paragraph" => {
+            let v = Paragraph::parser(e)?;
+            lst.push(ContentsElement::Paragraph(v));
+          }
+          "List" => {
+            let v = List::parser(e)?;
+            lst.push(ContentsElement::List(v));
+          }
+          "Sentence" => {
+            let v = Sentence::parser(e)?;
+            lst.push(ContentsElement::Sentence(v));
+          }
+          s => return Err(Error::unexpected_tag(e, s)),
         }
-        s => return Err(Error::unexpected_tag(&node, s)),
+      } else if let XMLNode::Text(s) = node {
+        lst.push(ContentsElement::String(s.to_string()))
       }
     }
     Ok(Contents { contents: lst })
@@ -102,8 +101,8 @@ pub struct Style {
 }
 
 impl Parser for Style {
-  fn parser(node: &Node) -> result::Result<Self> {
-    Contents::parser(node).map(|c| Style { contentes: c })
+  fn parser(element: &Element) -> result::Result<Self> {
+    Contents::parser(element).map(|c| Style { contentes: c })
   }
 }
 
@@ -113,8 +112,8 @@ pub struct Note {
 }
 
 impl Parser for Note {
-  fn parser(node: &Node) -> result::Result<Self> {
-    Contents::parser(node).map(|c| Note { contentes: c })
+  fn parser(element: &Element) -> result::Result<Self> {
+    Contents::parser(element).map(|c| Note { contentes: c })
   }
 }
 
@@ -125,8 +124,8 @@ pub struct Format {
 }
 
 impl Parser for Format {
-  fn parser(node: &Node) -> result::Result<Self> {
-    Contents::parser(node).map(|c| Format { contentes: c })
+  fn parser(element: &Element) -> result::Result<Self> {
+    Contents::parser(element).map(|c| Format { contentes: c })
   }
 }
 
@@ -138,8 +137,8 @@ pub struct ArithFormula {
 }
 
 impl Parser for ArithFormula {
-  fn parser(node: &Node) -> result::Result<Self> {
-    let num = get_attribute_opt_with_parse(node, "Num")?;
-    Contents::parser(node).map(|c| ArithFormula { num, contentes: c })
+  fn parser(element: &Element) -> result::Result<Self> {
+    let num = get_attribute_opt_with_parse(element, "Num")?;
+    Contents::parser(element).map(|c| ArithFormula { num, contentes: c })
   }
 }

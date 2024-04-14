@@ -27,7 +27,7 @@ pub mod text;
 
 use koyomi::{era, Date};
 use result::*;
-use roxmltree::{Document, Node};
+use xmltree::Element;
 
 use crate::parser::Parser;
 
@@ -45,9 +45,8 @@ pub trait ToText {
 
 /// XML文字列を法律の構造体に変換する
 pub fn parse_xml(xml: &str) -> Result<law::Law> {
-  let document = Document::parse(xml).map_err(Error::XMLParing)?;
-  let node = document.root_element();
-  let law = law::Law::parser(&node)?;
+  let element = Element::parse(xml.as_bytes()).map_err(|_| Error::XMLParing)?;
+  let law = law::Law::parser(&element)?;
   Ok(law)
 }
 
@@ -93,56 +92,52 @@ pub fn parse_text(
   })
 }
 
-pub(crate) fn get_attribute(node: &Node, name: &str) -> Result<String> {
-  let att_opt = node.attribute(name);
+pub(crate) fn get_attribute(element: &Element, name: &str) -> Result<String> {
+  let att_opt = element.attributes.get(name);
   match att_opt {
     Some(s) => Ok(s.to_string()),
     None => Err(Error::MissingRequiredAttribute {
-      range: node.range().clone(),
-      tag_name: node.tag_name().name().to_string(),
+      tag_name: element.name.to_string(),
       attribute_name: name.to_string(),
     }),
   }
 }
 
-pub(crate) fn get_attribute_with_parse<T>(node: &Node, name: &str) -> Result<T>
+pub(crate) fn get_attribute_with_parse<T>(element: &Element, name: &str) -> Result<T>
 where
   T: std::str::FromStr,
 {
-  let att_opt = node.attribute(name);
+  let att_opt = element.attributes.get(name);
   match att_opt {
     Some(s) => {
       if let Ok(t) = s.parse::<T>() {
         Ok(t)
       } else {
         Err(Error::AttributeParseError {
-          range: node.range().clone(),
-          tag_name: node.tag_name().name().to_string(),
+          tag_name: element.name.to_string(),
           attribute_name: name.to_string(),
         })
       }
     }
     None => Err(Error::MissingRequiredAttribute {
-      range: node.range().clone(),
-      tag_name: node.tag_name().name().to_string(),
+      tag_name: element.name.to_string(),
       attribute_name: name.to_string(),
     }),
   }
 }
 
-pub(crate) fn get_attribute_opt_with_parse<T>(node: &Node, name: &str) -> Result<Option<T>>
+pub(crate) fn get_attribute_opt_with_parse<T>(element: &Element, name: &str) -> Result<Option<T>>
 where
   T: std::str::FromStr,
 {
-  let att_opt = node.attribute(name);
+  let att_opt = element.attributes.get(name);
   match att_opt {
     Some(s) => {
       if let Ok(t) = s.parse::<T>() {
         Ok(Some(t))
       } else {
         Err(Error::AttributeParseError {
-          range: node.range().clone(),
-          tag_name: node.tag_name().name().to_string(),
+          tag_name: element.name.to_string(),
           attribute_name: name.to_string(),
         })
       }

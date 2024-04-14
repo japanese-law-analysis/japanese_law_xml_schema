@@ -2,8 +2,8 @@
 
 use crate::parser::*;
 use crate::*;
-use roxmltree::Node;
 use serde::{Deserialize, Serialize};
+use xmltree::Element;
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Fig {
@@ -11,8 +11,15 @@ pub struct Fig {
 }
 
 impl Parser for Fig {
-  fn parser(node: &Node) -> result::Result<Self> {
-    let src = get_attribute(node, "src")?;
+  fn parser(element: &Element) -> result::Result<Self> {
+    let src = element
+      .attributes
+      .get("src")
+      .ok_or(result::Error::MissingRequiredAttribute {
+        tag_name: "Fig".to_string(),
+        attribute_name: "src".to_string(),
+      })?
+      .clone();
     Ok(Fig { src })
   }
 }
