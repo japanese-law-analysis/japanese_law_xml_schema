@@ -1,8 +1,14 @@
 use crate::result::Result;
-use roxmltree::Node;
+use xmltree::Element;
 
-pub(crate) trait ToXml<T> {
-  fn to_xml(t: &T) -> Result<Node>
+pub(crate) trait ToXmlElement {
+  fn to_xml_element(&self) -> Result<Element>
+  where
+    Self: Sized;
+}
+
+pub(crate) trait ToXmlElementWithName {
+  fn to_xml_element_with_name(&self, name: &str) -> Result<Element>
   where
     Self: Sized;
 }
