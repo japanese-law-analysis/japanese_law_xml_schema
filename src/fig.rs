@@ -1,6 +1,7 @@
 //! 画像
 
 use crate::parser::*;
+use crate::to_xml::*;
 use crate::*;
 use serde::{Deserialize, Serialize};
 use xmltree::Element;
@@ -21,5 +22,13 @@ impl Parser for Fig {
       })?
       .clone();
     Ok(Fig { src })
+  }
+}
+
+impl ToXmlElement for Fig {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("Fig");
+    e.attributes.insert("src".to_string(), self.src.clone());
+    e
   }
 }

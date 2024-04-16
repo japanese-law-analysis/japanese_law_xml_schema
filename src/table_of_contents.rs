@@ -3,6 +3,7 @@ use crate::class::*;
 use crate::parser::*;
 use crate::result::Error;
 use crate::text::*;
+use crate::to_xml::*;
 use crate::*;
 use serde::{Deserialize, Serialize};
 use xmltree::{Element, XMLNode};
@@ -79,6 +80,37 @@ impl Parser for TOC {
   }
 }
 
+impl ToXmlElement for TOC {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("TOC");
+    if let Some(label) = &self.toc_label {
+      e.children
+        .push(XMLNode::Element(label.to_xml_element_with_name("TOCLabel")));
+    }
+    if let Some(label) = &self.toc_preamble_label {
+      e.children
+        .push(XMLNode::Element(label.to_xml_element_with_name("TOCLabel")));
+    }
+    for v in self.toc_main_contents.iter() {
+      match v {
+        TOCMainContents::TOCPart(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        TOCMainContents::TOCChapter(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        TOCMainContents::TOCSection(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        TOCMainContents::TOCArticle(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+      }
+    }
+    if let Some(v) = &self.toc_suppl_provision {
+      e.children.push(XMLNode::Element(v.to_xml_element()));
+    }
+    for text in self.toc_appdx_table_label.iter() {
+      e.children.push(XMLNode::Element(
+        text.to_xml_element_with_name("TOCAppdxTableLabel"),
+      ));
+    }
+    e
+  }
+}
+
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub enum TOCMainContents {
   /// 編の目次
@@ -144,6 +176,29 @@ impl Parser for TOCPart {
   }
 }
 
+impl ToXmlElement for TOCPart {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("TOCPart");
+    e.children.push(XMLNode::Element(
+      self.part_title.to_xml_element_with_name("PartTitle"),
+    ));
+    if let Some(range) = &self.article_range {
+      e.children.push(XMLNode::Element(
+        range.to_xml_element_with_name("ArticleRange"),
+      ));
+    }
+    for v in self.children.iter() {
+      e.children.push(XMLNode::Element(v.to_xml_element()));
+    }
+    e.attributes.insert("Num".to_string(), self.num.clone());
+    if self.delete {
+      e.attributes
+        .insert("Delete".to_string(), self.delete.to_string());
+    }
+    e
+  }
+}
+
 /// 章の目次
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct TOCChapter {
@@ -194,6 +249,29 @@ impl Parser for TOCChapter {
     } else {
       Err(Error::wrong_tag_name(element, "TOCChapter"))
     }
+  }
+}
+
+impl ToXmlElement for TOCChapter {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("TOCChapter");
+    e.children.push(XMLNode::Element(
+      self.chapter_title.to_xml_element_with_name("ChapterTitle"),
+    ));
+    if let Some(range) = &self.article_range {
+      e.children.push(XMLNode::Element(
+        range.to_xml_element_with_name("ArticleRange"),
+      ));
+    }
+    for v in self.children.iter() {
+      e.children.push(XMLNode::Element(v.to_xml_element()));
+    }
+    e.attributes.insert("Num".to_string(), self.num.clone());
+    if self.delete {
+      e.attributes
+        .insert("Delete".to_string(), self.delete.to_string());
+    }
+    e
   }
 }
 
@@ -251,6 +329,34 @@ impl Parser for TOCSection {
     } else {
       Err(Error::wrong_tag_name(element, "TOCSection"))
     }
+  }
+}
+
+impl ToXmlElement for TOCSection {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("TOCSection");
+    e.children.push(XMLNode::Element(
+      self.section_title.to_xml_element_with_name("SectionTitle"),
+    ));
+    if let Some(range) = &self.article_range {
+      e.children.push(XMLNode::Element(
+        range.to_xml_element_with_name("ArticleRange"),
+      ));
+    }
+    for v in self.children.iter() {
+      match v {
+        TOCSectionContents::TOCDivision(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        TOCSectionContents::TOCSubsection(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()))
+        }
+      }
+    }
+    e.attributes.insert("Num".to_string(), self.num.clone());
+    if self.delete {
+      e.attributes
+        .insert("Delete".to_string(), self.delete.to_string());
+    }
+    e
   }
 }
 
@@ -316,6 +422,31 @@ impl Parser for TOCSubsection {
   }
 }
 
+impl ToXmlElement for TOCSubsection {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("TOCSubsection");
+    e.children.push(XMLNode::Element(
+      self
+        .subsection_title
+        .to_xml_element_with_name("SubsectionTitle"),
+    ));
+    if let Some(range) = &self.article_range {
+      e.children.push(XMLNode::Element(
+        range.to_xml_element_with_name("ArticleRange"),
+      ));
+    }
+    for v in self.children.iter() {
+      e.children.push(XMLNode::Element(v.to_xml_element()));
+    }
+    e.attributes.insert("Num".to_string(), self.num.clone());
+    if self.delete {
+      e.attributes
+        .insert("Delete".to_string(), self.delete.to_string());
+    }
+    e
+  }
+}
+
 /// 目の目次
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct TOCDivision {
@@ -358,6 +489,28 @@ impl Parser for TOCDivision {
     } else {
       Err(Error::wrong_tag_name(element, "TOCDivision"))
     }
+  }
+}
+
+impl ToXmlElement for TOCDivision {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("TOCDivision");
+    e.children.push(XMLNode::Element(
+      self
+        .division_title
+        .to_xml_element_with_name("DivisionTitle"),
+    ));
+    if let Some(range) = &self.article_range {
+      e.children.push(XMLNode::Element(
+        range.to_xml_element_with_name("ArticleRange"),
+      ));
+    }
+    e.attributes.insert("Num".to_string(), self.num.clone());
+    if self.delete {
+      e.attributes
+        .insert("Delete".to_string(), self.delete.to_string());
+    }
+    e
   }
 }
 
@@ -413,6 +566,26 @@ impl Parser for TOCArticle {
   }
 }
 
+impl ToXmlElement for TOCArticle {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("TOCArticle");
+    e.children.push(XMLNode::Element(
+      self.article_title.to_xml_element_with_name("ArticleTitle"),
+    ));
+    e.children.push(XMLNode::Element(
+      self
+        .article_caption
+        .to_xml_element_with_name("ArticleCaption"),
+    ));
+    e.attributes.insert("Num".to_string(), self.num.clone());
+    if self.delete {
+      e.attributes
+        .insert("Delete".to_string(), self.delete.to_string());
+    }
+    e
+  }
+}
+
 /// 附則の目次
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct TOCSupplProvision {
@@ -459,6 +632,33 @@ impl Parser for TOCSupplProvision {
     } else {
       Err(Error::wrong_tag_name(element, "TOCSupplProbision"))
     }
+  }
+}
+
+impl ToXmlElement for TOCSupplProvision {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("TOCSupplProvision");
+    e.children.push(XMLNode::Element(
+      self
+        .suppl_provision_label
+        .to_xml_element_with_name("SupplProvisionLabel"),
+    ));
+    if let Some(range) = &self.article_range {
+      e.children.push(XMLNode::Element(
+        range.to_xml_element_with_name("ArticleRange"),
+      ));
+    }
+    for v in self.children.iter() {
+      match v {
+        TOCSupplProvisionContents::TOCArticle(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+        TOCSupplProvisionContents::TOCChapter(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+      }
+    }
+    e
   }
 }
 

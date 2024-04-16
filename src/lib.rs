@@ -24,9 +24,12 @@ pub mod suppl_provision;
 pub mod table;
 pub mod table_of_contents;
 pub mod text;
+pub mod to_xml;
 
 use koyomi::{era, Date};
 use result::*;
+use std::io::Write;
+use to_xml::ToXmlElement;
 use xmltree::Element;
 
 use crate::parser::Parser;
@@ -90,6 +93,49 @@ pub fn parse_text(
     law_num,
     law_body: body,
   })
+}
+
+struct WritableString(String);
+
+impl WritableString {
+  pub fn new() -> Self {
+    Self(String::new())
+  }
+
+  pub fn string(self) -> String {
+    self.0
+  }
+}
+
+impl Write for WritableString {
+  fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+    let s = std::str::from_utf8(buf)
+      .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))?;
+    self.0.push_str(s);
+    Ok(s.len())
+  }
+
+  fn flush(&mut self) -> std::io::Result<()> {
+    Ok(())
+  }
+}
+
+/// XML文字列に変換する
+pub fn to_xml(law: &law::Law) -> result::Result<String> {
+  let mut s = WritableString::new();
+  law
+    .to_xml_element()
+    .write(&mut s)
+    .map_err(|_| result::Error::Write)?;
+  Ok(s.string())
+}
+
+/// XML文字列を書き出す
+pub fn write_file<W: Write>(law: &law::Law, w: &mut W) -> result::Result<()> {
+  law
+    .to_xml_element()
+    .write(w)
+    .map_err(|_| result::Error::Write)
 }
 
 pub(crate) fn get_attribute(element: &Element, name: &str) -> Result<String> {

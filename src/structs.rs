@@ -7,6 +7,7 @@ use crate::remarks::*;
 use crate::result::Error;
 use crate::table::*;
 use crate::text::*;
+use crate::to_xml::*;
 use crate::*;
 use serde::{Deserialize, Serialize};
 use xmltree::{Element, XMLNode};
@@ -31,6 +32,17 @@ impl Parser for Struct {
   }
 }
 
+impl ToXmlElement for Struct {
+  fn to_xml_element(&self) -> Element {
+    match self {
+      Struct::FigStruct(v) => v.to_xml_element(),
+      Struct::TableStruct(v) => v.to_xml_element(),
+      Struct::StyleStruct(v) => v.to_xml_element(),
+      Struct::List(v) => v.to_xml_element(),
+    }
+  }
+}
+
 /// 引用
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct QuoteStruct {
@@ -40,6 +52,12 @@ pub struct QuoteStruct {
 impl Parser for QuoteStruct {
   fn parser(element: &Element) -> result::Result<Self> {
     contents::Contents::parser(element).map(|c| QuoteStruct { contentes: c })
+  }
+}
+
+impl ToXmlElement for QuoteStruct {
+  fn to_xml_element(&self) -> Element {
+    self.contentes.to_xml_element_with_name("QuoteStruct")
   }
 }
 
@@ -99,6 +117,26 @@ impl Parser for NoteStruct {
   }
 }
 
+impl ToXmlElement for NoteStruct {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("NoteStruct");
+    if let Some(t) = &self.title {
+      e.children.push(XMLNode::Element(
+        t.to_xml_element_with_name("NoteStructTitle"),
+      ))
+    }
+    for n in self.title_remarks.iter() {
+      e.children.push(XMLNode::Element(n.to_xml_element()))
+    }
+    e.children
+      .push(XMLNode::Element(self.note.to_xml_element()));
+    for n in self.note_remarks.iter() {
+      e.children.push(XMLNode::Element(n.to_xml_element()))
+    }
+    e
+  }
+}
+
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct StyleStruct {
   pub title: Option<Text>,
@@ -152,6 +190,26 @@ impl Parser for StyleStruct {
     } else {
       Err(Error::wrong_tag_name(element, "StyleStruct"))
     }
+  }
+}
+
+impl ToXmlElement for StyleStruct {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("StyleStruct");
+    if let Some(t) = &self.title {
+      e.children.push(XMLNode::Element(
+        t.to_xml_element_with_name("StyleStructTitle"),
+      ))
+    }
+    for n in self.title_remarks.iter() {
+      e.children.push(XMLNode::Element(n.to_xml_element()))
+    }
+    e.children
+      .push(XMLNode::Element(self.style.to_xml_element()));
+    for n in self.style_remarks.iter() {
+      e.children.push(XMLNode::Element(n.to_xml_element()))
+    }
+    e
   }
 }
 
@@ -211,6 +269,26 @@ impl Parser for FormatStruct {
   }
 }
 
+impl ToXmlElement for FormatStruct {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("FormatStruct");
+    if let Some(t) = &self.title {
+      e.children.push(XMLNode::Element(
+        t.to_xml_element_with_name("FormatStructTitle"),
+      ))
+    }
+    for n in self.title_remarks.iter() {
+      e.children.push(XMLNode::Element(n.to_xml_element()))
+    }
+    e.children
+      .push(XMLNode::Element(self.format.to_xml_element()));
+    for n in self.format_remarks.iter() {
+      e.children.push(XMLNode::Element(n.to_xml_element()))
+    }
+    e
+  }
+}
+
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct FigStruct {
   pub title: Option<Text>,
@@ -264,6 +342,25 @@ impl Parser for FigStruct {
     } else {
       Err(Error::wrong_tag_name(element, "FigStruct"))
     }
+  }
+}
+
+impl ToXmlElement for FigStruct {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("FigStruct");
+    if let Some(t) = &self.title {
+      e.children.push(XMLNode::Element(
+        t.to_xml_element_with_name("FigStructTitle"),
+      ))
+    }
+    for n in self.title_remarks.iter() {
+      e.children.push(XMLNode::Element(n.to_xml_element()))
+    }
+    e.children.push(XMLNode::Element(self.fig.to_xml_element()));
+    for n in self.fig_remarks.iter() {
+      e.children.push(XMLNode::Element(n.to_xml_element()))
+    }
+    e
   }
 }
 
@@ -321,5 +418,25 @@ impl Parser for TableStruct {
     } else {
       Err(Error::wrong_tag_name(element, "TableStruct"))
     }
+  }
+}
+
+impl ToXmlElement for TableStruct {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("TableStruct");
+    if let Some(t) = &self.title {
+      e.children.push(XMLNode::Element(
+        t.to_xml_element_with_name("TableStructTitle"),
+      ))
+    }
+    for n in self.title_remarks.iter() {
+      e.children.push(XMLNode::Element(n.to_xml_element()))
+    }
+    e.children
+      .push(XMLNode::Element(self.table.to_xml_element()));
+    for n in self.table_remarks.iter() {
+      e.children.push(XMLNode::Element(n.to_xml_element()))
+    }
+    e
   }
 }

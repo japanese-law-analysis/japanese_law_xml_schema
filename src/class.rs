@@ -4,6 +4,7 @@ use crate::result::*;
 use crate::sentence::*;
 use crate::table::*;
 use crate::text::*;
+use crate::to_xml::*;
 use crate::*;
 use serde::{Deserialize, Serialize};
 use xmltree::{Element, XMLNode};
@@ -57,11 +58,54 @@ impl Parser for Class {
   }
 }
 
+impl ToXmlElement for Class {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("Class");
+    if let Some(title) = &self.class_title {
+      e.children.push(XMLNode::Element(
+        title.to_xml_element_with_name("ClassTitle"),
+      ))
+    }
+    e.children.push(XMLNode::Element(
+      self
+        .class_sentence
+        .to_xml_element_with_name("ClassSentence"),
+    ));
+    for item in self.children.iter() {
+      e.children.push(XMLNode::Element(item.to_xml_element()));
+    }
+    e.attributes.insert("Num".to_string(), self.num.to_string());
+    e
+  }
+}
+
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub enum SentenceOrColumnOrTable {
   Sentence(Vec<Sentence>),
   Column(Vec<Column>),
   Table(Table),
+}
+
+impl ToXmlElementWithName for SentenceOrColumnOrTable {
+  fn to_xml_element_with_name(&self, name: &str) -> Element {
+    let mut e = Element::new(name);
+    match self {
+      SentenceOrColumnOrTable::Column(columns) => {
+        for c in columns.iter() {
+          e.children.push(XMLNode::Element(c.to_xml_element()))
+        }
+      }
+      SentenceOrColumnOrTable::Sentence(sentence) => {
+        for s in sentence.iter() {
+          e.children.push(XMLNode::Element(s.to_xml_element()))
+        }
+      }
+      SentenceOrColumnOrTable::Table(table) => {
+        e.children.push(XMLNode::Element(table.to_xml_element()))
+      }
+    }
+    e
+  }
 }
 
 impl SentenceOrColumnOrTable {
@@ -127,6 +171,18 @@ impl Parser for Caption {
   }
 }
 
+impl ToXmlElementWithName for Caption {
+  fn to_xml_element_with_name(&self, name: &str) -> Element {
+    let mut e = Element::new(name);
+    e.children = self.text.to_children();
+    if let Some(b) = self.common_caption {
+      e.attributes
+        .insert("CommonCaption".to_string(), b.to_string());
+    }
+    e
+  }
+}
+
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Column {
   pub sentence: Vec<Sentence>,
@@ -160,6 +216,24 @@ impl Parser for Column {
   }
 }
 
+impl ToXmlElement for Column {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("Column");
+    for n in self.sentence.iter() {
+      e.children.push(XMLNode::Element(n.to_xml_element()))
+    }
+    if let Some(n) = self.num {
+      e.attributes.insert("Num".to_string(), n.to_string());
+    }
+    e.attributes
+      .insert("LineBreak".to_string(), self.line_break.to_string());
+    if let Some(a) = &self.align {
+      e.attributes.insert("Align".to_string(), a.to_attribute());
+    }
+    e
+  }
+}
+
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub enum Align {
   Left,
@@ -176,6 +250,15 @@ impl Align {
       Some("right") => Some(Align::Right),
       Some("justify") => Some(Align::Justify),
       _ => None,
+    }
+  }
+
+  pub fn to_attribute(&self) -> String {
+    match self {
+      Self::Center => "center".to_string(),
+      Self::Right => "right".to_string(),
+      Self::Left => "left".to_string(),
+      Self::Justify => "justify".to_string(),
     }
   }
 }

@@ -1,5 +1,6 @@
 //! 文字列一般
 
+use self::to_xml::*;
 use crate::line::*;
 use crate::parser::*;
 use crate::result::Error;
@@ -95,6 +96,20 @@ impl Text {
       writing_mode,
     }
   }
+
+  pub fn to_children(&self) -> Vec<XMLNode> {
+    let mut v = Vec::new();
+    for c in self.contents.iter() {
+      match c {
+        TextElement::Text(s) => v.push(XMLNode::Text(s.clone())),
+        TextElement::Ruby(ruby) => v.push(XMLNode::Element(ruby.to_xml_element())),
+        TextElement::Line(line) => v.push(XMLNode::Element(line.to_xml_element())),
+        TextElement::Sub(sub) => v.push(XMLNode::Element(sub.to_xml_element())),
+        TextElement::Sup(sup) => v.push(XMLNode::Element(sup.to_xml_element())),
+      }
+    }
+    v
+  }
 }
 
 impl ToHtml for Text {
@@ -147,6 +162,22 @@ impl Parser for Text {
   }
 }
 
+impl ToXmlElementWithName for Text {
+  fn to_xml_element_with_name(&self, name: &str) -> Element {
+    let mut e = Element::new(name);
+    for c in self.contents.iter() {
+      match c {
+        TextElement::Text(s) => e.children.push(XMLNode::Text(s.clone())),
+        TextElement::Ruby(ruby) => e.children.push(XMLNode::Element(ruby.to_xml_element())),
+        TextElement::Line(line) => e.children.push(XMLNode::Element(line.to_xml_element())),
+        TextElement::Sub(sub) => e.children.push(XMLNode::Element(sub.to_xml_element())),
+        TextElement::Sup(sup) => e.children.push(XMLNode::Element(sup.to_xml_element())),
+      }
+    }
+    e
+  }
+}
+
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub enum WritingMode {
   Vertical,
@@ -178,6 +209,26 @@ impl Parser for TextWithWritingMode {
         writing_mode: WritingMode::Vertical,
       }),
     }
+  }
+}
+
+impl ToXmlElementWithName for TextWithWritingMode {
+  fn to_xml_element_with_name(&self, name: &str) -> Element {
+    let mut e = Element::new(name);
+    for c in self.contents.iter() {
+      match c {
+        TextElement::Text(s) => e.children.push(XMLNode::Text(s.clone())),
+        TextElement::Ruby(ruby) => e.children.push(XMLNode::Element(ruby.to_xml_element())),
+        TextElement::Line(line) => e.children.push(XMLNode::Element(line.to_xml_element())),
+        TextElement::Sub(sub) => e.children.push(XMLNode::Element(sub.to_xml_element())),
+        TextElement::Sup(sup) => e.children.push(XMLNode::Element(sup.to_xml_element())),
+      }
+    }
+    if let WritingMode::Horizontal = self.writing_mode {
+      e.attributes
+        .insert("WritingMode".to_string(), "horizontal".to_string());
+    };
+    e
   }
 }
 
@@ -249,6 +300,19 @@ impl Parser for Ruby {
   }
 }
 
+impl ToXmlElement for Ruby {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("Ruby");
+    let mut rt = Element::new("Rt");
+    rt.children.push(XMLNode::Text(self.ruby.clone()));
+    for n in self.text.to_children().iter() {
+      e.children.push(n.clone());
+    }
+    e.children.push(XMLNode::Element(rt));
+    e
+  }
+}
+
 /// 上付き文字
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Sup {
@@ -282,6 +346,14 @@ impl Parser for Sup {
   }
 }
 
+impl ToXmlElement for Sup {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("Sup");
+    e.children.push(XMLNode::Text(self.text.clone()));
+    e
+  }
+}
+
 /// 下付き文字
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Sub {
@@ -312,5 +384,13 @@ impl Parser for Sub {
     } else {
       Err(Error::wrong_tag_name(element, "Sub"))
     }
+  }
+}
+
+impl ToXmlElement for Sub {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("Sub");
+    e.children.push(XMLNode::Text(self.text.clone()));
+    e
   }
 }

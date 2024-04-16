@@ -13,6 +13,7 @@ use crate::suppl_provision::*;
 use crate::table::*;
 use crate::table_of_contents::*;
 use crate::text::*;
+use crate::to_xml::*;
 use crate::*;
 use serde::{Deserialize, Serialize};
 use xmltree::{Element, XMLNode};
@@ -140,6 +141,82 @@ impl Parser for Law {
     } else {
       Err(Error::wrong_tag_name(element, "Law"))
     }
+  }
+}
+
+impl ToXmlElement for Law {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("Law");
+    e.children.push(XMLNode::Text(self.law_num.clone()));
+    e.children
+      .push(XMLNode::Element(self.law_body.to_xml_element()));
+    match self.era {
+      Era::Meiji => {
+        e.attributes.insert("Era".to_string(), "Meiji".to_string());
+      }
+      Era::Taisho => {
+        e.attributes.insert("Era".to_string(), "Taisho".to_string());
+      }
+      Era::Showa => {
+        e.attributes.insert("Era".to_string(), "Showa".to_string());
+      }
+      Era::Heisei => {
+        e.attributes.insert("Era".to_string(), "Heisei".to_string());
+      }
+      Era::Reiwa => {
+        e.attributes.insert("Era".to_string(), "Reiwa".to_string());
+      }
+    }
+    e.attributes
+      .insert("Year".to_string(), self.year.to_string());
+    e.attributes.insert("Num".to_string(), self.num.to_string());
+    if let Some(n) = &self.promulgate_month {
+      e.attributes
+        .insert("PromulgateMonth".to_string(), n.to_string());
+    }
+    if let Some(n) = &self.promulgate_day {
+      e.attributes
+        .insert("PromulgateDay".to_string(), n.to_string());
+    }
+    match &self.law_type {
+      LawType::Constitution => {
+        e.attributes
+          .insert("LawType".to_string(), "Constitution".to_string());
+      }
+      LawType::Act => {
+        e.attributes
+          .insert("LawType".to_string(), "Act".to_string());
+      }
+      LawType::CabinetOrder => {
+        e.attributes
+          .insert("LawType".to_string(), "CabinetOrder".to_string());
+      }
+      LawType::ImperialOrder => {
+        e.attributes
+          .insert("LawType".to_string(), "ImperialOrder".to_string());
+      }
+      LawType::MinisterialOrdinance => {
+        e.attributes
+          .insert("LawType".to_string(), "MinisterialOrdinance".to_string());
+      }
+      LawType::Rule => {
+        e.attributes
+          .insert("LawType".to_string(), "Rule".to_string());
+      }
+      LawType::Misc => {
+        e.attributes
+          .insert("LawType".to_string(), "Misc".to_string());
+      }
+    }
+    match &self.lang {
+      Lang::Ja => {
+        e.attributes.insert("Lang".to_string(), "Ja".to_string());
+      }
+      Lang::En => {
+        e.attributes.insert("Lang".to_string(), "En".to_string());
+      }
+    }
+    e
   }
 }
 
@@ -308,6 +385,53 @@ impl Parser for LawBody {
   }
 }
 
+impl ToXmlElement for LawBody {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("LawBody");
+    if let Some(v) = &self.law_title {
+      e.children.push(XMLNode::Element(v.to_xml_element()));
+    }
+    for v in &self.enact_statement {
+      e.children.push(XMLNode::Element(
+        v.to_xml_element_with_name("EnactStatement"),
+      ));
+    }
+    if let Some(v) = &self.toc {
+      e.children.push(XMLNode::Element(v.to_xml_element()));
+    }
+    if let Some(v) = &self.preamble {
+      e.children.push(XMLNode::Element(v.to_xml_element()));
+    }
+    e.children
+      .push(XMLNode::Element(self.main_provision.to_xml_element()));
+    for v in &self.suppl_provision {
+      e.children.push(XMLNode::Element(v.to_xml_element()));
+    }
+    for v in &self.appdx_table {
+      e.children.push(XMLNode::Element(v.to_xml_element()));
+    }
+    for v in &self.appdx_note {
+      e.children.push(XMLNode::Element(v.to_xml_element()));
+    }
+    for v in &self.appdx_style {
+      e.children.push(XMLNode::Element(v.to_xml_element()));
+    }
+    for v in &self.appdx {
+      e.children.push(XMLNode::Element(v.to_xml_element()));
+    }
+    for v in &self.appdx_fig {
+      e.children.push(XMLNode::Element(v.to_xml_element()));
+    }
+    for v in &self.appdx_format {
+      e.children.push(XMLNode::Element(v.to_xml_element()));
+    }
+    if let Some(v) = &self.subject {
+      e.attributes.insert("Subject".to_string(), v.clone());
+    }
+    e
+  }
+}
+
 /// 法令名
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct LawTitle {
@@ -340,6 +464,23 @@ impl Parser for LawTitle {
   }
 }
 
+impl ToXmlElement for LawTitle {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("LawTitle");
+    e.children = self.text.to_children();
+    if let Some(s) = &self.kana {
+      e.attributes.insert("Kana".to_string(), s.clone());
+    }
+    if let Some(s) = &self.abbrev {
+      e.attributes.insert("Abbrev".to_string(), s.clone());
+    }
+    if let Some(s) = &self.abbrev_kana {
+      e.attributes.insert("AbbrevKana".to_string(), s.clone());
+    }
+    e
+  }
+}
+
 /// 前文
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Preamble {
@@ -362,6 +503,16 @@ impl Parser for Preamble {
     } else {
       Err(Error::wrong_tag_name(element, "Preamble"))
     }
+  }
+}
+
+impl ToXmlElement for Preamble {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("Preamble");
+    for v in self.children.iter() {
+      e.children.push(XMLNode::Element(v.to_xml_element()));
+    }
+    e
   }
 }
 
@@ -409,6 +560,27 @@ impl Parser for MainProvision {
     } else {
       Err(Error::wrong_tag_name(element, "MainProvision"))
     }
+  }
+}
+
+impl ToXmlElement for MainProvision {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("MainProvision");
+    for v in self.children.iter() {
+      match v {
+        MainProvisionContents::Part(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        MainProvisionContents::Chapter(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        MainProvisionContents::Section(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        MainProvisionContents::Article(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        MainProvisionContents::Paragraph(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()))
+        }
+      }
+    }
+    if let Some(b) = self.extract {
+      e.attributes.insert("Extract".to_string(), b.to_string());
+    }
+    e
   }
 }
 
@@ -669,6 +841,90 @@ impl Parser for AmendProvision {
     } else {
       Err(Error::wrong_tag_name(element, "AmendProvision"))
     }
+  }
+}
+
+impl ToXmlElement for AmendProvision {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("AmendProvision");
+    for v in self.sentence.iter() {
+      let mut se = Element::new("AmendProvisionSentence");
+      se.children.push(XMLNode::Element(v.to_xml_element()));
+      e.children.push(XMLNode::Element(se));
+    }
+    for v in self.new_provision.iter() {
+      let mut se = Element::new("AmendProvisionSentence");
+      match v {
+        NewProvision::LawTitle(v) => se.children.push(XMLNode::Element(v.to_xml_element())),
+        NewProvision::Preamble(v) => se.children.push(XMLNode::Element(v.to_xml_element())),
+        NewProvision::TOC(v) => se.children.push(XMLNode::Element(v.to_xml_element())),
+        NewProvision::Part(v) => se.children.push(XMLNode::Element(v.to_xml_element())),
+        NewProvision::PartTitle(v) => se
+          .children
+          .push(XMLNode::Element(v.to_xml_element_with_name("PartTitle"))),
+        NewProvision::Chapter(v) => se.children.push(XMLNode::Element(v.to_xml_element())),
+        NewProvision::ChapterTitle(v) => se
+          .children
+          .push(XMLNode::Element(v.to_xml_element_with_name("ChapterTitle"))),
+        NewProvision::Section(v) => se.children.push(XMLNode::Element(v.to_xml_element())),
+        NewProvision::SectionTitle(v) => se
+          .children
+          .push(XMLNode::Element(v.to_xml_element_with_name("SectionTitle"))),
+        NewProvision::Subsection(v) => se.children.push(XMLNode::Element(v.to_xml_element())),
+        NewProvision::SubsectionTitle(v) => se.children.push(XMLNode::Element(
+          v.to_xml_element_with_name("SubsectionTitle"),
+        )),
+        NewProvision::Division(v) => se.children.push(XMLNode::Element(v.to_xml_element())),
+        NewProvision::DivisionTitle(v) => se.children.push(XMLNode::Element(
+          v.to_xml_element_with_name("DivisionTitle"),
+        )),
+        NewProvision::Article(v) => se.children.push(XMLNode::Element(v.to_xml_element())),
+        NewProvision::SupplNote(v) => se
+          .children
+          .push(XMLNode::Element(v.to_xml_element_with_name("SupplNote"))),
+        NewProvision::Paragraph(v) => se.children.push(XMLNode::Element(v.to_xml_element())),
+        NewProvision::Item(v) => se.children.push(XMLNode::Element(v.to_xml_element())),
+        NewProvision::Subitem1(v) => se.children.push(XMLNode::Element(v.to_xml_element())),
+        NewProvision::Subitem2(v) => se.children.push(XMLNode::Element(v.to_xml_element())),
+        NewProvision::Subitem3(v) => se.children.push(XMLNode::Element(v.to_xml_element())),
+        NewProvision::Subitem4(v) => se.children.push(XMLNode::Element(v.to_xml_element())),
+        NewProvision::Subitem5(v) => se.children.push(XMLNode::Element(v.to_xml_element())),
+        NewProvision::Subitem6(v) => se.children.push(XMLNode::Element(v.to_xml_element())),
+        NewProvision::Subitem7(v) => se.children.push(XMLNode::Element(v.to_xml_element())),
+        NewProvision::Subitem8(v) => se.children.push(XMLNode::Element(v.to_xml_element())),
+        NewProvision::Subitem9(v) => se.children.push(XMLNode::Element(v.to_xml_element())),
+        NewProvision::Subitem10(v) => se.children.push(XMLNode::Element(v.to_xml_element())),
+        NewProvision::List(v) => se.children.push(XMLNode::Element(v.to_xml_element())),
+        NewProvision::Sentence(v) => se.children.push(XMLNode::Element(v.to_xml_element())),
+        NewProvision::AmendProvision(v) => se.children.push(XMLNode::Element(v.to_xml_element())),
+        NewProvision::AppdxTable(v) => se.children.push(XMLNode::Element(v.to_xml_element())),
+        NewProvision::AppdxNote(v) => se.children.push(XMLNode::Element(v.to_xml_element())),
+        NewProvision::AppdxStyle(v) => se.children.push(XMLNode::Element(v.to_xml_element())),
+        NewProvision::Appdx(v) => se.children.push(XMLNode::Element(v.to_xml_element())),
+        NewProvision::AppdxFig(v) => se.children.push(XMLNode::Element(v.to_xml_element())),
+        NewProvision::AppdxFormat(v) => se.children.push(XMLNode::Element(v.to_xml_element())),
+        NewProvision::SupplProvisionAppdxStyle(v) => {
+          se.children.push(XMLNode::Element(v.to_xml_element()))
+        }
+        NewProvision::SupplProvisionAppdxTable(v) => {
+          se.children.push(XMLNode::Element(v.to_xml_element()))
+        }
+        NewProvision::SupplProvisionAppdx(v) => {
+          se.children.push(XMLNode::Element(v.to_xml_element()))
+        }
+        NewProvision::TableStruct(v) => se.children.push(XMLNode::Element(v.to_xml_element())),
+        NewProvision::TableRow(v) => se.children.push(XMLNode::Element(v.to_xml_element())),
+        NewProvision::TableColumn(v) => se.children.push(XMLNode::Element(v.to_xml_element())),
+        NewProvision::FigStruct(v) => se.children.push(XMLNode::Element(v.to_xml_element())),
+        NewProvision::NoteStruct(v) => se.children.push(XMLNode::Element(v.to_xml_element())),
+        NewProvision::StyleStruct(v) => se.children.push(XMLNode::Element(v.to_xml_element())),
+        NewProvision::FormatStruct(v) => se.children.push(XMLNode::Element(v.to_xml_element())),
+        NewProvision::Remarks(v) => se.children.push(XMLNode::Element(v.to_xml_element())),
+        NewProvision::LawBody(v) => se.children.push(XMLNode::Element(v.to_xml_element())),
+      }
+      e.children.push(XMLNode::Element(se));
+    }
+    e
   }
 }
 

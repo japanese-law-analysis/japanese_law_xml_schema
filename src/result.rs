@@ -31,6 +31,8 @@ pub enum Error {
   UnexpectedTag { wrong_name: String, tag: String },
   #[error("parsing error")]
   XMLParing,
+  #[error("write error")]
+  Write,
 }
 
 impl Error {
