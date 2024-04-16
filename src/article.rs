@@ -5,6 +5,7 @@ use crate::paragraph::*;
 use crate::parser::*;
 use crate::result::Error;
 use crate::text::*;
+use crate::to_xml::*;
 use crate::*;
 use serde::{Deserialize, Serialize};
 use xmltree::{Element, XMLNode};
@@ -77,6 +78,35 @@ impl Parser for Part {
     } else {
       Err(Error::wrong_tag_name(element, "Part"))
     }
+  }
+}
+
+impl ToXmlElement for Part {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("Part");
+    e.children.push(XMLNode::Element(
+      self.part_title.to_xml_element_with_name("PartTitle"),
+    ));
+    for v in self.children.iter() {
+      match v {
+        PartContents::Article(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+        PartContents::Chapter(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+      }
+    }
+    e.attributes.insert("Num".to_string(), self.num.clone());
+    if self.delete {
+      e.attributes
+        .insert("Delete".to_string(), self.delete.to_string());
+    }
+    if self.hide {
+      e.attributes
+        .insert("Hide".to_string(), self.hide.to_string());
+    }
+    e
   }
 }
 
@@ -157,6 +187,35 @@ impl Parser for Chapter {
   }
 }
 
+impl ToXmlElement for Chapter {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("Chapter");
+    e.children.push(XMLNode::Element(
+      self.chapter_title.to_xml_element_with_name("ChapterTitle"),
+    ));
+    for v in self.children.iter() {
+      match v {
+        ChapterContents::Article(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+        ChapterContents::Section(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+      }
+    }
+    e.attributes.insert("Num".to_string(), self.num.clone());
+    if self.delete {
+      e.attributes
+        .insert("Delete".to_string(), self.delete.to_string());
+    }
+    if self.hide {
+      e.attributes
+        .insert("Hide".to_string(), self.hide.to_string());
+    }
+    e
+  }
+}
+
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub enum ChapterContents {
   Article(Article),
@@ -231,6 +290,35 @@ impl Parser for Section {
     } else {
       Err(Error::wrong_tag_name(element, "Section"))
     }
+  }
+}
+
+impl ToXmlElement for Section {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("Section");
+    e.children.push(XMLNode::Element(
+      self.section_title.to_xml_element_with_name("SectionTitle"),
+    ));
+    for v in self.children.iter() {
+      match v {
+        SectionContents::Article(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+        SectionContents::Subsection(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+      }
+    }
+    e.attributes.insert("Num".to_string(), self.num.clone());
+    if self.delete {
+      e.attributes
+        .insert("Delete".to_string(), self.delete.to_string());
+    }
+    if self.hide {
+      e.attributes
+        .insert("Hide".to_string(), self.hide.to_string());
+    }
+    e
   }
 }
 
@@ -317,6 +405,37 @@ impl Parser for Subsection {
   }
 }
 
+impl ToXmlElement for Subsection {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("Subsection");
+    e.children.push(XMLNode::Element(
+      self
+        .subsection_title
+        .to_xml_element_with_name("SubsectionTitle"),
+    ));
+    for v in self.children.iter() {
+      match v {
+        SubsectionContents::Article(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+        SubsectionContents::Division(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+      }
+    }
+    e.attributes.insert("Num".to_string(), self.num.clone());
+    if self.delete {
+      e.attributes
+        .insert("Delete".to_string(), self.delete.to_string());
+    }
+    if self.hide {
+      e.attributes
+        .insert("Hide".to_string(), self.hide.to_string());
+    }
+    e
+  }
+}
+
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub enum SubsectionContents {
   Article(Article),
@@ -387,6 +506,30 @@ impl Parser for Division {
     } else {
       Err(Error::wrong_tag_name(element, "Division"))
     }
+  }
+}
+
+impl ToXmlElement for Division {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("Division");
+    e.children.push(XMLNode::Element(
+      self
+        .division_title
+        .to_xml_element_with_name("DivisionTitle"),
+    ));
+    for v in self.children.iter() {
+      e.children.push(XMLNode::Element(v.to_xml_element()));
+    }
+    e.attributes.insert("Num".to_string(), self.num.clone());
+    if self.delete {
+      e.attributes
+        .insert("Delete".to_string(), self.delete.to_string());
+    }
+    if self.hide {
+      e.attributes
+        .insert("Hide".to_string(), self.hide.to_string());
+    }
+    e
   }
 }
 
@@ -475,5 +618,37 @@ impl Parser for Article {
     } else {
       Err(Error::wrong_tag_name(element, "Article"))
     }
+  }
+}
+
+impl ToXmlElement for Article {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("Article");
+    if let Some(caption) = &self.caption {
+      e.children.push(XMLNode::Element(
+        caption.to_xml_element_with_name("ArticleCaption"),
+      ));
+    }
+    e.children.push(XMLNode::Element(
+      self.title.to_xml_element_with_name("ArticleTitle"),
+    ));
+    for v in self.paragraph.iter() {
+      e.children.push(XMLNode::Element(v.to_xml_element()));
+    }
+    if let Some(suppl_note) = &self.suppl_note {
+      e.children.push(XMLNode::Element(
+        suppl_note.to_xml_element_with_name("SupplNote"),
+      ));
+    }
+    e.attributes.insert("Num".to_string(), self.num.to_string());
+    if self.delete {
+      e.attributes
+        .insert("Delete".to_string(), self.delete.to_string());
+    }
+    if self.hide {
+      e.attributes
+        .insert("Hide".to_string(), self.hide.to_string());
+    }
+    e
   }
 }

@@ -7,6 +7,7 @@ use crate::remarks::*;
 use crate::result::Error;
 use crate::structs::*;
 use crate::text::*;
+use crate::to_xml::*;
 use crate::*;
 use serde::{Deserialize, Serialize};
 use xmltree::{Element, XMLNode};
@@ -62,6 +63,35 @@ impl Parser for AppdxTable {
     } else {
       Err(Error::wrong_tag_name(element, "AppdxTable"))
     }
+  }
+}
+
+impl ToXmlElement for AppdxTable {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("AppdxTable");
+    if let Some(v) = &self.title {
+      e.children.push(XMLNode::Element(
+        v.to_xml_element_with_name("AppdxTableTitle"),
+      ));
+    }
+    if let Some(n) = &self.related_article_num {
+      e.children.push(XMLNode::Element(
+        n.to_xml_element_with_name("RelatedArticleNum"),
+      ));
+    }
+    for v in self.children.iter() {
+      match v {
+        AppdxTableContents::Item(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        AppdxTableContents::TableStruct(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+      }
+    }
+    if let Some(v) = &self.remarks {
+      e.children.push(XMLNode::Element(v.to_xml_element()));
+    }
+    if let Some(n) = &self.num {
+      e.attributes.insert("Num".to_string(), n.to_string());
+    }
+    e
   }
 }
 
@@ -129,6 +159,36 @@ impl Parser for AppdxNote {
   }
 }
 
+impl ToXmlElement for AppdxNote {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("AppdxNote");
+    if let Some(v) = &self.title {
+      e.children.push(XMLNode::Element(
+        v.to_xml_element_with_name("AppdxNoteTitle"),
+      ));
+    }
+    if let Some(n) = &self.related_article_num {
+      e.children.push(XMLNode::Element(
+        n.to_xml_element_with_name("RelatedArticleNum"),
+      ));
+    }
+    for v in self.children.iter() {
+      match v {
+        AppdxNoteContents::NoteStruct(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        AppdxNoteContents::TableStruct(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        AppdxNoteContents::FigStruct(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+      }
+    }
+    if let Some(v) = &self.remarks {
+      e.children.push(XMLNode::Element(v.to_xml_element()));
+    }
+    if let Some(n) = &self.num {
+      e.attributes.insert("Num".to_string(), n.to_string());
+    }
+    e
+  }
+}
+
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub enum AppdxNoteContents {
   NoteStruct(NoteStruct),
@@ -186,6 +246,32 @@ impl Parser for AppdxStyle {
   }
 }
 
+impl ToXmlElement for AppdxStyle {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("AppdxStyle");
+    if let Some(v) = &self.title {
+      e.children.push(XMLNode::Element(
+        v.to_xml_element_with_name("AppdxStyleTitle"),
+      ));
+    }
+    if let Some(n) = &self.related_article_num {
+      e.children.push(XMLNode::Element(
+        n.to_xml_element_with_name("RelatedArticleNum"),
+      ));
+    }
+    for v in self.children.iter() {
+      e.children.push(XMLNode::Element(v.to_xml_element()));
+    }
+    if let Some(v) = &self.remarks {
+      e.children.push(XMLNode::Element(v.to_xml_element()));
+    }
+    if let Some(n) = &self.num {
+      e.attributes.insert("Num".to_string(), n.to_string());
+    }
+    e
+  }
+}
+
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct AppdxFormat {
   pub title: Option<TextWithWritingMode>,
@@ -235,6 +321,31 @@ impl Parser for AppdxFormat {
     }
   }
 }
+impl ToXmlElement for AppdxFormat {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("AppdxFormat");
+    if let Some(v) = &self.title {
+      e.children.push(XMLNode::Element(
+        v.to_xml_element_with_name("AppdxFormatTitle"),
+      ));
+    }
+    if let Some(n) = &self.related_article_num {
+      e.children.push(XMLNode::Element(
+        n.to_xml_element_with_name("RelatedArticleNum"),
+      ));
+    }
+    for v in self.children.iter() {
+      e.children.push(XMLNode::Element(v.to_xml_element()));
+    }
+    if let Some(v) = &self.remarks {
+      e.children.push(XMLNode::Element(v.to_xml_element()));
+    }
+    if let Some(n) = &self.num {
+      e.attributes.insert("Num".to_string(), n.to_string());
+    }
+    e
+  }
+}
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Appdx {
@@ -277,6 +388,29 @@ impl Parser for Appdx {
     } else {
       Err(Error::wrong_tag_name(element, "Appdx"))
     }
+  }
+}
+
+impl ToXmlElement for Appdx {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("Appdx");
+    if let Some(v) = &self.arith_formula_num {
+      e.children.push(XMLNode::Element(
+        v.to_xml_element_with_name("ArithFormulaNum"),
+      ))
+    }
+    if let Some(v) = &self.related_article_num {
+      e.children.push(XMLNode::Element(
+        v.to_xml_element_with_name("ArithFormulaNum"),
+      ))
+    }
+    for v in self.arith_formula.iter() {
+      e.children.push(XMLNode::Element(v.to_xml_element()));
+    }
+    if let Some(v) = &self.remarks {
+      e.children.push(XMLNode::Element(v.to_xml_element()));
+    }
+    e
   }
 }
 
@@ -324,6 +458,31 @@ impl Parser for AppdxFig {
     } else {
       Err(Error::wrong_tag_name(element, "AppdxFig"))
     }
+  }
+}
+impl ToXmlElement for AppdxFig {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("AppdxFig");
+    if let Some(v) = &self.title {
+      e.children.push(XMLNode::Element(
+        v.to_xml_element_with_name("AppdxFigTitle"),
+      ));
+    }
+    if let Some(n) = &self.related_article_num {
+      e.children.push(XMLNode::Element(
+        n.to_xml_element_with_name("RelatedArticleNum"),
+      ));
+    }
+    for v in self.children.iter() {
+      match v {
+        AppdxFigContents::FigStruct(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        AppdxFigContents::TableStruct(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+      }
+    }
+    if let Some(n) = &self.num {
+      e.attributes.insert("Num".to_string(), n.to_string());
+    }
+    e
   }
 }
 

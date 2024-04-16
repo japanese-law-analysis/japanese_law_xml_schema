@@ -1,7 +1,5 @@
 //! 画像
 
-use std::collections::HashMap;
-
 use crate::parser::*;
 use crate::to_xml::*;
 use crate::*;
@@ -28,13 +26,9 @@ impl Parser for Fig {
 }
 
 impl ToXmlElement for Fig {
-  fn to_xml_element(&self) -> Result<Element> {
-    let e = Element::new("Fig");
-    let mut att = HashMap::new();
-    att.insert("src".to_string(), self.src.clone());
-    Ok(Element {
-      attributes: att,
-      ..e
-    })
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("Fig");
+    e.attributes.insert("src".to_string(), self.src.clone());
+    e
   }
 }

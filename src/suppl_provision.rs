@@ -7,6 +7,7 @@ use crate::parser::*;
 use crate::result::Error;
 use crate::structs::*;
 use crate::text::*;
+use crate::to_xml::*;
 use crate::*;
 use serde::{Deserialize, Serialize};
 use xmltree::{Element, XMLNode};
@@ -92,6 +93,54 @@ impl Parser for SupplProvision {
   }
 }
 
+impl ToXmlElement for SupplProvision {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("SupplProvision");
+    e.children.push(XMLNode::Element(
+      self.label.to_xml_element_with_name("SupplProvisionLabel"),
+    ));
+    for v in self.children.iter() {
+      match v {
+        SupplProvisionChildrenElement::Chapter(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()))
+        }
+        SupplProvisionChildrenElement::Article(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()))
+        }
+        SupplProvisionChildrenElement::Paragraph(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()))
+        }
+        SupplProvisionChildrenElement::SupplProvisionAppdxTable(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()))
+        }
+        SupplProvisionChildrenElement::SupplProvisionAppdxStyle(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()))
+        }
+        SupplProvisionChildrenElement::SupplProvisionAppdx(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()))
+        }
+      }
+    }
+    if let Some(v) = &self.suppl_provision_type {
+      match v {
+        SupplProvisionType::Amend => {
+          e.attributes.insert("Type".to_string(), "Amend".to_string());
+        }
+        SupplProvisionType::New => {
+          e.attributes.insert("Type".to_string(), "New".to_string());
+        }
+      }
+    }
+    if let Some(v) = &self.amend_law_num {
+      e.attributes.insert("AmendLawNum".to_string(), v.clone());
+    }
+    if let Some(v) = self.extract {
+      e.attributes.insert("Extract".to_string(), v.to_string());
+    }
+    e
+  }
+}
+
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub enum SupplProvisionChildrenElement {
   Chapter(article::Chapter),
@@ -159,6 +208,29 @@ impl Parser for SupplProvisionAppdxTable {
   }
 }
 
+impl ToXmlElement for SupplProvisionAppdxTable {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("SupplProvisionAppdxTable");
+    e.children.push(XMLNode::Element(
+      self
+        .title
+        .to_xml_element_with_name("SupplProvisionAppdxTableitle"),
+    ));
+    if let Some(t) = &self.related_article_num {
+      e.children.push(XMLNode::Element(
+        t.to_xml_element_with_name("RelatedArticleNum"),
+      ));
+    }
+    for v in self.table_struct.iter() {
+      e.children.push(XMLNode::Element(v.to_xml_element()));
+    }
+    if let Some(n) = self.num {
+      e.attributes.insert("Num".to_string(), n.to_string());
+    }
+    e
+  }
+}
+
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SupplProvisionAppdxStyle {
   pub title: text::TextWithWritingMode,
@@ -210,6 +282,29 @@ impl Parser for SupplProvisionAppdxStyle {
   }
 }
 
+impl ToXmlElement for SupplProvisionAppdxStyle {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("SupplProvisionAppdxStyle");
+    e.children.push(XMLNode::Element(
+      self
+        .title
+        .to_xml_element_with_name("SupplProvisionAppdxStyleTitle"),
+    ));
+    if let Some(t) = &self.related_article_num {
+      e.children.push(XMLNode::Element(
+        t.to_xml_element_with_name("RelatedArticleNum"),
+      ));
+    }
+    for v in self.style_struct.iter() {
+      e.children.push(XMLNode::Element(v.to_xml_element()));
+    }
+    if let Some(n) = self.num {
+      e.attributes.insert("Num".to_string(), n.to_string());
+    }
+    e
+  }
+}
+
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct SupplProvisionAppdx {
   pub arith_formula_num: Option<Text>,
@@ -251,5 +346,28 @@ impl Parser for SupplProvisionAppdx {
     } else {
       Err(Error::wrong_tag_name(element, "SupplProbisionAppdx"))
     }
+  }
+}
+
+impl ToXmlElement for SupplProvisionAppdx {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("Appdx");
+    if let Some(v) = &self.arith_formula_num {
+      e.children.push(XMLNode::Element(
+        v.to_xml_element_with_name("ArithFormulaNum"),
+      ))
+    }
+    if let Some(v) = &self.related_article_num {
+      e.children.push(XMLNode::Element(
+        v.to_xml_element_with_name("ArithFormulaNum"),
+      ))
+    }
+    for v in self.arith_formula.iter() {
+      e.children.push(XMLNode::Element(v.to_xml_element()));
+    }
+    if let Some(v) = self.num {
+      e.attributes.insert("Num".to_string(), v.to_string());
+    }
+    e
   }
 }

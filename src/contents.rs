@@ -7,6 +7,7 @@ use crate::sentence::*;
 use crate::structs::*;
 use crate::table::*;
 use crate::text::*;
+use crate::to_xml::*;
 use crate::*;
 use serde::{Deserialize, Serialize};
 use xmltree::{Element, XMLNode};
@@ -78,6 +79,29 @@ impl parser::Parser for Contents {
   }
 }
 
+impl ToXmlElementWithName for Contents {
+  fn to_xml_element_with_name(&self, name: &str) -> Element {
+    let mut e = Element::new(name);
+    for n in self.contents.iter() {
+      match n {
+        ContentsElement::Table(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        ContentsElement::TableStruct(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        ContentsElement::Fig(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        ContentsElement::FigStruct(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        ContentsElement::Ruby(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        ContentsElement::Line(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        ContentsElement::Sub(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        ContentsElement::Sup(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        ContentsElement::Paragraph(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        ContentsElement::List(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        ContentsElement::Sentence(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        ContentsElement::String(s) => e.children.push(XMLNode::Text(s.clone())),
+      }
+    }
+    e
+  }
+}
+
 /// Contentsの中身
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub enum ContentsElement {
@@ -106,6 +130,12 @@ impl Parser for Style {
   }
 }
 
+impl ToXmlElement for Style {
+  fn to_xml_element(&self) -> Element {
+    self.contentes.to_xml_element_with_name("Style")
+  }
+}
+
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Note {
   pub contentes: Contents,
@@ -114,6 +144,12 @@ pub struct Note {
 impl Parser for Note {
   fn parser(element: &Element) -> result::Result<Self> {
     Contents::parser(element).map(|c| Note { contentes: c })
+  }
+}
+
+impl ToXmlElement for Note {
+  fn to_xml_element(&self) -> Element {
+    self.contentes.to_xml_element_with_name("Note")
   }
 }
 
@@ -129,6 +165,12 @@ impl Parser for Format {
   }
 }
 
+impl ToXmlElement for Format {
+  fn to_xml_element(&self) -> Element {
+    self.contentes.to_xml_element_with_name("Format")
+  }
+}
+
 /// 数式
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ArithFormula {
@@ -140,5 +182,11 @@ impl Parser for ArithFormula {
   fn parser(element: &Element) -> result::Result<Self> {
     let num = get_attribute_opt_with_parse(element, "Num")?;
     Contents::parser(element).map(|c| ArithFormula { num, contentes: c })
+  }
+}
+
+impl ToXmlElement for ArithFormula {
+  fn to_xml_element(&self) -> Element {
+    self.contentes.to_xml_element_with_name("ArithFormula")
   }
 }

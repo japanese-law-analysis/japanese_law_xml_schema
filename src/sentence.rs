@@ -2,9 +2,13 @@
 
 use crate::parser::*;
 use crate::result::Error;
+use crate::to_xml::*;
 use crate::*;
 use serde::{Deserialize, Serialize};
 use xmltree::{Element, XMLNode};
+
+use self::text::WritingMode;
+
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Sentence {
   pub contents: Vec<SentenceElement>,
@@ -99,6 +103,94 @@ impl Parser for Sentence {
     } else {
       Err(Error::wrong_tag_name(element, "Sentence"))
     }
+  }
+}
+
+impl ToXmlElement for Sentence {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("Sentence");
+    e.attributes.insert("Num".to_string(), self.num.to_string());
+    match self.function {
+      Some(SentenceFunction::Main) => {
+        e.attributes
+          .insert("Function".to_string(), "main".to_string());
+      }
+      Some(SentenceFunction::Proviso) => {
+        e.attributes
+          .insert("Function".to_string(), "proviso".to_string());
+      }
+      None => (),
+    }
+    match self.indent {
+      Some(SentenceIndent::Paragraph) => {
+        e.attributes
+          .insert("Indent".to_string(), "Paragraph".to_string());
+      }
+      Some(SentenceIndent::Item) => {
+        e.attributes
+          .insert("Indent".to_string(), "Item".to_string());
+      }
+      Some(SentenceIndent::Subitem1) => {
+        e.attributes
+          .insert("Indent".to_string(), "Subitem1".to_string());
+      }
+      Some(SentenceIndent::Subitem2) => {
+        e.attributes
+          .insert("Indent".to_string(), "Subitem2".to_string());
+      }
+      Some(SentenceIndent::Subitem3) => {
+        e.attributes
+          .insert("Indent".to_string(), "Subitem3".to_string());
+      }
+      Some(SentenceIndent::Subitem4) => {
+        e.attributes
+          .insert("Indent".to_string(), "Subitem4".to_string());
+      }
+      Some(SentenceIndent::Subitem5) => {
+        e.attributes
+          .insert("Indent".to_string(), "Subitem5".to_string());
+      }
+      Some(SentenceIndent::Subitem6) => {
+        e.attributes
+          .insert("Indent".to_string(), "Subitem6".to_string());
+      }
+      Some(SentenceIndent::Subitem7) => {
+        e.attributes
+          .insert("Indent".to_string(), "Subitem7".to_string());
+      }
+      Some(SentenceIndent::Subitem8) => {
+        e.attributes
+          .insert("Indent".to_string(), "Subitem8".to_string());
+      }
+      Some(SentenceIndent::Subitem9) => {
+        e.attributes
+          .insert("Indent".to_string(), "Subitem9".to_string());
+      }
+      Some(SentenceIndent::Subitem10) => {
+        e.attributes
+          .insert("Indent".to_string(), "Subitem10".to_string());
+      }
+      None => (),
+    }
+    match self.writing_mode {
+      WritingMode::Horizontal => {
+        e.attributes
+          .insert("WritingMode".to_string(), "horizontal".to_string());
+      }
+      WritingMode::Vertical => (),
+    }
+    for n in self.contents.iter() {
+      match n {
+        SentenceElement::ArithFormula(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        SentenceElement::QuoteStruct(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        SentenceElement::Ruby(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        SentenceElement::Sup(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        SentenceElement::Sub(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        SentenceElement::Line(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        SentenceElement::String(s) => e.children.push(XMLNode::Text(s.clone())),
+      }
+    }
+    e
   }
 }
 

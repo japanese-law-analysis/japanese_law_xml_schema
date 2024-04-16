@@ -9,9 +9,11 @@ use crate::result::Error;
 use crate::sentence::*;
 use crate::structs::*;
 use crate::text::*;
+use crate::to_xml::*;
 use crate::*;
 use serde::{Deserialize, Serialize};
 use xmltree::{Element, XMLNode};
+
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Table {
   pub table_header_row: Vec<TableHeaderRow>,
@@ -55,6 +57,23 @@ impl Parser for Table {
   }
 }
 
+impl ToXmlElement for Table {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("Table");
+    for v in self.table_header_row.iter() {
+      e.children.push(XMLNode::Element(v.to_xml_element()))
+    }
+    for v in self.table_row.iter() {
+      e.children.push(XMLNode::Element(v.to_xml_element()))
+    }
+    if text::WritingMode::Horizontal == self.writing_mode {
+      e.attributes
+        .insert("WritingMode".to_string(), "horizontal".to_string());
+    }
+    e
+  }
+}
+
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct TableHeaderRow {
   pub columns: Vec<Text>,
@@ -79,6 +98,18 @@ impl Parser for TableHeaderRow {
   }
 }
 
+impl ToXmlElement for TableHeaderRow {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("TableHeaderRow");
+    e.children = self
+      .columns
+      .iter()
+      .map(|text| XMLNode::Element(text.to_xml_element_with_name("TableHeaderColumn")))
+      .collect();
+    e
+  }
+}
+
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct TableRow {
   pub columns: Vec<TableColumn>,
@@ -100,6 +131,18 @@ impl Parser for TableRow {
     } else {
       Err(Error::wrong_tag_name(element, "TableRow"))
     }
+  }
+}
+
+impl ToXmlElement for TableRow {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("TableRow");
+    e.children = self
+      .columns
+      .iter()
+      .map(|c| XMLNode::Element(c.to_xml_element()))
+      .collect();
+    e
   }
 }
 
@@ -242,6 +285,62 @@ impl Parser for TableColumn {
   }
 }
 
+impl ToXmlElement for TableColumn {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("TableColumn");
+    e.attributes
+      .insert("BorderTop".to_string(), self.border_top.to_attribute());
+    e.attributes.insert(
+      "BorderBottom".to_string(),
+      self.border_bottom.to_attribute(),
+    );
+    e.attributes
+      .insert("BorderLeft".to_string(), self.border_left.to_attribute());
+    e.attributes
+      .insert("BorderRight".to_string(), self.border_right.to_attribute());
+    if let Some(s) = &self.rowspan {
+      e.attributes.insert("rowspan".to_string(), s.clone());
+    }
+    if let Some(s) = &self.colspan {
+      e.attributes.insert("colspan".to_string(), s.clone());
+    }
+    if let Some(a) = &self.align {
+      e.attributes.insert("rowspan".to_string(), a.to_attribute());
+    }
+    if let Some(v) = &self.valign {
+      e.attributes.insert("rowspan".to_string(), v.to_attribute());
+    }
+    for n in self.contents.iter() {
+      match n {
+        TableColumnContents::Part(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        TableColumnContents::Chapter(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        TableColumnContents::Section(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        TableColumnContents::Subsection(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        TableColumnContents::Division(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        TableColumnContents::Article(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        TableColumnContents::Paragraph(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        TableColumnContents::Item(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        TableColumnContents::Subitem1(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        TableColumnContents::Subitem2(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        TableColumnContents::Subitem3(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        TableColumnContents::Subitem4(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        TableColumnContents::Subitem5(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        TableColumnContents::Subitem6(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        TableColumnContents::Subitem7(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        TableColumnContents::Subitem8(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        TableColumnContents::Subitem9(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        TableColumnContents::Subitem10(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        TableColumnContents::FigStruct(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        TableColumnContents::Remarks(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        TableColumnContents::Sentence(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        TableColumnContents::Column(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        TableColumnContents::String(s) => e.children.push(XMLNode::Text(s.clone())),
+      }
+    }
+    e
+  }
+}
+
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub enum TableColumnContents {
   Part(Part),
@@ -283,6 +382,14 @@ impl Position {
       Some("middle") => Some(Position::Middle),
       Some("bottom") => Some(Position::Bottom),
       _ => None,
+    }
+  }
+
+  pub fn to_attribute(&self) -> String {
+    match self {
+      Self::Bottom => "bottom".to_string(),
+      Self::Top => "top".to_string(),
+      Self::Middle => "middle".to_string(),
     }
   }
 }

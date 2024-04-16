@@ -4,6 +4,7 @@ use crate::class::*;
 use crate::parser::*;
 use crate::result::Error;
 use crate::sentence::*;
+use crate::to_xml::*;
 use crate::*;
 use serde::{Deserialize, Serialize};
 use xmltree::{Element, XMLNode};
@@ -65,6 +66,24 @@ impl Parser for List {
     } else {
       Err(Error::wrong_tag_name(element, "List"))
     }
+  }
+}
+
+impl ToXmlElement for List {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("List");
+    let mut s = Element::new("ListSentence");
+    for n in self.sentence.iter() {
+      match n {
+        ListSentence::Column(v) => s.children.push(XMLNode::Element(v.to_xml_element())),
+        ListSentence::Sentence(v) => s.children.push(XMLNode::Element(v.to_xml_element())),
+      }
+    }
+    e.children.push(XMLNode::Element(s));
+    for n in self.children.iter() {
+      e.children.push(XMLNode::Element(n.to_xml_element()))
+    }
+    e
   }
 }
 
@@ -133,6 +152,24 @@ impl Parser for Sublist1 {
   }
 }
 
+impl ToXmlElement for Sublist1 {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("Sublist1");
+    let mut s = Element::new("Sublist1Sentence");
+    for n in self.sentence.iter() {
+      match n {
+        ListSentence::Column(v) => s.children.push(XMLNode::Element(v.to_xml_element())),
+        ListSentence::Sentence(v) => s.children.push(XMLNode::Element(v.to_xml_element())),
+      }
+    }
+    e.children.push(XMLNode::Element(s));
+    for n in self.children.iter() {
+      e.children.push(XMLNode::Element(n.to_xml_element()))
+    }
+    e
+  }
+}
+
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Sublist2 {
   pub sentence: Vec<ListSentence>,
@@ -192,6 +229,24 @@ impl Parser for Sublist2 {
   }
 }
 
+impl ToXmlElement for Sublist2 {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("Sublist2");
+    let mut s = Element::new("Sublist2Sentence");
+    for n in self.sentence.iter() {
+      match n {
+        ListSentence::Column(v) => s.children.push(XMLNode::Element(v.to_xml_element())),
+        ListSentence::Sentence(v) => s.children.push(XMLNode::Element(v.to_xml_element())),
+      }
+    }
+    e.children.push(XMLNode::Element(s));
+    for n in self.children.iter() {
+      e.children.push(XMLNode::Element(n.to_xml_element()))
+    }
+    e
+  }
+}
+
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Sublist3 {
   pub sentence: Vec<ListSentence>,
@@ -240,5 +295,20 @@ impl Parser for Sublist3 {
     } else {
       Err(Error::wrong_tag_name(element, "Sublist3"))
     }
+  }
+}
+
+impl ToXmlElement for Sublist3 {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("Sublist3");
+    let mut s = Element::new("Sublist3Sentence");
+    for n in self.sentence.iter() {
+      match n {
+        ListSentence::Column(v) => s.children.push(XMLNode::Element(v.to_xml_element())),
+        ListSentence::Sentence(v) => s.children.push(XMLNode::Element(v.to_xml_element())),
+      }
+    }
+    e.children.push(XMLNode::Element(s));
+    e
   }
 }

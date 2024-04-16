@@ -4,6 +4,7 @@ use crate::parser::*;
 use crate::result::*;
 use crate::structs::*;
 use crate::text::*;
+use crate::to_xml::*;
 use crate::*;
 use serde::{Deserialize, Serialize};
 use xmltree::{Element, XMLNode};
@@ -66,6 +67,25 @@ impl Parser for Line {
   }
 }
 
+impl ToXmlElement for Line {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("Line");
+    e.attributes
+      .insert("Style".to_string(), self.style.to_attribute());
+    for n in self.contents.iter() {
+      match n {
+        LineContents::ArithFormula(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        LineContents::QuoteStruct(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        LineContents::Ruby(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        LineContents::Sub(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        LineContents::Sup(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        LineContents::String(s) => e.children.push(XMLNode::Text(s.clone())),
+      }
+    }
+    e
+  }
+}
+
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub enum LineContents {
   QuoteStruct(QuoteStruct),
@@ -93,6 +113,15 @@ impl LineStyle {
       Some("dotted") => Some(LineStyle::Dotted),
       Some("double") => Some(LineStyle::Dotted),
       _ => None,
+    }
+  }
+
+  pub fn to_attribute(&self) -> String {
+    match self {
+      LineStyle::Dotted => "dotted".to_string(),
+      LineStyle::Solid => "solid".to_string(),
+      LineStyle::Double => "double".to_string(),
+      LineStyle::None => "none".to_string(),
     }
   }
 }

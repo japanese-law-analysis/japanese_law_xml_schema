@@ -8,6 +8,7 @@ use crate::result::Error;
 use crate::sentence::*;
 use crate::structs::*;
 use crate::text::*;
+use crate::to_xml::*;
 use crate::*;
 use serde::{Deserialize, Serialize};
 use xmltree::{Element, XMLNode};
@@ -103,6 +104,56 @@ impl Parser for Paragraph {
     } else {
       Err(Error::wrong_tag_name(element, "Paragraph"))
     }
+  }
+}
+
+impl ToXmlElement for Paragraph {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("Paragraph");
+    if let Some(caption) = &self.caption {
+      e.children.push(XMLNode::Element(
+        caption.to_xml_element_with_name("ParagraphCaption"),
+      ));
+    }
+    e.children.push(XMLNode::Element(
+      self.paragraph_num.to_xml_element_with_name("ParagraphNum"),
+    ));
+    let mut se = Element::new("ParagraphSentence");
+    se.children = self
+      .sentence
+      .iter()
+      .map(|v| XMLNode::Element(v.to_xml_element()))
+      .collect();
+    e.children.push(XMLNode::Element(se));
+    for v in self.amend_provision.iter() {
+      e.children.push(XMLNode::Element(v.to_xml_element()));
+    }
+    for v in self.class.iter() {
+      e.children.push(XMLNode::Element(v.to_xml_element()));
+    }
+    for v in self.sentence.iter() {
+      e.children.push(XMLNode::Element(v.to_xml_element()));
+    }
+    for v in self.struct_list.iter() {
+      e.children.push(XMLNode::Element(v.to_xml_element()));
+    }
+    for v in self.children.iter() {
+      e.children.push(XMLNode::Element(v.to_xml_element()));
+    }
+    e.attributes.insert("Num".to_string(), self.num.to_string());
+    if self.old_style {
+      e.attributes
+        .insert("OldStyle".to_string(), self.old_style.to_string());
+    }
+    if self.old_num {
+      e.attributes
+        .insert("OldNum".to_string(), self.old_num.to_string());
+    }
+    if self.hide {
+      e.attributes
+        .insert("Hide".to_string(), self.hide.to_string());
+    }
+    e
   }
 }
 
@@ -204,6 +255,49 @@ impl Parser for Item {
   }
 }
 
+impl ToXmlElement for Item {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("Item");
+    if let Some(title) = &self.title {
+      e.children.push(XMLNode::Element(
+        title.to_xml_element_with_name("ItemTitle"),
+      ));
+    }
+    e.children.push(XMLNode::Element(
+      self.sentence.to_xml_element_with_name("ItemSentence"),
+    ));
+    for n in &self.children {
+      e.children.push(XMLNode::Element(n.to_xml_element()));
+    }
+    for v in self.struct_list.iter() {
+      match v {
+        Struct::FigStruct(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+        Struct::TableStruct(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+        Struct::StyleStruct(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+        Struct::List(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+      }
+    }
+    e.attributes.insert("Num".to_string(), self.num.to_string());
+    if self.delete {
+      e.attributes
+        .insert("Delete".to_string(), self.delete.to_string());
+    }
+    if self.hide {
+      e.attributes
+        .insert("Hide".to_string(), self.hide.to_string());
+    }
+    e
+  }
+}
+
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Subitem1 {
   pub title: Option<text::Text>,
@@ -299,6 +393,49 @@ impl Parser for Subitem1 {
     } else {
       Err(Error::wrong_tag_name(element, "Subitem1"))
     }
+  }
+}
+
+impl ToXmlElement for Subitem1 {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("Subitem1");
+    if let Some(title) = &self.title {
+      e.children.push(XMLNode::Element(
+        title.to_xml_element_with_name("Subitem1Title"),
+      ));
+    }
+    e.children.push(XMLNode::Element(
+      self.sentence.to_xml_element_with_name("Subitem1Sentence"),
+    ));
+    for n in self.children.iter() {
+      e.children.push(XMLNode::Element(n.to_xml_element()));
+    }
+    for v in self.struct_list.iter() {
+      match v {
+        Struct::FigStruct(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+        Struct::TableStruct(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+        Struct::StyleStruct(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+        Struct::List(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+      }
+    }
+    e.attributes.insert("Num".to_string(), self.num.to_string());
+    if self.delete {
+      e.attributes
+        .insert("Delete".to_string(), self.delete.to_string());
+    }
+    if self.hide {
+      e.attributes
+        .insert("Hide".to_string(), self.hide.to_string());
+    }
+    e
   }
 }
 
@@ -400,6 +537,49 @@ impl Parser for Subitem2 {
   }
 }
 
+impl ToXmlElement for Subitem2 {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("Subitem2");
+    if let Some(title) = &self.title {
+      e.children.push(XMLNode::Element(
+        title.to_xml_element_with_name("Subitem2Title"),
+      ));
+    }
+    e.children.push(XMLNode::Element(
+      self.sentence.to_xml_element_with_name("Subitem2Sentence"),
+    ));
+    for n in self.children.iter() {
+      e.children.push(XMLNode::Element(n.to_xml_element()));
+    }
+    for v in self.struct_list.iter() {
+      match v {
+        Struct::FigStruct(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+        Struct::TableStruct(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+        Struct::StyleStruct(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+        Struct::List(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+      }
+    }
+    e.attributes.insert("Num".to_string(), self.num.to_string());
+    if self.delete {
+      e.attributes
+        .insert("Delete".to_string(), self.delete.to_string());
+    }
+    if self.hide {
+      e.attributes
+        .insert("Hide".to_string(), self.hide.to_string());
+    }
+    e
+  }
+}
+
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Subitem3 {
   pub title: Option<text::Text>,
@@ -495,6 +675,49 @@ impl Parser for Subitem3 {
     } else {
       Err(Error::wrong_tag_name(element, "Subitem3"))
     }
+  }
+}
+
+impl ToXmlElement for Subitem3 {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("Subitem3");
+    if let Some(title) = &self.title {
+      e.children.push(XMLNode::Element(
+        title.to_xml_element_with_name("Subitem3Title"),
+      ));
+    }
+    e.children.push(XMLNode::Element(
+      self.sentence.to_xml_element_with_name("Subitem3Sentence"),
+    ));
+    for n in self.children.iter() {
+      e.children.push(XMLNode::Element(n.to_xml_element()));
+    }
+    for v in self.struct_list.iter() {
+      match v {
+        Struct::FigStruct(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+        Struct::TableStruct(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+        Struct::StyleStruct(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+        Struct::List(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+      }
+    }
+    e.attributes.insert("Num".to_string(), self.num.to_string());
+    if self.delete {
+      e.attributes
+        .insert("Delete".to_string(), self.delete.to_string());
+    }
+    if self.hide {
+      e.attributes
+        .insert("Hide".to_string(), self.hide.to_string());
+    }
+    e
   }
 }
 
@@ -596,6 +819,49 @@ impl Parser for Subitem4 {
   }
 }
 
+impl ToXmlElement for Subitem4 {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("Subitem4");
+    if let Some(title) = &self.title {
+      e.children.push(XMLNode::Element(
+        title.to_xml_element_with_name("Subitem4Title"),
+      ));
+    }
+    e.children.push(XMLNode::Element(
+      self.sentence.to_xml_element_with_name("Subitem4Sentence"),
+    ));
+    for n in self.children.iter() {
+      e.children.push(XMLNode::Element(n.to_xml_element()));
+    }
+    for v in self.struct_list.iter() {
+      match v {
+        Struct::FigStruct(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+        Struct::TableStruct(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+        Struct::StyleStruct(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+        Struct::List(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+      }
+    }
+    e.attributes.insert("Num".to_string(), self.num.to_string());
+    if self.delete {
+      e.attributes
+        .insert("Delete".to_string(), self.delete.to_string());
+    }
+    if self.hide {
+      e.attributes
+        .insert("Hide".to_string(), self.hide.to_string());
+    }
+    e
+  }
+}
+
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Subitem5 {
   pub title: Option<text::Text>,
@@ -691,6 +957,49 @@ impl Parser for Subitem5 {
     } else {
       Err(Error::wrong_tag_name(element, "Subitem5"))
     }
+  }
+}
+
+impl ToXmlElement for Subitem5 {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("Subitem5");
+    if let Some(title) = &self.title {
+      e.children.push(XMLNode::Element(
+        title.to_xml_element_with_name("Subitem5Title"),
+      ));
+    }
+    e.children.push(XMLNode::Element(
+      self.sentence.to_xml_element_with_name("Subitem5Sentence"),
+    ));
+    for n in self.children.iter() {
+      e.children.push(XMLNode::Element(n.to_xml_element()));
+    }
+    for v in self.struct_list.iter() {
+      match v {
+        Struct::FigStruct(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+        Struct::TableStruct(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+        Struct::StyleStruct(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+        Struct::List(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+      }
+    }
+    e.attributes.insert("Num".to_string(), self.num.to_string());
+    if self.delete {
+      e.attributes
+        .insert("Delete".to_string(), self.delete.to_string());
+    }
+    if self.hide {
+      e.attributes
+        .insert("Hide".to_string(), self.hide.to_string());
+    }
+    e
   }
 }
 
@@ -792,6 +1101,49 @@ impl Parser for Subitem6 {
   }
 }
 
+impl ToXmlElement for Subitem6 {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("Subitem6");
+    if let Some(title) = &self.title {
+      e.children.push(XMLNode::Element(
+        title.to_xml_element_with_name("Subitem6Title"),
+      ));
+    }
+    e.children.push(XMLNode::Element(
+      self.sentence.to_xml_element_with_name("Subitem6Sentence"),
+    ));
+    for n in self.children.iter() {
+      e.children.push(XMLNode::Element(n.to_xml_element()));
+    }
+    for v in self.struct_list.iter() {
+      match v {
+        Struct::FigStruct(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+        Struct::TableStruct(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+        Struct::StyleStruct(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+        Struct::List(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+      }
+    }
+    e.attributes.insert("Num".to_string(), self.num.to_string());
+    if self.delete {
+      e.attributes
+        .insert("Delete".to_string(), self.delete.to_string());
+    }
+    if self.hide {
+      e.attributes
+        .insert("Hide".to_string(), self.hide.to_string());
+    }
+    e
+  }
+}
+
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Subitem7 {
   pub title: Option<text::Text>,
@@ -887,6 +1239,49 @@ impl Parser for Subitem7 {
     } else {
       Err(Error::wrong_tag_name(element, "Subitem7"))
     }
+  }
+}
+
+impl ToXmlElement for Subitem7 {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("Subitem7");
+    if let Some(title) = &self.title {
+      e.children.push(XMLNode::Element(
+        title.to_xml_element_with_name("Subitem7Title"),
+      ));
+    }
+    e.children.push(XMLNode::Element(
+      self.sentence.to_xml_element_with_name("Subitem7Sentence"),
+    ));
+    for n in self.children.iter() {
+      e.children.push(XMLNode::Element(n.to_xml_element()));
+    }
+    for v in self.struct_list.iter() {
+      match v {
+        Struct::FigStruct(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+        Struct::TableStruct(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+        Struct::StyleStruct(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+        Struct::List(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+      }
+    }
+    e.attributes.insert("Num".to_string(), self.num.to_string());
+    if self.delete {
+      e.attributes
+        .insert("Delete".to_string(), self.delete.to_string());
+    }
+    if self.hide {
+      e.attributes
+        .insert("Hide".to_string(), self.hide.to_string());
+    }
+    e
   }
 }
 
@@ -988,6 +1383,49 @@ impl Parser for Subitem8 {
   }
 }
 
+impl ToXmlElement for Subitem8 {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("Subitem8");
+    if let Some(title) = &self.title {
+      e.children.push(XMLNode::Element(
+        title.to_xml_element_with_name("Subitem8Title"),
+      ));
+    }
+    e.children.push(XMLNode::Element(
+      self.sentence.to_xml_element_with_name("Subitem8Sentence"),
+    ));
+    for n in self.children.iter() {
+      e.children.push(XMLNode::Element(n.to_xml_element()));
+    }
+    for v in self.struct_list.iter() {
+      match v {
+        Struct::FigStruct(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+        Struct::TableStruct(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+        Struct::StyleStruct(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+        Struct::List(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+      }
+    }
+    e.attributes.insert("Num".to_string(), self.num.to_string());
+    if self.delete {
+      e.attributes
+        .insert("Delete".to_string(), self.delete.to_string());
+    }
+    if self.hide {
+      e.attributes
+        .insert("Hide".to_string(), self.hide.to_string());
+    }
+    e
+  }
+}
+
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Subitem9 {
   pub title: Option<text::Text>,
@@ -1086,6 +1524,49 @@ impl Parser for Subitem9 {
   }
 }
 
+impl ToXmlElement for Subitem9 {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("Subitem9");
+    if let Some(title) = &self.title {
+      e.children.push(XMLNode::Element(
+        title.to_xml_element_with_name("Subitem9Title"),
+      ));
+    }
+    e.children.push(XMLNode::Element(
+      self.sentence.to_xml_element_with_name("Subitem9Sentence"),
+    ));
+    for n in self.children.iter() {
+      e.children.push(XMLNode::Element(n.to_xml_element()));
+    }
+    for v in self.struct_list.iter() {
+      match v {
+        Struct::FigStruct(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+        Struct::TableStruct(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+        Struct::StyleStruct(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+        Struct::List(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+      }
+    }
+    e.attributes.insert("Num".to_string(), self.num.to_string());
+    if self.delete {
+      e.attributes
+        .insert("Delete".to_string(), self.delete.to_string());
+    }
+    if self.hide {
+      e.attributes
+        .insert("Hide".to_string(), self.hide.to_string());
+    }
+    e
+  }
+}
+
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Subitem10 {
   pub title: Option<text::Text>,
@@ -1172,5 +1653,45 @@ impl Parser for Subitem10 {
     } else {
       Err(Error::wrong_tag_name(element, "Subitem10"))
     }
+  }
+}
+
+impl ToXmlElement for Subitem10 {
+  fn to_xml_element(&self) -> Element {
+    let mut e = Element::new("Subitem10");
+    if let Some(title) = &self.title {
+      e.children.push(XMLNode::Element(
+        title.to_xml_element_with_name("Subitem10Title"),
+      ));
+    }
+    e.children.push(XMLNode::Element(
+      self.sentence.to_xml_element_with_name("Subitem10Sentence"),
+    ));
+    for v in self.struct_list.iter() {
+      match v {
+        Struct::FigStruct(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+        Struct::TableStruct(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+        Struct::StyleStruct(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+        Struct::List(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
+      }
+    }
+    e.attributes.insert("Num".to_string(), self.num.to_string());
+    if self.delete {
+      e.attributes
+        .insert("Delete".to_string(), self.delete.to_string());
+    }
+    if self.hide {
+      e.attributes
+        .insert("Hide".to_string(), self.hide.to_string());
+    }
+    e
   }
 }
