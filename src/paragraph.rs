@@ -131,9 +131,6 @@ impl ToXmlElement for Paragraph {
     for v in self.class.iter() {
       e.children.push(XMLNode::Element(v.to_xml_element()));
     }
-    for v in self.sentence.iter() {
-      e.children.push(XMLNode::Element(v.to_xml_element()));
-    }
     for v in self.struct_list.iter() {
       e.children.push(XMLNode::Element(v.to_xml_element()));
     }
@@ -344,7 +341,7 @@ impl Parser for Subitem1 {
       for node in element.children.iter() {
         if let XMLNode::Element(e) = node {
           match e.name.as_str() {
-            "ItemTitle" => {
+            "Subitem1Title" => {
               title = Some(Text::from_children(&e.children));
             }
             "Subitem1Sentence" => {
@@ -485,7 +482,7 @@ impl Parser for Subitem2 {
       for node in element.children.iter() {
         if let XMLNode::Element(e) = node {
           match e.name.as_str() {
-            "ItemTitle" => {
+            "Subitem2Title" => {
               title = Some(Text::from_children(&e.children));
             }
             "Subitem2Sentence" => {
@@ -626,7 +623,7 @@ impl Parser for Subitem3 {
       for node in element.children.iter() {
         if let XMLNode::Element(e) = node {
           match e.name.as_str() {
-            "ItemTitle" => {
+            "Subitem3Title" => {
               title = Some(Text::from_children(&e.children));
             }
             "Subitem3Sentence" => {
@@ -767,7 +764,7 @@ impl Parser for Subitem4 {
       for node in element.children.iter() {
         if let XMLNode::Element(e) = node {
           match e.name.as_str() {
-            "ItemTitle" => {
+            "Subitem4Title" => {
               title = Some(Text::from_children(&e.children));
             }
             "Subitem4Sentence" => {
@@ -908,7 +905,7 @@ impl Parser for Subitem5 {
       for node in element.children.iter() {
         if let XMLNode::Element(e) = node {
           match e.name.as_str() {
-            "ItemTitle" => {
+            "Subitem5Title" => {
               title = Some(Text::from_children(&e.children));
             }
             "Subitem5Sentence" => {
@@ -1049,7 +1046,7 @@ impl Parser for Subitem6 {
       for node in element.children.iter() {
         if let XMLNode::Element(e) = node {
           match e.name.as_str() {
-            "ItemTitle" => {
+            "Subitem6Title" => {
               title = Some(Text::from_children(&e.children));
             }
             "Subitem6Sentence" => {
@@ -1190,7 +1187,7 @@ impl Parser for Subitem7 {
       for node in element.children.iter() {
         if let XMLNode::Element(e) = node {
           match e.name.as_str() {
-            "ItemTitle" => {
+            "Subitem7Title" => {
               title = Some(Text::from_children(&e.children));
             }
             "Subitem7Sentence" => {
@@ -1331,7 +1328,7 @@ impl Parser for Subitem8 {
       for node in element.children.iter() {
         if let XMLNode::Element(e) = node {
           match e.name.as_str() {
-            "ItemTitle" => {
+            "Subitem8Title" => {
               title = Some(Text::from_children(&e.children));
             }
             "Subitem8Sentence" => {
@@ -1472,7 +1469,7 @@ impl Parser for Subitem9 {
       for node in element.children.iter() {
         if let XMLNode::Element(e) = node {
           match e.name.as_str() {
-            "ItemTitle" => {
+            "Subitem9Title" => {
               title = Some(Text::from_children(&e.children));
             }
             "Subitem9Sentence" => {
@@ -1609,7 +1606,7 @@ impl Parser for Subitem10 {
       for node in element.children.iter() {
         if let XMLNode::Element(e) = node {
           match e.name.as_str() {
-            "ItemTitle" => {
+            "Subitem10Title" => {
               title = Some(Text::from_children(&e.children));
             }
             "Subitem10Sentence" => {
