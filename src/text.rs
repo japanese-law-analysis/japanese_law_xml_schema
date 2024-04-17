@@ -112,26 +112,6 @@ impl Text {
   }
 }
 
-impl ToHtml for Text {
-  fn to_html(&self) -> String {
-    use TextElement::*;
-    format!(
-      "<p>{}</p>",
-      self
-        .contents
-        .iter()
-        .map(|text_element| match text_element {
-          Ruby(ruby) => ruby.to_html(),
-          Line(line) => line.to_html(),
-          Sup(sup) => sup.to_html(),
-          Sub(sub) => sub.to_html(),
-          Text(text) => text.to_string(),
-        })
-        .collect::<String>()
-    )
-  }
-}
-
 impl Parser for Text {
   fn parser(element: &Element) -> result::Result<Self> {
     let mut text = Text::new();
@@ -260,12 +240,6 @@ impl Ruby {
   }
 }
 
-impl ToHtml for Ruby {
-  fn to_html(&self) -> String {
-    format!("<ruby>{}<rt>{}</rt></ruby>", self.text.to_html(), self.ruby)
-  }
-}
-
 impl Parser for Ruby {
   fn parser(element: &Element) -> result::Result<Self> {
     if element.name == "Ruby" {
@@ -319,12 +293,6 @@ pub struct Sup {
   pub text: String,
 }
 
-impl ToHtml for Sup {
-  fn to_html(&self) -> String {
-    format!("<sup>{}</sup>", self.text)
-  }
-}
-
 impl Parser for Sup {
   fn parser(element: &Element) -> result::Result<Self> {
     if element.name.as_str() == "Sup" {
@@ -358,12 +326,6 @@ impl ToXmlElement for Sup {
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Sub {
   pub text: String,
-}
-
-impl ToHtml for Sub {
-  fn to_html(&self) -> String {
-    format!("<sub>{}</sub>", self.text)
-  }
 }
 
 impl Parser for Sub {

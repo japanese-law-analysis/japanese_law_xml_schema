@@ -6,7 +6,7 @@ mod parse_mod {
     // 民法
     use table_of_contents::*;
     use text::*;
-    let law = parse_file("src/tests/129AC0000000089_20230614_505AC0000000053.xml").unwrap();
+    let law = parse_xml_file("src/tests/129AC0000000089_20230614_505AC0000000053.xml").unwrap();
     let toc = &law.law_body.toc.unwrap().toc_main_contents[0];
     match &toc {
       &TOCMainContents::TOCPart(v) => {

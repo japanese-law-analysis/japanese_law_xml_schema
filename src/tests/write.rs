@@ -6,7 +6,7 @@ mod write {
 
   #[test]
   fn test_129ac0000000089() {
-    let law = parse_file("src/tests/129AC0000000089_20230614_505AC0000000053.xml").unwrap();
+    let law = parse_xml_file("src/tests/129AC0000000089_20230614_505AC0000000053.xml").unwrap();
     let s = to_xml(&law).unwrap();
     println!("{s}");
     let law2 = parse_xml(&s.as_bytes()).unwrap();

@@ -1,3 +1,5 @@
+//! XML形式を法律構造に変換するトレイト
+
 use crate::result::Result;
 use xmltree::Element;
 
