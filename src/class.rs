@@ -1,3 +1,6 @@
+//! classやcaptionなど
+//!
+
 use crate::paragraph::*;
 use crate::parser::*;
 use crate::result::*;

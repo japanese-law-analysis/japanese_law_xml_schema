@@ -15,7 +15,7 @@ pub mod line;
 pub mod list;
 pub mod paragraph;
 mod parse_from_text;
-pub mod parser;
+pub(crate) mod parser;
 pub mod remarks;
 pub mod result;
 pub mod sentence;
@@ -25,27 +25,14 @@ pub mod table;
 pub mod table_of_contents;
 mod tests;
 pub mod text;
-pub mod to_xml;
+pub(crate) mod to_xml;
 
+use crate::parser::Parser;
 use koyomi::{era, Date};
 use result::*;
 use std::io::{Read, Write};
 use to_xml::ToXmlElement;
 use xmltree::Element;
-
-use crate::parser::Parser;
-
-/// HTMLを生成できる構造であることを保証するトレイト
-pub trait ToHtml {
-  /// HTML文字列を生成する関数
-  fn to_html(&self) -> String;
-}
-
-/// 意味のあるテキストに変換できることを保証するトレイト
-pub trait ToText {
-  /// 変換する関数
-  fn to_text(&self) -> String;
-}
 
 /// XML文字列を法律の構造体に変換する
 pub fn parse_xml(xml: &[u8]) -> Result<law::Law> {
@@ -54,7 +41,8 @@ pub fn parse_xml(xml: &[u8]) -> Result<law::Law> {
   Ok(law)
 }
 
-pub fn parse_file(path: &str) -> Result<law::Law> {
+/// ファイルのパスから法律の構造体に変換する
+pub fn parse_xml_file(path: &str) -> Result<law::Law> {
   let mut file = std::fs::File::open(path).map_err(|_| result::Error::Io)?;
   let mut buf = Vec::new();
   file.read_to_end(&mut buf).map_err(|_| result::Error::Io)?;
@@ -144,7 +132,7 @@ pub fn to_xml(law: &law::Law) -> result::Result<String> {
   Ok(s.string())
 }
 
-/// XML文字列を書き出す
+/// XML文字列をファイルに書き出す
 pub fn write_file<W: Write>(law: &law::Law, w: &mut W) -> result::Result<()> {
   let config = gen_config();
   law

@@ -1,3 +1,5 @@
+//! 法律構造をXML形式に変換するトレイト
+
 use xmltree::Element;
 
 pub(crate) trait ToXmlElement {

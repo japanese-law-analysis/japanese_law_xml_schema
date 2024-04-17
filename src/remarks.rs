@@ -1,3 +1,5 @@
+//! 注釈等
+
 use crate::paragraph::*;
 use crate::parser::*;
 use crate::result::Error;

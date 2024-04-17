@@ -15,12 +15,6 @@ pub struct Line {
   pub style: LineStyle,
 }
 
-impl ToHtml for Line {
-  fn to_html(&self) -> String {
-    "〔図略〕".to_string()
-  }
-}
-
 impl Parser for Line {
   fn parser(element: &Element) -> result::Result<Self> {
     if element.name.as_str() == "Line" {

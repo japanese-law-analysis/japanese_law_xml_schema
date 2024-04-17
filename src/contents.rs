@@ -1,3 +1,5 @@
+//! anyとなるようなものをまとめるもの
+
 use crate::fig::*;
 use crate::line::*;
 use crate::list::*;
