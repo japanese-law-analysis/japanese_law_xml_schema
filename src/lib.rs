@@ -23,12 +23,13 @@ pub mod structs;
 pub mod suppl_provision;
 pub mod table;
 pub mod table_of_contents;
+mod tests;
 pub mod text;
 pub mod to_xml;
 
 use koyomi::{era, Date};
 use result::*;
-use std::io::Write;
+use std::io::{Read, Write};
 use to_xml::ToXmlElement;
 use xmltree::Element;
 
@@ -47,9 +48,17 @@ pub trait ToText {
 }
 
 /// XML文字列を法律の構造体に変換する
-pub fn parse_xml(xml: &str) -> Result<law::Law> {
-  let element = Element::parse(xml.as_bytes()).map_err(|_| Error::XMLParing)?;
+pub fn parse_xml(xml: &[u8]) -> Result<law::Law> {
+  let element = Element::parse(xml).map_err(|_| Error::XMLParsing)?;
   let law = law::Law::parser(&element)?;
+  Ok(law)
+}
+
+pub fn parse_file(path: &str) -> Result<law::Law> {
+  let mut file = std::fs::File::open(path).map_err(|_| result::Error::Io)?;
+  let mut buf = Vec::new();
+  file.read_to_end(&mut buf).map_err(|_| result::Error::Io)?;
+  let law = parse_xml(&buf)?;
   Ok(law)
 }
 
@@ -120,22 +129,28 @@ impl Write for WritableString {
   }
 }
 
+fn gen_config() -> xmltree::EmitterConfig {
+  xmltree::EmitterConfig::new().perform_indent(true)
+}
+
 /// XML文字列に変換する
 pub fn to_xml(law: &law::Law) -> result::Result<String> {
   let mut s = WritableString::new();
+  let config = gen_config();
   law
     .to_xml_element()
-    .write(&mut s)
-    .map_err(|_| result::Error::Write)?;
+    .write_with_config(&mut s, config)
+    .map_err(|_| result::Error::Io)?;
   Ok(s.string())
 }
 
 /// XML文字列を書き出す
 pub fn write_file<W: Write>(law: &law::Law, w: &mut W) -> result::Result<()> {
+  let config = gen_config();
   law
     .to_xml_element()
-    .write(w)
-    .map_err(|_| result::Error::Write)
+    .write_with_config(w, config)
+    .map_err(|_| result::Error::Io)
 }
 
 pub(crate) fn get_attribute(element: &Element, name: &str) -> Result<String> {

@@ -147,7 +147,9 @@ impl Parser for Law {
 impl ToXmlElement for Law {
   fn to_xml_element(&self) -> Element {
     let mut e = Element::new("Law");
-    e.children.push(XMLNode::Text(self.law_num.clone()));
+    let mut num_e = Element::new("LawNum");
+    num_e.children.push(XMLNode::Text(self.law_num.clone()));
+    e.children.push(XMLNode::Element(num_e));
     e.children
       .push(XMLNode::Element(self.law_body.to_xml_element()));
     match self.era {
@@ -210,10 +212,10 @@ impl ToXmlElement for Law {
     }
     match &self.lang {
       Lang::Ja => {
-        e.attributes.insert("Lang".to_string(), "Ja".to_string());
+        e.attributes.insert("Lang".to_string(), "ja".to_string());
       }
       Lang::En => {
-        e.attributes.insert("Lang".to_string(), "En".to_string());
+        e.attributes.insert("Lang".to_string(), "en".to_string());
       }
     }
     e

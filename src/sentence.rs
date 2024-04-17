@@ -12,7 +12,7 @@ use self::text::WritingMode;
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Sentence {
   pub contents: Vec<SentenceElement>,
-  pub num: usize,
+  pub num: Option<usize>,
   pub function: Option<SentenceFunction>,
   pub indent: Option<SentenceIndent>,
   pub writing_mode: text::WritingMode,
@@ -21,7 +21,7 @@ pub struct Sentence {
 impl Parser for Sentence {
   fn parser(element: &Element) -> result::Result<Self> {
     if element.name.as_str() == "Sentence" {
-      let num = get_attribute_with_parse(element, "Num")?;
+      let num = get_attribute_opt_with_parse(element, "Num")?;
       let function = match element.attributes.get("Function").map(|s| s.as_str()) {
         Some("main") => Some(SentenceFunction::Main),
         Some("proviso") => Some(SentenceFunction::Proviso),
@@ -109,7 +109,9 @@ impl Parser for Sentence {
 impl ToXmlElement for Sentence {
   fn to_xml_element(&self) -> Element {
     let mut e = Element::new("Sentence");
-    e.attributes.insert("Num".to_string(), self.num.to_string());
+    if let Some(num) = self.num {
+      e.attributes.insert("Num".to_string(), num.to_string());
+    }
     match self.function {
       Some(SentenceFunction::Main) => {
         e.attributes

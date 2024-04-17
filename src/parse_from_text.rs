@@ -735,7 +735,7 @@ fn parse_subitem10(
 fn text_to_sentence(num: usize, text: &str) -> sentence::Sentence {
   sentence::Sentence {
     contents: vec![sentence::SentenceElement::String(text.to_string())],
-    num,
+    num: Some(num),
     function: None,
     indent: None,
     writing_mode: text::WritingMode::Vertical,
@@ -1063,7 +1063,7 @@ fn check_parse_body_1() {
                   contents: vec![sentence::SentenceElement::String(
                     "私権は、公共の福祉に適合しなければならない。".to_string()
                   )],
-                  num: 1,
+                  num: Some(1),
                   function: None,
                   indent: None,
                   writing_mode: text::WritingMode::Vertical
@@ -1085,7 +1085,7 @@ fn check_parse_body_1() {
                     "権利の行使及び義務の履行は、信義に従い誠実に行わなければならない。"
                       .to_string()
                   )],
-                  num: 1,
+                  num: Some(1),
                   function: None,
                   indent: None,
                   writing_mode: text::WritingMode::Vertical
@@ -1106,7 +1106,7 @@ fn check_parse_body_1() {
                   contents: vec![sentence::SentenceElement::String(
                     "権利の濫用は、これを許さない。".to_string()
                   )],
-                  num: 1,
+                  num: Some(1),
                   function: None,
                   indent: None,
                   writing_mode: text::WritingMode::Vertical
@@ -1140,7 +1140,7 @@ fn check_parse_body_1() {
                   "この法律は、個人の尊厳と両性の本質的平等を旨として、解釈しなければならない。"
                     .to_string()
                 )],
-                num: 1,
+                num: Some(1),
                 function: None,
                 indent: None,
                 writing_mode: text::WritingMode::Vertical
@@ -1170,7 +1170,7 @@ fn check_parse_body_1() {
                   "被保佐人が次に掲げる行為をするには、その保佐人の同意を得なければならない。ただし、第九条ただし書に規定する行為については、この限りでない。"
                     .to_string()
                 )],
-                num: 1,
+                num: Some(1),
                 function: None,
                 indent: None,
                 writing_mode: text::WritingMode::Vertical
@@ -1229,7 +1229,7 @@ fn check_parse_body_1() {
                   "家庭裁判所は、第十一条本文に規定する者又は保佐人若しくは保佐監督人の請求により、被保佐人が前項各号に掲げる行為以外の行為をする場合であってもその保佐人の同意を得なければならない旨の審判をすることができる。ただし、第九条ただし書に規定する行為については、この限りでない。"
                     .to_string()
                 )],
-                num: 1,
+                num: Some(1),
                 function: None,
                 indent: None,
                 writing_mode: text::WritingMode::Vertical

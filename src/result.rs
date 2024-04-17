@@ -30,9 +30,9 @@ pub enum Error {
   #[error("Unexpected {wrong_name} tag at {tag}")]
   UnexpectedTag { wrong_name: String, tag: String },
   #[error("parsing error")]
-  XMLParing,
+  XMLParsing,
   #[error("write error")]
-  Write,
+  Io,
 }
 
 impl Error {
