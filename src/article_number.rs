@@ -5,7 +5,7 @@ use kansuji::Kansuji;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
 pub struct ArticleNumber {
   /// 条や部などを含んだ実際の文字列
   pub str: String,
@@ -102,7 +102,7 @@ pub fn parse_article_number(str: &str) -> Option<(ArticleNumber, String)> {
   }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq, Hash)]
 pub struct ItemNumber {
   /// 実際の文字列
   pub str: String,
@@ -113,7 +113,7 @@ pub struct ItemNumber {
 }
 
 /// 号の数字を表す記号の種類
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq, Eq, Hash)]
 pub enum ItemPattern {
   /// 括弧なし漢数字
   NoParenKansuji,
