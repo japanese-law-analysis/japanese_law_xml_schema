@@ -1,6 +1,7 @@
 //! 枝番号にも対応した条番号
 //!
 
+use crate::result::*;
 use kansuji::Kansuji;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
@@ -99,6 +100,54 @@ pub fn parse_article_number(str: &str) -> Option<(ArticleNumber, String)> {
     ))
   } else {
     None
+  }
+}
+
+pub fn parse_article_number_from_num_str(suffix: &str, num_str: &str) -> Result<ArticleNumber> {
+  let n_lst = num_str.split('_').map(|s| {
+    s.parse::<usize>()
+      .map_err(|_| Error::ParsingError("usize".to_string(), s.to_string()))
+  });
+  let mut base_number = None;
+  let mut eda_numbers = Vec::new();
+  for res in n_lst {
+    match res {
+      Ok(n) => {
+        if base_number.is_none() {
+          base_number = Some(n);
+        } else {
+          eda_numbers.push(n);
+        }
+      }
+      Err(e) => return Err(e),
+    }
+  }
+  if let Some(base_number) = base_number {
+    let base_kansuji = Kansuji::from(base_number);
+    let mut str = format!("第{}{suffix}", base_kansuji.to_string());
+    if !eda_numbers.is_empty() {
+      let s = eda_numbers
+        .iter()
+        .map(|n| {
+          let kansuji = Kansuji::from(n);
+          kansuji.to_string()
+        })
+        .collect::<Vec<String>>()
+        .join("_");
+      str.push('_');
+      str.push_str(&s);
+    }
+    Ok(ArticleNumber {
+      str,
+      num_str: num_str.to_string(),
+      base_number,
+      eda_numbers,
+    })
+  } else {
+    Err(Error::ParsingError(
+      "ArticleNumber".to_string(),
+      num_str.to_string(),
+    ))
   }
 }
 

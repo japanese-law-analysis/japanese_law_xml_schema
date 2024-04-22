@@ -9,7 +9,6 @@ fn parse_part(
   lines: &mut std::iter::Peekable<std::slice::Iter<LineContents>>,
 ) -> article::Part {
   let part_title = text::Text::from_value(title);
-  let num = n.num_str.clone();
   let delete = title.trim() == "削除" || title.trim() == "（削除）";
   let hide = false;
   let mut children = Vec::new();
@@ -39,7 +38,7 @@ fn parse_part(
   article::Part {
     part_title,
     children,
-    num,
+    num: n.clone(),
     delete,
     hide,
   }
@@ -51,7 +50,6 @@ fn parse_chapter(
   lines: &mut std::iter::Peekable<std::slice::Iter<LineContents>>,
 ) -> article::Chapter {
   let chapter_title = text::Text::from_value(title);
-  let num = n.num_str.clone();
   let delete = title.trim() == "削除" || title.trim() == "（削除）";
   let hide = false;
   let mut children = Vec::new();
@@ -81,7 +79,7 @@ fn parse_chapter(
   article::Chapter {
     chapter_title,
     children,
-    num,
+    num: n.clone(),
     delete,
     hide,
   }
@@ -93,7 +91,6 @@ fn parse_section(
   lines: &mut std::iter::Peekable<std::slice::Iter<LineContents>>,
 ) -> article::Section {
   let section_title = text::Text::from_value(title);
-  let num = n.num_str.clone();
   let delete = title.trim() == "削除" || title.trim() == "（削除）";
   let hide = false;
   let mut children = Vec::new();
@@ -123,7 +120,7 @@ fn parse_section(
   article::Section {
     section_title,
     children,
-    num,
+    num: n.clone(),
     delete,
     hide,
   }
@@ -135,7 +132,6 @@ fn parse_subsection(
   lines: &mut std::iter::Peekable<std::slice::Iter<LineContents>>,
 ) -> article::Subsection {
   let subsection_title = text::Text::from_value(title);
-  let num = n.num_str.clone();
   let delete = title.trim() == "削除" || title.trim() == "（削除）";
   let hide = false;
   let mut children = Vec::new();
@@ -165,7 +161,7 @@ fn parse_subsection(
   article::Subsection {
     subsection_title,
     children,
-    num,
+    num: n.clone(),
     delete,
     hide,
   }
@@ -177,7 +173,6 @@ fn parse_division(
   lines: &mut std::iter::Peekable<std::slice::Iter<LineContents>>,
 ) -> article::Division {
   let division_title = text::Text::from_value(title);
-  let num = n.num_str.clone();
   let delete = title.trim() == "削除" || title.trim() == "（削除）";
   let hide = false;
   let mut children = Vec::new();
@@ -201,7 +196,7 @@ fn parse_division(
   article::Division {
     division_title,
     children,
-    num,
+    num: n.clone(),
     delete,
     hide,
   }
@@ -229,7 +224,7 @@ fn parse_article(
     title: text::Text::from_value(String::new()), // TODO 「第○条」に生成
     paragraph,
     suppl_note: None,
-    num: n.num_str.clone(),
+    num: n.clone(),
     delete: text.trim() == "削除" || text.trim() == "（削除）",
     hide: false,
   };
@@ -1120,7 +1115,7 @@ fn check_parse_body_1() {
               }
             ],
             suppl_note: None,
-            num: "1".to_string(),
+            num: article_number::ArticleNumber{str: "第一条".to_string(),num_str: "1".to_string(), base_number: 1, eda_numbers: Vec::new()},
             delete: false,
             hide: false
           }),
@@ -1153,7 +1148,7 @@ fn check_parse_body_1() {
               hide: false,
             }],
             suppl_note: None,
-            num: "2".to_string(),
+            num: article_number::ArticleNumber{str: "第二条".to_string(),num_str: "2".to_string(), base_number: 2, eda_numbers: Vec::new()},
             delete: false,
             hide: false
           }),
@@ -1242,16 +1237,16 @@ fn check_parse_body_1() {
               hide: false,
             }],
             suppl_note: None,
-            num: "13".to_string(),
+            num: article_number::ArticleNumber{str: "第十三条".to_string(),num_str: "13".to_string(), base_number: 13, eda_numbers: Vec::new()},
             delete: false,
             hide: false
           }),
         ],
-        num: "1".to_string(),
+        num: article_number::ArticleNumber{str: "第一章".to_string(),num_str: "1".to_string(), base_number: 1, eda_numbers: Vec::new()},
         delete: false,
         hide: false
       }),],
-      num: "1".to_string(),
+      num: article_number::ArticleNumber{str: "第一編".to_string(),num_str: "1".to_string(), base_number: 1, eda_numbers: Vec::new()},
       delete: false,
       hide: false
     })]

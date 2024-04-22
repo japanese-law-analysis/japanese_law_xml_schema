@@ -1,5 +1,6 @@
 //! 条文とそれの階層構造
 //!
+use crate::article_number::*;
 use crate::class::*;
 use crate::paragraph::*;
 use crate::parser::*;
@@ -15,17 +16,23 @@ use xmltree::{Element, XMLNode};
 pub struct Part {
   pub part_title: Text,
   pub children: Vec<PartContents>,
-  pub num: String,
+  pub num: ArticleNumber,
   pub delete: bool,
   pub hide: bool,
 }
 
 impl Part {
-  fn new(title: Text, num: &str, delete: bool, hide: bool, children: Vec<PartContents>) -> Self {
+  fn new(
+    title: Text,
+    num: ArticleNumber,
+    delete: bool,
+    hide: bool,
+    children: Vec<PartContents>,
+  ) -> Self {
     Part {
       part_title: title,
       children,
-      num: num.to_string(),
+      num,
       delete,
       hide,
     }
@@ -35,7 +42,8 @@ impl Part {
 impl Parser for Part {
   fn parser(element: &Element) -> result::Result<Self> {
     if element.name.as_str() == "Part" {
-      let num = get_attribute(element, "Num")?;
+      let num_str = get_attribute(element, "Num")?;
+      let num = parse_article_number_from_num_str("部", &num_str)?;
       let delete = get_attribute_opt_with_parse(element, "Delete")?.unwrap_or(false);
       let hide = get_attribute_opt_with_parse(element, "Hide")?.unwrap_or(false);
       let mut children = element.children.iter();
@@ -74,7 +82,7 @@ impl Parser for Part {
           }
         }
       }
-      Ok(Part::new(title, &num, delete, hide, children_list))
+      Ok(Part::new(title, num, delete, hide, children_list))
     } else {
       Err(Error::wrong_tag_name(element, "Part"))
     }
@@ -97,7 +105,8 @@ impl ToXmlElement for Part {
         }
       }
     }
-    e.attributes.insert("Num".to_string(), self.num.clone());
+    e.attributes
+      .insert("Num".to_string(), self.num.num_str.clone());
     if self.delete {
       e.attributes
         .insert("Delete".to_string(), self.delete.to_string());
@@ -121,17 +130,23 @@ pub enum PartContents {
 pub struct Chapter {
   pub chapter_title: Text,
   pub children: Vec<ChapterContents>,
-  pub num: String,
+  pub num: ArticleNumber,
   pub delete: bool,
   pub hide: bool,
 }
 
 impl Chapter {
-  fn new(title: Text, num: &str, delete: bool, hide: bool, children: Vec<ChapterContents>) -> Self {
+  fn new(
+    title: Text,
+    num: ArticleNumber,
+    delete: bool,
+    hide: bool,
+    children: Vec<ChapterContents>,
+  ) -> Self {
     Chapter {
       chapter_title: title,
       children,
-      num: num.to_string(),
+      num,
       delete,
       hide,
     }
@@ -141,7 +156,8 @@ impl Chapter {
 impl Parser for Chapter {
   fn parser(element: &Element) -> result::Result<Self> {
     if element.name.as_str() == "Chapter" {
-      let num = get_attribute(element, "Num")?;
+      let num_str = get_attribute(element, "Num")?;
+      let num = parse_article_number_from_num_str("章", &num_str)?;
       let delete = get_attribute_opt_with_parse(element, "Delete")?.unwrap_or(false);
       let hide = get_attribute_opt_with_parse(element, "Hide")?.unwrap_or(false);
       let mut children = element.children.iter();
@@ -180,7 +196,7 @@ impl Parser for Chapter {
           }
         }
       }
-      Ok(Chapter::new(title, &num, delete, hide, children_list))
+      Ok(Chapter::new(title, num, delete, hide, children_list))
     } else {
       Err(Error::wrong_tag_name(element, "Chapter"))
     }
@@ -203,7 +219,8 @@ impl ToXmlElement for Chapter {
         }
       }
     }
-    e.attributes.insert("Num".to_string(), self.num.clone());
+    e.attributes
+      .insert("Num".to_string(), self.num.num_str.clone());
     if self.delete {
       e.attributes
         .insert("Delete".to_string(), self.delete.to_string());
@@ -227,17 +244,23 @@ pub enum ChapterContents {
 pub struct Section {
   pub section_title: Text,
   pub children: Vec<SectionContents>,
-  pub num: String,
+  pub num: ArticleNumber,
   pub delete: bool,
   pub hide: bool,
 }
 
 impl Section {
-  fn new(title: Text, num: &str, delete: bool, hide: bool, children: Vec<SectionContents>) -> Self {
+  fn new(
+    title: Text,
+    num: ArticleNumber,
+    delete: bool,
+    hide: bool,
+    children: Vec<SectionContents>,
+  ) -> Self {
     Section {
       section_title: title,
       children,
-      num: num.to_string(),
+      num,
       delete,
       hide,
     }
@@ -247,7 +270,8 @@ impl Section {
 impl Parser for Section {
   fn parser(element: &Element) -> result::Result<Self> {
     if element.name.as_str() == "Section" {
-      let num = get_attribute(element, "Num")?;
+      let num_str = get_attribute(element, "Num")?;
+      let num = parse_article_number_from_num_str("節", &num_str)?;
       let delete = get_attribute_opt_with_parse(element, "Delete")?.unwrap_or(false);
       let hide = get_attribute_opt_with_parse(element, "Hide")?.unwrap_or(false);
       let mut children = element.children.iter();
@@ -286,7 +310,7 @@ impl Parser for Section {
           }
         }
       }
-      Ok(Section::new(title, &num, delete, hide, children_list))
+      Ok(Section::new(title, num, delete, hide, children_list))
     } else {
       Err(Error::wrong_tag_name(element, "Section"))
     }
@@ -309,7 +333,8 @@ impl ToXmlElement for Section {
         }
       }
     }
-    e.attributes.insert("Num".to_string(), self.num.clone());
+    e.attributes
+      .insert("Num".to_string(), self.num.num_str.clone());
     if self.delete {
       e.attributes
         .insert("Delete".to_string(), self.delete.to_string());
@@ -333,7 +358,7 @@ pub enum SectionContents {
 pub struct Subsection {
   pub subsection_title: Text,
   pub children: Vec<SubsectionContents>,
-  pub num: String,
+  pub num: ArticleNumber,
   pub delete: bool,
   pub hide: bool,
 }
@@ -341,7 +366,7 @@ pub struct Subsection {
 impl Subsection {
   fn new(
     title: Text,
-    num: &str,
+    num: ArticleNumber,
     delete: bool,
     hide: bool,
     children: Vec<SubsectionContents>,
@@ -349,7 +374,7 @@ impl Subsection {
     Subsection {
       subsection_title: title,
       children,
-      num: num.to_string(),
+      num,
       delete,
       hide,
     }
@@ -359,7 +384,8 @@ impl Subsection {
 impl Parser for Subsection {
   fn parser(element: &Element) -> result::Result<Self> {
     if element.name.as_str() == "Subsection" {
-      let num = get_attribute(element, "Num")?;
+      let num_str = get_attribute(element, "Num")?;
+      let num = parse_article_number_from_num_str("款", &num_str)?;
       let delete = get_attribute_opt_with_parse(element, "Delete")?.unwrap_or(false);
       let hide = get_attribute_opt_with_parse(element, "Hide")?.unwrap_or(false);
       let mut children = element.children.iter();
@@ -398,7 +424,7 @@ impl Parser for Subsection {
           }
         }
       }
-      Ok(Subsection::new(title, &num, delete, hide, children_list))
+      Ok(Subsection::new(title, num, delete, hide, children_list))
     } else {
       Err(Error::wrong_tag_name(element, "Subsection"))
     }
@@ -423,7 +449,8 @@ impl ToXmlElement for Subsection {
         }
       }
     }
-    e.attributes.insert("Num".to_string(), self.num.clone());
+    e.attributes
+      .insert("Num".to_string(), self.num.num_str.clone());
     if self.delete {
       e.attributes
         .insert("Delete".to_string(), self.delete.to_string());
@@ -447,17 +474,23 @@ pub enum SubsectionContents {
 pub struct Division {
   pub division_title: Text,
   pub children: Vec<Article>,
-  pub num: String,
+  pub num: ArticleNumber,
   pub delete: bool,
   pub hide: bool,
 }
 
 impl Division {
-  fn new(title: Text, num: &str, delete: bool, hide: bool, children: Vec<Article>) -> Self {
+  fn new(
+    title: Text,
+    num: ArticleNumber,
+    delete: bool,
+    hide: bool,
+    children: Vec<Article>,
+  ) -> Self {
     Division {
       division_title: title,
       children,
-      num: num.to_string(),
+      num,
       delete,
       hide,
     }
@@ -467,7 +500,8 @@ impl Division {
 impl Parser for Division {
   fn parser(element: &Element) -> result::Result<Self> {
     if element.name.as_str() == "Division" {
-      let num = get_attribute(element, "Num")?;
+      let num_str = get_attribute(element, "Num")?;
+      let num = parse_article_number_from_num_str("目", &num_str)?;
       let delete = get_attribute_opt_with_parse(element, "Delete")?.unwrap_or(false);
       let hide = get_attribute_opt_with_parse(element, "Hide")?.unwrap_or(false);
       let mut children = element.children.iter();
@@ -502,7 +536,7 @@ impl Parser for Division {
           }
         }
       }
-      Ok(Division::new(title, &num, delete, hide, children_list))
+      Ok(Division::new(title, num, delete, hide, children_list))
     } else {
       Err(Error::wrong_tag_name(element, "Division"))
     }
@@ -520,7 +554,8 @@ impl ToXmlElement for Division {
     for v in self.children.iter() {
       e.children.push(XMLNode::Element(v.to_xml_element()));
     }
-    e.attributes.insert("Num".to_string(), self.num.clone());
+    e.attributes
+      .insert("Num".to_string(), self.num.num_str.clone());
     if self.delete {
       e.attributes
         .insert("Delete".to_string(), self.delete.to_string());
@@ -540,7 +575,7 @@ pub struct Article {
   pub title: Text,
   pub paragraph: Vec<Paragraph>,
   pub suppl_note: Option<Text>,
-  pub num: String,
+  pub num: ArticleNumber,
   pub delete: bool,
   pub hide: bool,
 }
@@ -548,7 +583,7 @@ pub struct Article {
 impl Article {
   fn new(
     title: Text,
-    num: &str,
+    num: ArticleNumber,
     delete: bool,
     hide: bool,
     caption: Option<Caption>,
@@ -560,7 +595,7 @@ impl Article {
       title,
       paragraph,
       suppl_note,
-      num: num.to_string(),
+      num,
       delete,
       hide,
     }
@@ -570,7 +605,8 @@ impl Article {
 impl Parser for Article {
   fn parser(element: &Element) -> result::Result<Self> {
     if element.name.as_str() == "Article" {
-      let num = get_attribute(element, "Num")?;
+      let num_str = get_attribute(element, "Num")?;
+      let num = parse_article_number_from_num_str("条", &num_str)?;
       let delete = get_attribute_opt_with_parse(element, "Delete")?.unwrap_or(false);
       let hide = get_attribute_opt_with_parse(element, "Hide")?.unwrap_or(false);
       let mut children = element.children.iter().peekable();
@@ -613,7 +649,7 @@ impl Parser for Article {
         }
       }
       Ok(Article::new(
-        title, &num, delete, hide, caption, paragraph, suppl_note,
+        title, num, delete, hide, caption, paragraph, suppl_note,
       ))
     } else {
       Err(Error::wrong_tag_name(element, "Article"))
@@ -640,7 +676,8 @@ impl ToXmlElement for Article {
         suppl_note.to_xml_element_with_name("SupplNote"),
       ));
     }
-    e.attributes.insert("Num".to_string(), self.num.to_string());
+    e.attributes
+      .insert("Num".to_string(), self.num.num_str.clone());
     if self.delete {
       e.attributes
         .insert("Delete".to_string(), self.delete.to_string());
