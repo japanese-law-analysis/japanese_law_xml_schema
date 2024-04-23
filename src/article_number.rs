@@ -1,6 +1,7 @@
 //! 枝番号にも対応した条番号
 //!
 
+use crate::result::*;
 use kansuji::Kansuji;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
@@ -15,15 +16,34 @@ pub struct ArticleNumber {
   pub base_number: usize,
   /// 枝番号
   pub eda_numbers: Vec<usize>,
+  /// 範囲を持っていた場合の終わりの箇所 空の場合は範囲ではない
+  pub range_end_numbers: Vec<usize>,
+}
+
+impl ArticleNumber {
+  pub fn zero() -> Self {
+    ArticleNumber {
+      str: String::new(),
+      num_str: String::new(),
+      base_number: 0,
+      eda_numbers: Vec::new(),
+      range_end_numbers: Vec::new(),
+    }
+  }
+
+  pub fn is_zero(&self) -> bool {
+    self.base_number == 0
+  }
 }
 
 pub fn parse_article_number(str: &str) -> Option<(ArticleNumber, String)> {
-  let re_article = Regex::new(r"^(?<str>第((?<arabic_num>[0-9]+)|(?<zenkaku_num>[０-９]+)|(?<kansuji>[一二三四五六七八九十百千]+))(?<suffix>(編|章|節|款|目|条))(?<eda_str>(の([0-9]+|[０-９]+|[一二三四五六七八九十百千]+))*))([　\s]*)(?<text>(.+))$").unwrap();
+  let re_article = Regex::new(r"^(?<str>第((?<arabic_num>[0-9]+)|(?<zenkaku_num>[０-９]+)|(?<kansuji>[一二三四五六七八九十百千]+))(?<suffix>(編|章|節|款|目|条))(?<eda_str>(の([0-9]+|[０-９]+|[一二三四五六七八九十百千]+))*)(から(第((?<arabic_num_2>[0-9]+)|(?<zenkaku_num_2>[０-９]+)|(?<kansuji_2>[一二三四五六七八九十百千]+))(?<suffix_2>(編|章|節|款|目|条))(?<eda_str_2>(の([0-9]+|[０-９]+|[一二三四五六七八九十百千]+))*))まで)?)([　\s]*)(?<text>(.+))$").unwrap();
   let re_paragraph = Regex::new(
     r"^(?<str>(?<num>([０-９]+|[0-9]+))(?<eda_str>(の([０-９]+|[0-9]+))*))([　\s]*)(?<text>(.+))$",
   )
   .unwrap();
   if let Some(caps) = re_article.captures(str) {
+    // 編-条
     let base_number = if let Some(arabic_num) = caps.name("arabic_num") {
       arabic_num.as_str().parse::<usize>().unwrap()
     } else if let Some(zenkaku_num) = caps.name("zenkaku_num") {
@@ -54,6 +74,44 @@ pub fn parse_article_number(str: &str) -> Option<(ArticleNumber, String)> {
     for n in eda_numbers.iter() {
       num_str.push_str(&format!("_{n}"))
     }
+    let mut range_end_numbers = Vec::new();
+    if let Some(arabic_num) = caps.name("arabic_num_2") {
+      range_end_numbers.push(arabic_num.as_str().parse::<usize>().unwrap())
+    } else if let Some(zenkaku_num) = caps.name("zenkaku_num_2") {
+      range_end_numbers.push(parse_zenkaku_num(zenkaku_num.as_str()).unwrap())
+    } else if let Some(kansuji) = caps.name("kansuji_2") {
+      let kansuji = Kansuji::try_from(kansuji.as_str()).unwrap();
+      let n: u128 = kansuji.into();
+      range_end_numbers.push(n as usize)
+    };
+    if let Some(s) = &caps.name("eda_str_2") {
+      let eda_numbers_2 = s
+        .as_str()
+        .split('の')
+        .filter(|s| !s.is_empty())
+        .collect::<Vec<_>>();
+      for s in eda_numbers_2.iter() {
+        if let Ok(n) = s.parse::<usize>() {
+          range_end_numbers.push(n);
+        } else if let Some(n) = parse_zenkaku_num(s) {
+          range_end_numbers.push(n);
+        } else {
+          let kansuji = Kansuji::try_from(*s).unwrap();
+          let n: u128 = kansuji.into();
+          range_end_numbers.push(n as usize);
+        }
+      }
+    }
+    if !range_end_numbers.is_empty() {
+      let l = range_end_numbers.clone();
+      let mut l = l.iter();
+      num_str.push(':');
+      num_str.push_str(&l.next().unwrap().to_string());
+      for n in l {
+        num_str.push('_');
+        num_str.push_str(&n.to_string());
+      }
+    }
     let str = caps["str"].to_string();
     let text = caps["text"].to_string();
     Some((
@@ -62,10 +120,12 @@ pub fn parse_article_number(str: &str) -> Option<(ArticleNumber, String)> {
         num_str,
         base_number,
         eda_numbers: eda_numbers.clone(),
+        range_end_numbers,
       },
       text,
     ))
   } else if let Some(caps) = re_paragraph.captures(str) {
+    // 段落
     let base_number = if let Ok(n) = &caps["num"].parse::<usize>() {
       *n
     } else {
@@ -94,11 +154,94 @@ pub fn parse_article_number(str: &str) -> Option<(ArticleNumber, String)> {
         num_str,
         base_number,
         eda_numbers: eda_numbers.clone(),
+        range_end_numbers: Vec::new(), // TODO
       },
       text,
     ))
   } else {
     None
+  }
+}
+
+pub fn parse_article_number_from_num_str(suffix: &str, num_str: &str) -> Result<ArticleNumber> {
+  let mut num_s_lst = num_str.split(':');
+  let num_str = num_s_lst.next().unwrap();
+  let n_lst = num_str.split('_').map(|s| {
+    s.parse::<usize>()
+      .map_err(|_| Error::ParsingError("usize".to_string(), s.to_string()))
+  });
+  let mut base_number = None;
+  let mut eda_numbers = Vec::new();
+  for res in n_lst {
+    match res {
+      Ok(n) => {
+        if base_number.is_none() {
+          base_number = Some(n);
+        } else {
+          eda_numbers.push(n);
+        }
+      }
+      Err(e) => return Err(e),
+    }
+  }
+  if let Some(base_number) = base_number {
+    let base_kansuji = Kansuji::from(base_number);
+    let mut str = format!("第{}{suffix}", base_kansuji.to_string());
+    if !eda_numbers.is_empty() {
+      let s = eda_numbers
+        .iter()
+        .map(|n| {
+          let kansuji = Kansuji::from(n);
+          kansuji.to_string()
+        })
+        .collect::<Vec<String>>()
+        .join("の");
+      str.push('の');
+      str.push_str(&s);
+    }
+
+    let mut range_end_numbers = Vec::new();
+    if let Some(s) = num_s_lst.next() {
+      let n_lst = s.split('_').map(|s| {
+        s.parse::<usize>()
+          .map_err(|_| Error::ParsingError("usize".to_string(), s.to_string()))
+      });
+      for res in n_lst {
+        match res {
+          Ok(n) => range_end_numbers.push(n),
+          Err(e) => return Err(e),
+        }
+      }
+      if !range_end_numbers.is_empty() {
+        let l = range_end_numbers.clone();
+        let mut l = l.iter();
+        str.push_str("から");
+        str.push_str(&format!("第{}{suffix}", l.next().unwrap()));
+
+        let s = l
+          .map(|n| {
+            let kansuji = Kansuji::from(n);
+            kansuji.to_string()
+          })
+          .collect::<Vec<String>>()
+          .join("の");
+        str.push('の');
+        str.push_str(&s);
+        str.push_str("まで");
+      }
+    }
+    Ok(ArticleNumber {
+      str,
+      num_str: num_str.to_string(),
+      base_number,
+      eda_numbers,
+      range_end_numbers,
+    })
+  } else {
+    Err(Error::ParsingError(
+      "ArticleNumber".to_string(),
+      num_str.to_string(),
+    ))
   }
 }
 
