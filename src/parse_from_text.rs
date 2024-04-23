@@ -988,32 +988,32 @@ fn check_parse_line_contents_1() {
   assert_eq!(
     r,
     vec![
-      LineContents::Part(ArticleNumber { str: "第一編".to_string(), num_str: "1".to_string(), base_number: 1, eda_numbers: Vec::new() }, "総則".to_string()),
-      LineContents::Chapter(ArticleNumber { str: "第一章".to_string(), num_str: "1".to_string(), base_number: 1, eda_numbers: Vec::new() }, "通則".to_string()),
+      LineContents::Part(ArticleNumber { str: "第一編".to_string(), num_str: "1".to_string(), base_number: 1, eda_numbers: Vec::new(), range_end_numbers: Vec::new() }, "総則".to_string()),
+      LineContents::Chapter(ArticleNumber { str: "第一章".to_string(), num_str: "1".to_string(), base_number: 1, eda_numbers: Vec::new(), range_end_numbers: Vec::new() }, "通則".to_string()),
       LineContents::Caption("基本原則".to_string()),
       LineContents::Article(
-        ArticleNumber { str: "第一条".to_string(), num_str: "1".to_string(), base_number: 1, eda_numbers: Vec::new() },
+        ArticleNumber { str: "第一条".to_string(), num_str: "1".to_string(), base_number: 1, eda_numbers: Vec::new(), range_end_numbers: Vec::new() },
         "私権は、公共の福祉に適合しなければならない。".to_string()
       ),
       LineContents::Paragraph(
-        ArticleNumber { str: "２".to_string(), num_str: "2".to_string(), base_number: 2, eda_numbers: Vec::new() },
+        ArticleNumber { str: "２".to_string(), num_str: "2".to_string(), base_number: 2, eda_numbers: Vec::new(), range_end_numbers: Vec::new() },
         "権利の行使及び義務の履行は、信義に従い誠実に行わなければならない。".to_string()
       ),
-      LineContents::Paragraph(ArticleNumber { str: "３".to_string(), num_str: "3".to_string(), base_number: 3, eda_numbers: Vec::new() }, "権利の濫用は、これを許さない。".to_string()),
+      LineContents::Paragraph(ArticleNumber { str: "３".to_string(), num_str: "3".to_string(), base_number: 3, eda_numbers: Vec::new(), range_end_numbers: Vec::new() }, "権利の濫用は、これを許さない。".to_string()),
       LineContents::Caption("解釈の基準".to_string()),
       LineContents::Article(
-        ArticleNumber { str: "第二条の二".to_string(), num_str: "2_2".to_string(), base_number: 2, eda_numbers: vec![2] },
+        ArticleNumber { str: "第二条の二".to_string(), num_str: "2_2".to_string(), base_number: 2, eda_numbers: vec![2], range_end_numbers: Vec::new() },
         "この法律は、個人の尊厳と両性の本質的平等を旨として、解釈しなければならない。".to_string()
       ),
       LineContents::Article(
-        ArticleNumber { str: "第十三条".to_string(), num_str: "13".to_string(), base_number: 13, eda_numbers: Vec::new() },
+        ArticleNumber { str: "第十三条".to_string(), num_str: "13".to_string(), base_number: 13, eda_numbers: Vec::new(), range_end_numbers: Vec::new() },
         "被保佐人が次に掲げる行為をするには、その保佐人の同意を得なければならない。ただし、第九条ただし書に規定する行為については、この限りでない。".to_string()
       ),
       LineContents::Item(ItemNumber{pattern: NoParenKansuji, number:1, str: "一".to_string()}, "元本を領収し、又は利用すること。".to_string()),
       LineContents::Item(ItemNumber{pattern: NoParenKansuji, number:2, str: "二".to_string()}, "主たる債務者が法人である場合の次に掲げる者".to_string()),
       LineContents::Item(ItemNumber{pattern: NoParenIrohaKatakana, number:1, str: "イ".to_string()}, "主たる債務者の総株主の議決権（株主総会において決議をすることができる事項の全部につき議決権を行使することができない株式についての議決権を除く。以下この号において同じ。）の過半数を有する者".to_string()),
       LineContents::Item(ItemNumber{pattern: NoParenKansuji, number:3, str: "三".to_string()}, "不動産その他重要な財産に関する権利の得喪を目的とする行為をすること。".to_string()),
-      LineContents::Paragraph(ArticleNumber { str: "２".to_string(), num_str: "2".to_string(), base_number: 2, eda_numbers: Vec::new() }, "家庭裁判所は、第十一条本文に規定する者又は保佐人若しくは保佐監督人の請求により、被保佐人が前項各号に掲げる行為以外の行為をする場合であってもその保佐人の同意を得なければならない旨の審判をすることができる。ただし、第九条ただし書に規定する行為については、この限りでない。".to_string()),
+      LineContents::Paragraph(ArticleNumber { str: "２".to_string(), num_str: "2".to_string(), base_number: 2, eda_numbers: Vec::new(), range_end_numbers: Vec::new() }, "家庭裁判所は、第十一条本文に規定する者又は保佐人若しくは保佐監督人の請求により、被保佐人が前項各号に掲げる行為以外の行為をする場合であってもその保佐人の同意を得なければならない旨の審判をすることができる。ただし、第九条ただし書に規定する行為については、この限りでない。".to_string()),
     ]
   )
 }
@@ -1115,7 +1115,7 @@ fn check_parse_body_1() {
               }
             ],
             suppl_note: None,
-            num: article_number::ArticleNumber{str: "第一条".to_string(),num_str: "1".to_string(), base_number: 1, eda_numbers: Vec::new()},
+            num: article_number::ArticleNumber{str: "第一条".to_string(),num_str: "1".to_string(), base_number: 1, eda_numbers: Vec::new(), range_end_numbers: Vec::new()},
             delete: false,
             hide: false
           }),
@@ -1148,7 +1148,7 @@ fn check_parse_body_1() {
               hide: false,
             }],
             suppl_note: None,
-            num: article_number::ArticleNumber{str: "第二条".to_string(),num_str: "2".to_string(), base_number: 2, eda_numbers: Vec::new()},
+            num: article_number::ArticleNumber{str: "第二条".to_string(),num_str: "2".to_string(), base_number: 2, eda_numbers: Vec::new(), range_end_numbers: Vec::new()},
             delete: false,
             hide: false
           }),
@@ -1237,16 +1237,16 @@ fn check_parse_body_1() {
               hide: false,
             }],
             suppl_note: None,
-            num: article_number::ArticleNumber{str: "第十三条".to_string(),num_str: "13".to_string(), base_number: 13, eda_numbers: Vec::new()},
+            num: article_number::ArticleNumber{str: "第十三条".to_string(),num_str: "13".to_string(), base_number: 13, eda_numbers: Vec::new(), range_end_numbers: Vec::new()},
             delete: false,
             hide: false
           }),
         ],
-        num: article_number::ArticleNumber{str: "第一章".to_string(),num_str: "1".to_string(), base_number: 1, eda_numbers: Vec::new()},
+        num: article_number::ArticleNumber{str: "第一章".to_string(),num_str: "1".to_string(), base_number: 1, eda_numbers: Vec::new(), range_end_numbers: Vec::new()},
         delete: false,
         hide: false
       }),],
-      num: article_number::ArticleNumber{str: "第一編".to_string(),num_str: "1".to_string(), base_number: 1, eda_numbers: Vec::new()},
+      num: article_number::ArticleNumber{str: "第一編".to_string(),num_str: "1".to_string(), base_number: 1, eda_numbers: Vec::new(), range_end_numbers: Vec::new()},
       delete: false,
       hide: false
     })]

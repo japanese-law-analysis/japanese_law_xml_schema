@@ -16,6 +16,8 @@ pub struct ArticleNumber {
   pub base_number: usize,
   /// 枝番号
   pub eda_numbers: Vec<usize>,
+  /// 範囲を持っていた場合の終わりの箇所 空の場合は範囲ではない
+  pub range_end_numbers: Vec<usize>,
 }
 
 pub fn parse_article_number(str: &str) -> Option<(ArticleNumber, String)> {
@@ -63,6 +65,7 @@ pub fn parse_article_number(str: &str) -> Option<(ArticleNumber, String)> {
         num_str,
         base_number,
         eda_numbers: eda_numbers.clone(),
+        range_end_numbers: Vec::new(), // TODO
       },
       text,
     ))
@@ -95,6 +98,7 @@ pub fn parse_article_number(str: &str) -> Option<(ArticleNumber, String)> {
         num_str,
         base_number,
         eda_numbers: eda_numbers.clone(),
+        range_end_numbers: Vec::new(), // TODO
       },
       text,
     ))
@@ -104,6 +108,8 @@ pub fn parse_article_number(str: &str) -> Option<(ArticleNumber, String)> {
 }
 
 pub fn parse_article_number_from_num_str(suffix: &str, num_str: &str) -> Result<ArticleNumber> {
+  let mut num_s_lst = num_str.split(':');
+  let num_str = num_s_lst.next().unwrap();
   let n_lst = num_str.split('_').map(|s| {
     s.parse::<usize>()
       .map_err(|_| Error::ParsingError("usize".to_string(), s.to_string()))
@@ -133,15 +139,47 @@ pub fn parse_article_number_from_num_str(suffix: &str, num_str: &str) -> Result<
           kansuji.to_string()
         })
         .collect::<Vec<String>>()
-        .join("_");
-      str.push('_');
+        .join("の");
+      str.push('の');
       str.push_str(&s);
+    }
+
+    let mut range_end_numbers = Vec::new();
+    if let Some(s) = num_s_lst.next() {
+      let n_lst = s.split('_').map(|s| {
+        s.parse::<usize>()
+          .map_err(|_| Error::ParsingError("usize".to_string(), s.to_string()))
+      });
+      for res in n_lst {
+        match res {
+          Ok(n) => range_end_numbers.push(n),
+          Err(e) => return Err(e),
+        }
+      }
+      if !range_end_numbers.is_empty() {
+        let l = range_end_numbers.clone();
+        let mut l = l.iter();
+        str.push_str("から");
+        str.push_str(&format!("第{}{suffix}", l.next().unwrap()));
+
+        let s = l
+          .map(|n| {
+            let kansuji = Kansuji::from(n);
+            kansuji.to_string()
+          })
+          .collect::<Vec<String>>()
+          .join("の");
+        str.push('の');
+        str.push_str(&s);
+        str.push_str("まで");
+      }
     }
     Ok(ArticleNumber {
       str,
       num_str: num_str.to_string(),
       base_number,
       eda_numbers,
+      range_end_numbers,
     })
   } else {
     Err(Error::ParsingError(
