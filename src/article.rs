@@ -43,7 +43,7 @@ impl Parser for Part {
   fn parser(element: &Element) -> result::Result<Self> {
     if element.name.as_str() == "Part" {
       let num_str = get_attribute(element, "Num")?;
-      let num = parse_article_number_from_num_str("部", &num_str)?;
+      let num = ArticleNumber::from_num_str(&num_str)?;
       let delete = get_attribute_opt_with_parse(element, "Delete")?.unwrap_or(false);
       let hide = get_attribute_opt_with_parse(element, "Hide")?.unwrap_or(false);
       let mut children = element.children.iter();
@@ -106,7 +106,7 @@ impl ToXmlElement for Part {
       }
     }
     e.attributes
-      .insert("Num".to_string(), self.num.num_str.clone());
+      .insert("Num".to_string(), self.num.num_str().clone());
     if self.delete {
       e.attributes
         .insert("Delete".to_string(), self.delete.to_string());
@@ -157,7 +157,7 @@ impl Parser for Chapter {
   fn parser(element: &Element) -> result::Result<Self> {
     if element.name.as_str() == "Chapter" {
       let num_str = get_attribute(element, "Num")?;
-      let num = parse_article_number_from_num_str("章", &num_str)?;
+      let num = ArticleNumber::from_num_str(&num_str)?;
       let delete = get_attribute_opt_with_parse(element, "Delete")?.unwrap_or(false);
       let hide = get_attribute_opt_with_parse(element, "Hide")?.unwrap_or(false);
       let mut children = element.children.iter();
@@ -220,7 +220,7 @@ impl ToXmlElement for Chapter {
       }
     }
     e.attributes
-      .insert("Num".to_string(), self.num.num_str.clone());
+      .insert("Num".to_string(), self.num.num_str().clone());
     if self.delete {
       e.attributes
         .insert("Delete".to_string(), self.delete.to_string());
@@ -271,7 +271,7 @@ impl Parser for Section {
   fn parser(element: &Element) -> result::Result<Self> {
     if element.name.as_str() == "Section" {
       let num_str = get_attribute(element, "Num")?;
-      let num = parse_article_number_from_num_str("節", &num_str)?;
+      let num = ArticleNumber::from_num_str(&num_str)?;
       let delete = get_attribute_opt_with_parse(element, "Delete")?.unwrap_or(false);
       let hide = get_attribute_opt_with_parse(element, "Hide")?.unwrap_or(false);
       let mut children = element.children.iter();
@@ -334,7 +334,7 @@ impl ToXmlElement for Section {
       }
     }
     e.attributes
-      .insert("Num".to_string(), self.num.num_str.clone());
+      .insert("Num".to_string(), self.num.num_str().clone());
     if self.delete {
       e.attributes
         .insert("Delete".to_string(), self.delete.to_string());
@@ -385,7 +385,7 @@ impl Parser for Subsection {
   fn parser(element: &Element) -> result::Result<Self> {
     if element.name.as_str() == "Subsection" {
       let num_str = get_attribute(element, "Num")?;
-      let num = parse_article_number_from_num_str("款", &num_str)?;
+      let num = ArticleNumber::from_num_str(&num_str)?;
       let delete = get_attribute_opt_with_parse(element, "Delete")?.unwrap_or(false);
       let hide = get_attribute_opt_with_parse(element, "Hide")?.unwrap_or(false);
       let mut children = element.children.iter();
@@ -450,7 +450,7 @@ impl ToXmlElement for Subsection {
       }
     }
     e.attributes
-      .insert("Num".to_string(), self.num.num_str.clone());
+      .insert("Num".to_string(), self.num.num_str().clone());
     if self.delete {
       e.attributes
         .insert("Delete".to_string(), self.delete.to_string());
@@ -501,7 +501,7 @@ impl Parser for Division {
   fn parser(element: &Element) -> result::Result<Self> {
     if element.name.as_str() == "Division" {
       let num_str = get_attribute(element, "Num")?;
-      let num = parse_article_number_from_num_str("目", &num_str)?;
+      let num = ArticleNumber::from_num_str(&num_str)?;
       let delete = get_attribute_opt_with_parse(element, "Delete")?.unwrap_or(false);
       let hide = get_attribute_opt_with_parse(element, "Hide")?.unwrap_or(false);
       let mut children = element.children.iter();
@@ -555,7 +555,7 @@ impl ToXmlElement for Division {
       e.children.push(XMLNode::Element(v.to_xml_element()));
     }
     e.attributes
-      .insert("Num".to_string(), self.num.num_str.clone());
+      .insert("Num".to_string(), self.num.num_str().clone());
     if self.delete {
       e.attributes
         .insert("Delete".to_string(), self.delete.to_string());
@@ -606,7 +606,7 @@ impl Parser for Article {
   fn parser(element: &Element) -> result::Result<Self> {
     if element.name.as_str() == "Article" {
       let num_str = get_attribute(element, "Num")?;
-      let num = parse_article_number_from_num_str("条", &num_str)?;
+      let num = ArticleNumber::from_num_str(&num_str)?;
       let delete = get_attribute_opt_with_parse(element, "Delete")?.unwrap_or(false);
       let hide = get_attribute_opt_with_parse(element, "Hide")?.unwrap_or(false);
       let mut children = element.children.iter().peekable();
@@ -677,7 +677,7 @@ impl ToXmlElement for Article {
       ));
     }
     e.attributes
-      .insert("Num".to_string(), self.num.num_str.clone());
+      .insert("Num".to_string(), self.num.num_str().clone());
     if self.delete {
       e.attributes
         .insert("Delete".to_string(), self.delete.to_string());
