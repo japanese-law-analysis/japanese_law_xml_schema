@@ -9,7 +9,7 @@ mod write {
     let law = parse_xml_file("src/tests/129AC0000000089_20230614_505AC0000000053.xml").unwrap();
     let s = to_xml(&law).unwrap();
     println!("{s}");
-    let law2 = parse_xml(&s.as_bytes()).unwrap();
+    let law2 = parse_xml(s.as_bytes()).unwrap();
     let main = &law2.law_body.main_provision.children[0];
     match &main {
       &MainProvisionContents::Part(v) => match &v.children[0] {

@@ -1,10 +1,11 @@
+use crate::article_number::*;
 use crate::result::*;
 use crate::*;
 use article_number::ItemPattern;
 use regex::Regex;
 
 fn parse_part(
-  n: &article_number::ArticleNumber,
+  n: &ArticleNumber,
   title: &str,
   lines: &mut std::iter::Peekable<std::slice::Iter<LineContents>>,
 ) -> article::Part {
@@ -45,7 +46,7 @@ fn parse_part(
 }
 
 fn parse_chapter(
-  n: &article_number::ArticleNumber,
+  n: &ArticleNumber,
   title: &str,
   lines: &mut std::iter::Peekable<std::slice::Iter<LineContents>>,
 ) -> article::Chapter {
@@ -86,7 +87,7 @@ fn parse_chapter(
 }
 
 fn parse_section(
-  n: &article_number::ArticleNumber,
+  n: &ArticleNumber,
   title: &str,
   lines: &mut std::iter::Peekable<std::slice::Iter<LineContents>>,
 ) -> article::Section {
@@ -127,7 +128,7 @@ fn parse_section(
 }
 
 fn parse_subsection(
-  n: &article_number::ArticleNumber,
+  n: &ArticleNumber,
   title: &str,
   lines: &mut std::iter::Peekable<std::slice::Iter<LineContents>>,
 ) -> article::Subsection {
@@ -168,7 +169,7 @@ fn parse_subsection(
 }
 
 fn parse_division(
-  n: &article_number::ArticleNumber,
+  n: &ArticleNumber,
   title: &str,
   lines: &mut std::iter::Peekable<std::slice::Iter<LineContents>>,
 ) -> article::Division {
@@ -204,7 +205,7 @@ fn parse_division(
 
 fn parse_article(
   caption_opt: Option<&String>,
-  n: &article_number::ArticleNumber,
+  n: &ArticleNumber,
   text: &str,
   lines: &mut std::iter::Peekable<std::slice::Iter<LineContents>>,
 ) -> article::Article {
@@ -212,11 +213,11 @@ fn parse_article(
     text: text::Text::from_value(s),
     common_caption: None,
   });
-  let para = parse_paragraph(1, text, lines);
+  let para = parse_paragraph(&ArticleNumber::from_num_str("1").unwrap(), text, lines);
   let mut paragraph = vec![para];
   while let Some(LineContents::Paragraph(n, text)) = lines.peek() {
     lines.next();
-    let para = parse_paragraph(n.base_number, text, lines);
+    let para = parse_paragraph(n, text, lines);
     paragraph.push(para)
   }
   let article = article::Article {
@@ -232,7 +233,7 @@ fn parse_article(
 }
 
 fn parse_paragraph(
-  n: usize,
+  n: &ArticleNumber,
   text: &str,
   lines: &mut std::iter::Peekable<std::slice::Iter<LineContents>>,
 ) -> paragraph::Paragraph {
@@ -272,7 +273,7 @@ fn parse_paragraph(
       ),
       children: subitem1,
       struct_list: Vec::new(),
-      num: item_number.number.to_string(),
+      num: ArticleNumber::from_item_number(item_number),
       delete: text.trim() == "削除" || text.trim() == "（削除）",
       hide: false,
     };
@@ -287,7 +288,7 @@ fn parse_paragraph(
     sentence,
     struct_list: Vec::new(),
     children,
-    num: n,
+    num: n.clone(),
     old_style: false,
     old_num: false,
     hide: false,
@@ -327,7 +328,7 @@ fn parse_subitem1(
         ),
         children: subitem2,
         struct_list: Vec::new(),
-        num: item_number.number.to_string(),
+        num: ArticleNumber::from_item_number(item_number),
         delete: text.trim() == "削除" || text.trim() == "（削除）",
         hide: false,
       })
@@ -371,7 +372,7 @@ fn parse_subitem2(
         ),
         children: subitem3,
         struct_list: Vec::new(),
-        num: item_number.number.to_string(),
+        num: ArticleNumber::from_item_number(item_number),
         delete: text.trim() == "削除" || text.trim() == "（削除）",
         hide: false,
       })
@@ -415,7 +416,7 @@ fn parse_subitem3(
         ),
         children: subitem4,
         struct_list: Vec::new(),
-        num: item_number.number.to_string(),
+        num: ArticleNumber::from_item_number(item_number),
         delete: text.trim() == "削除" || text.trim() == "（削除）",
         hide: false,
       })
@@ -459,7 +460,7 @@ fn parse_subitem4(
         ),
         children: subitem5,
         struct_list: Vec::new(),
-        num: item_number.number.to_string(),
+        num: ArticleNumber::from_item_number(item_number),
         delete: text.trim() == "削除" || text.trim() == "（削除）",
         hide: false,
       })
@@ -503,7 +504,7 @@ fn parse_subitem5(
         ),
         children: subitem6,
         struct_list: Vec::new(),
-        num: item_number.number.to_string(),
+        num: ArticleNumber::from_item_number(item_number),
         delete: text.trim() == "削除" || text.trim() == "（削除）",
         hide: false,
       })
@@ -547,7 +548,7 @@ fn parse_subitem6(
         ),
         children: subitem7,
         struct_list: Vec::new(),
-        num: item_number.number.to_string(),
+        num: ArticleNumber::from_item_number(item_number),
         delete: text.trim() == "削除" || text.trim() == "（削除）",
         hide: false,
       })
@@ -591,7 +592,7 @@ fn parse_subitem7(
         ),
         children: subitem8,
         struct_list: Vec::new(),
-        num: item_number.number.to_string(),
+        num: ArticleNumber::from_item_number(item_number),
         delete: text.trim() == "削除" || text.trim() == "（削除）",
         hide: false,
       })
@@ -635,7 +636,7 @@ fn parse_subitem8(
         ),
         children: subitem9,
         struct_list: Vec::new(),
-        num: item_number.number.to_string(),
+        num: ArticleNumber::from_item_number(item_number),
         delete: text.trim() == "削除" || text.trim() == "（削除）",
         hide: false,
       })
@@ -679,7 +680,7 @@ fn parse_subitem9(
         ),
         children: subitem10,
         struct_list: Vec::new(),
-        num: item_number.number.to_string(),
+        num: ArticleNumber::from_item_number(item_number),
         delete: text.trim() == "削除" || text.trim() == "（削除）",
         hide: false,
       })
@@ -716,7 +717,7 @@ fn parse_subitem10(
             .collect(),
         ),
         struct_list: Vec::new(),
-        num: item_number.number.to_string(),
+        num: ArticleNumber::from_item_number(item_number),
         delete: text.trim() == "削除" || text.trim() == "（削除）",
         hide: false,
       })
@@ -833,6 +834,11 @@ pub(crate) fn parse_body(title: &str, text: &str) -> Result<law::LawBody> {
       .enumerate()
       .map(|(n, s)| {
         let sentence = text_to_sentence(0, s);
+        let num = ArticleNumber {
+          base_number: n,
+          eda_numbers: Vec::new(),
+          range_end_numbers: Vec::new(),
+        };
         paragraph::Paragraph {
           caption: None,
           paragraph_num: text::Text::new(), // TODO 謎
@@ -841,7 +847,7 @@ pub(crate) fn parse_body(title: &str, text: &str) -> Result<law::LawBody> {
           sentence: vec![sentence],
           struct_list: Vec::new(),
           children: Vec::new(), // TODO
-          num: n,
+          num,
           old_style: false,
           old_num: false,
           hide: false,
@@ -938,25 +944,30 @@ fn parse_line_contents(line: &str) -> LineContents {
     Regex::new(r"^附([　\s]*)則([　\s]*)(（(?<law_num>.+)）)?[^（）]*$").unwrap();
   if let Some(caps) = re_caption.captures(line) {
     Caption(caps["caption"].to_string())
-  } else if let Some((article_number, text)) = article_number::parse_article_number(line) {
-    let s = &article_number.str;
-    if s.contains('編') {
-      Part(article_number, text)
-    } else if s.contains('章') {
-      Chapter(article_number, text)
-    } else if s.contains('節') {
-      Section(article_number, text)
-    } else if s.contains('款') {
-      Subsection(article_number, text)
-    } else if s.contains('目') {
-      Division(article_number, text)
-    } else if s.contains('条') {
-      Article(article_number, text)
+  } else if let Some((s, text)) = split_number(line) {
+    println!("{s}: {text}");
+    if let Some(article_number) = article_number::parse_article_number(&s) {
+      if s.contains('編') {
+        Part(article_number, text)
+      } else if s.contains('章') {
+        Chapter(article_number, text)
+      } else if s.contains('節') {
+        Section(article_number, text)
+      } else if s.contains('款') {
+        Subsection(article_number, text)
+      } else if s.contains('目') {
+        Division(article_number, text)
+      } else if s.contains('条') {
+        Article(article_number, text)
+      } else {
+        Paragraph(article_number, text)
+      }
+    } else if let Some(item_number) = article_number::parse_item_number(&s) {
+      Item(item_number, text)
     } else {
-      Paragraph(article_number, text)
+      println!("text!!!{s}: {text}");
+      Text(line.to_string())
     }
-  } else if let Some((item_number, text)) = article_number::parse_item_number(line) {
-    Item(item_number, text)
   } else if let Some(caps) = re_suppl_provision.captures(line) {
     let law_num = caps.name("law_num").map(|m| m.as_str().to_string());
     SupplProvision(law_num)
@@ -988,32 +999,32 @@ fn check_parse_line_contents_1() {
   assert_eq!(
     r,
     vec![
-      LineContents::Part(ArticleNumber { str: "第一編".to_string(), num_str: "1".to_string(), base_number: 1, eda_numbers: Vec::new(), range_end_numbers: Vec::new() }, "総則".to_string()),
-      LineContents::Chapter(ArticleNumber { str: "第一章".to_string(), num_str: "1".to_string(), base_number: 1, eda_numbers: Vec::new(), range_end_numbers: Vec::new() }, "通則".to_string()),
+      LineContents::Part(ArticleNumber::from_num_str("1").unwrap(), "総則".to_string()),
+      LineContents::Chapter(ArticleNumber::from_num_str("1").unwrap(), "通則".to_string()),
       LineContents::Caption("基本原則".to_string()),
       LineContents::Article(
-        ArticleNumber { str: "第一条".to_string(), num_str: "1".to_string(), base_number: 1, eda_numbers: Vec::new(), range_end_numbers: Vec::new() },
+        ArticleNumber::from_num_str("1").unwrap(),
         "私権は、公共の福祉に適合しなければならない。".to_string()
       ),
       LineContents::Paragraph(
-        ArticleNumber { str: "２".to_string(), num_str: "2".to_string(), base_number: 2, eda_numbers: Vec::new(), range_end_numbers: Vec::new() },
+        ArticleNumber::from_num_str("2").unwrap(),
         "権利の行使及び義務の履行は、信義に従い誠実に行わなければならない。".to_string()
       ),
-      LineContents::Paragraph(ArticleNumber { str: "３".to_string(), num_str: "3".to_string(), base_number: 3, eda_numbers: Vec::new(), range_end_numbers: Vec::new() }, "権利の濫用は、これを許さない。".to_string()),
+      LineContents::Paragraph(ArticleNumber::from_num_str("3").unwrap(), "権利の濫用は、これを許さない。".to_string()),
       LineContents::Caption("解釈の基準".to_string()),
       LineContents::Article(
-        ArticleNumber { str: "第二条の二".to_string(), num_str: "2_2".to_string(), base_number: 2, eda_numbers: vec![2], range_end_numbers: Vec::new() },
+        ArticleNumber::from_num_str("2_2").unwrap(),
         "この法律は、個人の尊厳と両性の本質的平等を旨として、解釈しなければならない。".to_string()
       ),
       LineContents::Article(
-        ArticleNumber { str: "第十三条".to_string(), num_str: "13".to_string(), base_number: 13, eda_numbers: Vec::new(), range_end_numbers: Vec::new() },
+        ArticleNumber::from_num_str("13").unwrap(),
         "被保佐人が次に掲げる行為をするには、その保佐人の同意を得なければならない。ただし、第九条ただし書に規定する行為については、この限りでない。".to_string()
       ),
-      LineContents::Item(ItemNumber{pattern: NoParenKansuji, number:1, str: "一".to_string()}, "元本を領収し、又は利用すること。".to_string()),
-      LineContents::Item(ItemNumber{pattern: NoParenKansuji, number:2, str: "二".to_string()}, "主たる債務者が法人である場合の次に掲げる者".to_string()),
-      LineContents::Item(ItemNumber{pattern: NoParenIrohaKatakana, number:1, str: "イ".to_string()}, "主たる債務者の総株主の議決権（株主総会において決議をすることができる事項の全部につき議決権を行使することができない株式についての議決権を除く。以下この号において同じ。）の過半数を有する者".to_string()),
-      LineContents::Item(ItemNumber{pattern: NoParenKansuji, number:3, str: "三".to_string()}, "不動産その他重要な財産に関する権利の得喪を目的とする行為をすること。".to_string()),
-      LineContents::Paragraph(ArticleNumber { str: "２".to_string(), num_str: "2".to_string(), base_number: 2, eda_numbers: Vec::new(), range_end_numbers: Vec::new() }, "家庭裁判所は、第十一条本文に規定する者又は保佐人若しくは保佐監督人の請求により、被保佐人が前項各号に掲げる行為以外の行為をする場合であってもその保佐人の同意を得なければならない旨の審判をすることができる。ただし、第九条ただし書に規定する行為については、この限りでない。".to_string()),
+      LineContents::Item(ItemNumber{pattern: NoParenKansuji, base_number:1, eda_numbers: Vec::new(), range_end_numbers: Vec::new(), str: "一".to_string()}, "元本を領収し、又は利用すること。".to_string()),
+      LineContents::Item(ItemNumber{pattern: NoParenKansuji, base_number:2, eda_numbers: Vec::new(), range_end_numbers: Vec::new(), str: "二".to_string()}, "主たる債務者が法人である場合の次に掲げる者".to_string()),
+      LineContents::Item(ItemNumber{pattern: NoParenIrohaKatakana, base_number:1, eda_numbers: Vec::new(), range_end_numbers: Vec::new(), str: "イ".to_string()}, "主たる債務者の総株主の議決権（株主総会において決議をすることができる事項の全部につき議決権を行使することができない株式についての議決権を除く。以下この号において同じ。）の過半数を有する者".to_string()),
+      LineContents::Item(ItemNumber{pattern: NoParenKansuji, base_number:3, eda_numbers: Vec::new(), range_end_numbers: Vec::new(), str: "三".to_string()}, "不動産その他重要な財産に関する権利の得喪を目的とする行為をすること。".to_string()),
+      LineContents::Paragraph(ArticleNumber::from_num_str("2").unwrap(), "家庭裁判所は、第十一条本文に規定する者又は保佐人若しくは保佐監督人の請求により、被保佐人が前項各号に掲げる行為以外の行為をする場合であってもその保佐人の同意を得なければならない旨の審判をすることができる。ただし、第九条ただし書に規定する行為については、この限りでない。".to_string()),
     ]
   )
 }
@@ -1065,7 +1076,7 @@ fn check_parse_body_1() {
                 }],
                 struct_list: Vec::new(),
                 children: Vec::new(),
-                num: 1,
+                num: ArticleNumber::from_num_str("1").unwrap(),
                 old_style: false,
                 old_num: false,
                 hide: false,
@@ -1087,7 +1098,7 @@ fn check_parse_body_1() {
                 }],
                 struct_list: Vec::new(),
                 children: Vec::new(),
-                num: 2,
+                num: ArticleNumber::from_num_str("2").unwrap(),
                 old_style: false,
                 old_num: false,
                 hide: false,
@@ -1108,14 +1119,14 @@ fn check_parse_body_1() {
                 }],
                 struct_list: Vec::new(),
                 children: Vec::new(),
-                num: 3,
+                num: ArticleNumber::from_num_str("3").unwrap(),
                 old_style: false,
                 old_num: false,
                 hide: false,
               }
             ],
             suppl_note: None,
-            num: article_number::ArticleNumber{str: "第一条".to_string(),num_str: "1".to_string(), base_number: 1, eda_numbers: Vec::new(), range_end_numbers: Vec::new()},
+            num: article_number::ArticleNumber{base_number: 1, eda_numbers: Vec::new(), range_end_numbers: Vec::new()},
             delete: false,
             hide: false
           }),
@@ -1142,13 +1153,13 @@ fn check_parse_body_1() {
               }],
               struct_list: Vec::new(),
               children: Vec::new(),
-              num: 1,
+              num: ArticleNumber::from_num_str("1").unwrap(),
               old_style: false,
               old_num: false,
               hide: false,
             }],
             suppl_note: None,
-            num: article_number::ArticleNumber{str: "第二条".to_string(),num_str: "2".to_string(), base_number: 2, eda_numbers: Vec::new(), range_end_numbers: Vec::new()},
+            num: ArticleNumber::from_num_str("2").unwrap(),
             delete: false,
             hide: false
           }),
@@ -1177,7 +1188,7 @@ fn check_parse_body_1() {
                   sentence: class::SentenceOrColumnOrTable::Sentence(vec![text_to_sentence(1, "元本を領収し、又は利用すること。")]),
                   children: Vec::new(),
                   struct_list: Vec::new(),
-                  num: "1".to_string(),
+                  num: ArticleNumber::from_num_str("1").unwrap(),
                   delete: false,
                   hide: false
                 },
@@ -1190,13 +1201,13 @@ fn check_parse_body_1() {
                       sentence: class::SentenceOrColumnOrTable::Sentence(vec![text_to_sentence(1, "主たる債務者の総株主の議決権（株主総会において決議をすることができる事項の全部につき議決権を行使することができない株式についての議決権を除く。以下この号において同じ。）の過半数を有する者")]),
                       children: Vec::new(),
                       struct_list: Vec::new(),
-                      num: "1".to_string(),
+                      num: ArticleNumber::from_num_str("1").unwrap(),
                       delete: false,
                       hide: false
                     }
                   ],
                   struct_list: Vec::new(),
-                  num: "2".to_string(),
+                  num: ArticleNumber::from_num_str("2").unwrap(),
                   delete: false,
                   hide: false
                 },
@@ -1205,12 +1216,12 @@ fn check_parse_body_1() {
                   sentence: class::SentenceOrColumnOrTable::Sentence(vec![text_to_sentence(1, "不動産その他重要な財産に関する権利の得喪を目的とする行為をすること。")]),
                   children: Vec::new(),
                   struct_list: Vec::new(),
-                  num: "3".to_string(),
+                  num: ArticleNumber::from_num_str("3").unwrap(),
                   delete: false,
                   hide: false
                 }
               ],
-              num: 1,
+              num: ArticleNumber::from_num_str("1").unwrap(),
               old_style: false,
               old_num: false,
               hide: false,
@@ -1231,22 +1242,22 @@ fn check_parse_body_1() {
               }],
               struct_list: Vec::new(),
               children: Vec::new(),
-              num: 2,
+              num: ArticleNumber::from_num_str("2").unwrap(),
               old_style: false,
               old_num: false,
               hide: false,
             }],
             suppl_note: None,
-            num: article_number::ArticleNumber{str: "第十三条".to_string(),num_str: "13".to_string(), base_number: 13, eda_numbers: Vec::new(), range_end_numbers: Vec::new()},
+            num: ArticleNumber::from_num_str("13").unwrap(),
             delete: false,
             hide: false
           }),
         ],
-        num: article_number::ArticleNumber{str: "第一章".to_string(),num_str: "1".to_string(), base_number: 1, eda_numbers: Vec::new(), range_end_numbers: Vec::new()},
+        num: ArticleNumber::from_num_str("1").unwrap(),
         delete: false,
         hide: false
       }),],
-      num: article_number::ArticleNumber{str: "第一編".to_string(),num_str: "1".to_string(), base_number: 1, eda_numbers: Vec::new(), range_end_numbers: Vec::new()},
+      num: ArticleNumber::from_num_str("1").unwrap(),
       delete: false,
       hide: false
     })]
