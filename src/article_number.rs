@@ -20,6 +20,22 @@ pub struct ArticleNumber {
   pub range_end_numbers: Vec<usize>,
 }
 
+impl ArticleNumber {
+  pub fn zero() -> Self {
+    ArticleNumber {
+      str: String::new(),
+      num_str: String::new(),
+      base_number: 0,
+      eda_numbers: Vec::new(),
+      range_end_numbers: Vec::new(),
+    }
+  }
+
+  pub fn is_zero(&self) -> bool {
+    self.base_number == 0
+  }
+}
+
 pub fn parse_article_number(str: &str) -> Option<(ArticleNumber, String)> {
   let re_article = Regex::new(r"^(?<str>第((?<arabic_num>[0-9]+)|(?<zenkaku_num>[０-９]+)|(?<kansuji>[一二三四五六七八九十百千]+))(?<suffix>(編|章|節|款|目|条))(?<eda_str>(の([0-9]+|[０-９]+|[一二三四五六七八九十百千]+))*)(から(第((?<arabic_num_2>[0-9]+)|(?<zenkaku_num_2>[０-９]+)|(?<kansuji_2>[一二三四五六七八九十百千]+))(?<suffix_2>(編|章|節|款|目|条))(?<eda_str_2>(の([0-9]+|[０-９]+|[一二三四五六七八九十百千]+))*))まで)?)([　\s]*)(?<text>(.+))$").unwrap();
   let re_paragraph = Regex::new(
