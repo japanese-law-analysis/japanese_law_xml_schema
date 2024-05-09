@@ -112,6 +112,23 @@ impl Text {
   }
 }
 
+#[allow(clippy::to_string_trait_impl)]
+impl ToString for Text {
+  fn to_string(&self) -> String {
+    let mut s = String::new();
+    for v in self.contents.iter() {
+      match v {
+        TextElement::Sub(sub) => s.push_str(&sub.text),
+        TextElement::Sup(sup) => s.push_str(&sup.text),
+        TextElement::Ruby(ruby) => s.push_str(&ruby.text.to_string()),
+        TextElement::Line(_) => (),
+        TextElement::Text(str) => s.push_str(str),
+      }
+    }
+    s
+  }
+}
+
 impl Parser for Text {
   fn parser(element: &Element) -> result::Result<Self> {
     let mut text = Text::new();
@@ -209,6 +226,23 @@ impl ToXmlElementWithName for TextWithWritingMode {
         .insert("WritingMode".to_string(), "horizontal".to_string());
     };
     e
+  }
+}
+
+#[allow(clippy::to_string_trait_impl)]
+impl ToString for TextWithWritingMode {
+  fn to_string(&self) -> String {
+    let mut s = String::new();
+    for v in self.contents.iter() {
+      match v {
+        TextElement::Sub(sub) => s.push_str(&sub.text),
+        TextElement::Sup(sup) => s.push_str(&sup.text),
+        TextElement::Ruby(ruby) => s.push_str(&ruby.text.to_string()),
+        TextElement::Line(_) => (),
+        TextElement::Text(str) => s.push_str(str),
+      }
+    }
+    s
   }
 }
 
