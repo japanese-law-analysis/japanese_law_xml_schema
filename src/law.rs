@@ -1,7 +1,10 @@
 //! 法律本体
 
+use std::str::FromStr;
+
 use crate::appdx::*;
 use crate::article::*;
+use crate::article_number::ArticleNumber;
 use crate::list::*;
 use crate::paragraph::*;
 use crate::parser::*;
@@ -26,7 +29,7 @@ pub struct Law {
   /// 制定年
   pub year: usize,
   /// その年で制定された法令の通し番号
-  pub num: usize,
+  pub num: Option<ArticleNumber>,
   /// 公布月
   pub promulgate_month: Option<usize>,
   /// 公布日
@@ -58,9 +61,41 @@ impl Parser for Law {
         }
       };
       let year = get_attribute_with_parse(element, "Year")?;
-      let num = get_attribute_with_parse(element, "Num")?;
-      let promulgate_month = get_attribute_opt_with_parse(element, "PromulgateMonth")?;
-      let promulgate_day = get_attribute_opt_with_parse(element, "PromulgateDay")?;
+      let num_str = element.attributes.get("Num").unwrap();
+      let num = if num_str.is_empty() {
+        None
+      } else {
+        Some(ArticleNumber::from_str(num_str)?)
+      };
+      let promulgate_month_str = element.attributes.get("PromulgateMonth").and_then(|s| {
+        if s.is_empty() {
+          None
+        } else {
+          Some(s)
+        }
+      });
+      let promulgate_month = if let Some(s) = promulgate_month_str {
+        Some(
+          s.parse::<usize>()
+            .map_err(|_| Error::ParsingError("usize".to_string(), s.clone()))?,
+        )
+      } else {
+        None
+      };
+
+      let promulgate_day_str =
+        element
+          .attributes
+          .get("PromulgateDay")
+          .and_then(|s| if s.is_empty() { None } else { Some(s) });
+      let promulgate_day = if let Some(s) = promulgate_day_str {
+        Some(
+          s.parse::<usize>()
+            .map_err(|_| Error::ParsingError("usize".to_string(), s.clone()))?,
+        )
+      } else {
+        None
+      };
       let law_type = match element.attributes.get("LawType").map(|s| s.as_str()) {
         Some("Constitution") => LawType::Constitution,
         Some("Act") => LawType::Act,
@@ -171,7 +206,9 @@ impl ToXmlElement for Law {
     }
     e.attributes
       .insert("Year".to_string(), self.year.to_string());
-    e.attributes.insert("Num".to_string(), self.num.to_string());
+    if let Some(n) = &self.num {
+      e.attributes.insert("Num".to_string(), n.num_str());
+    }
     if let Some(n) = &self.promulgate_month {
       e.attributes
         .insert("PromulgateMonth".to_string(), n.to_string());

@@ -1,13 +1,16 @@
 //! anyとなるようなものをまとめるもの
 
+use crate::appdx::*;
 use crate::fig::*;
 use crate::line::*;
 use crate::list::*;
 use crate::paragraph::*;
 use crate::parser::*;
+use crate::remarks::*;
 use crate::sentence::*;
 use crate::structs::*;
 use crate::table::*;
+use crate::table_of_contents::TOCSection;
 use crate::text::*;
 use crate::to_xml::*;
 use crate::*;
@@ -43,6 +46,22 @@ impl parser::Parser for Contents {
             let v = FigStruct::parser(e)?;
             lst.push(ContentsElement::FigStruct(v));
           }
+          "QuoteStruct" => {
+            let v = QuoteStruct::parser(e)?;
+            lst.push(ContentsElement::QuoteStruct(v));
+          }
+          "NoteStruct" => {
+            let v = NoteStruct::parser(e)?;
+            lst.push(ContentsElement::NoteStruct(v));
+          }
+          "StyleStruct" => {
+            let v = StyleStruct::parser(e)?;
+            lst.push(ContentsElement::StyleStruct(v));
+          }
+          "AppdxTable" => {
+            let v = AppdxTable::parser(e)?;
+            lst.push(ContentsElement::AppdxTable(v));
+          }
           "Ruby" => {
             let v = Ruby::parser(e)?;
             lst.push(ContentsElement::Ruby(v));
@@ -63,6 +82,50 @@ impl parser::Parser for Contents {
             let v = Paragraph::parser(e)?;
             lst.push(ContentsElement::Paragraph(v));
           }
+          "Item" => {
+            let v = Item::parser(e)?;
+            lst.push(ContentsElement::Item(v));
+          }
+          "Subitem1" => {
+            let v = Subitem1::parser(e)?;
+            lst.push(ContentsElement::Subitem1(v));
+          }
+          "Subitem2" => {
+            let v = Subitem2::parser(e)?;
+            lst.push(ContentsElement::Subitem2(v));
+          }
+          "Subitem3" => {
+            let v = Subitem3::parser(e)?;
+            lst.push(ContentsElement::Subitem3(v));
+          }
+          "Subitem4" => {
+            let v = Subitem4::parser(e)?;
+            lst.push(ContentsElement::Subitem4(v));
+          }
+          "Subitem5" => {
+            let v = Subitem5::parser(e)?;
+            lst.push(ContentsElement::Subitem5(v));
+          }
+          "Subitem6" => {
+            let v = Subitem6::parser(e)?;
+            lst.push(ContentsElement::Subitem6(v));
+          }
+          "Subitem7" => {
+            let v = Subitem7::parser(e)?;
+            lst.push(ContentsElement::Subitem7(v));
+          }
+          "Subitem8" => {
+            let v = Subitem8::parser(e)?;
+            lst.push(ContentsElement::Subitem8(v));
+          }
+          "Subitem9" => {
+            let v = Subitem9::parser(e)?;
+            lst.push(ContentsElement::Subitem9(v));
+          }
+          "Subitem10" => {
+            let v = Subitem10::parser(e)?;
+            lst.push(ContentsElement::Subitem10(v));
+          }
           "List" => {
             let v = List::parser(e)?;
             lst.push(ContentsElement::List(v));
@@ -70,6 +133,22 @@ impl parser::Parser for Contents {
           "Sentence" => {
             let v = Sentence::parser(e)?;
             lst.push(ContentsElement::Sentence(v));
+          }
+          "ArithFormula" => {
+            let v = ArithFormula::parser(e)?;
+            lst.push(ContentsElement::ArithFormula(v));
+          }
+          "TOCSection" => {
+            let v = TOCSection::parser(e)?;
+            lst.push(ContentsElement::TOCSection(v));
+          }
+          "Remarks" => {
+            let v = Remarks::parser(e)?;
+            lst.push(ContentsElement::Remarks(v));
+          }
+          "TableRow" => {
+            let v = TableRow::parser(e)?;
+            lst.push(ContentsElement::TableRow(v));
           }
           s => return Err(Error::unexpected_tag(element, s)),
         }
@@ -90,13 +169,32 @@ impl ToXmlElementWithName for Contents {
         ContentsElement::TableStruct(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
         ContentsElement::Fig(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
         ContentsElement::FigStruct(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        ContentsElement::QuoteStruct(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        ContentsElement::NoteStruct(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        ContentsElement::StyleStruct(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        ContentsElement::AppdxTable(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
         ContentsElement::Ruby(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
         ContentsElement::Line(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
         ContentsElement::Sub(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
         ContentsElement::Sup(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
         ContentsElement::Paragraph(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        ContentsElement::Item(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        ContentsElement::Subitem1(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        ContentsElement::Subitem2(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        ContentsElement::Subitem3(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        ContentsElement::Subitem4(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        ContentsElement::Subitem5(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        ContentsElement::Subitem6(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        ContentsElement::Subitem7(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        ContentsElement::Subitem8(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        ContentsElement::Subitem9(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        ContentsElement::Subitem10(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
         ContentsElement::List(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
         ContentsElement::Sentence(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        ContentsElement::ArithFormula(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        ContentsElement::TOCSection(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        ContentsElement::Remarks(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        ContentsElement::TableRow(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
         ContentsElement::String(s) => e.children.push(XMLNode::Text(s.clone())),
       }
     }
@@ -111,14 +209,33 @@ pub enum ContentsElement {
   TableStruct(TableStruct),
   Fig(Fig),
   FigStruct(FigStruct),
-  Ruby(text::Ruby),
-  Line(line::Line),
-  Sup(text::Sup),
-  Sub(text::Sub),
+  QuoteStruct(QuoteStruct),
+  NoteStruct(NoteStruct),
+  StyleStruct(StyleStruct),
+  AppdxTable(AppdxTable),
+  Ruby(Ruby),
+  Line(Line),
+  Sup(Sup),
+  Sub(Sub),
   String(String),
-  Paragraph(paragraph::Paragraph),
-  List(list::List),
-  Sentence(sentence::Sentence),
+  Paragraph(Paragraph),
+  Item(Item),
+  Subitem1(Subitem1),
+  Subitem2(Subitem2),
+  Subitem3(Subitem3),
+  Subitem4(Subitem4),
+  Subitem5(Subitem5),
+  Subitem6(Subitem6),
+  Subitem7(Subitem7),
+  Subitem8(Subitem8),
+  Subitem9(Subitem9),
+  Subitem10(Subitem10),
+  List(List),
+  Sentence(Sentence),
+  ArithFormula(ArithFormula),
+  Remarks(Remarks),
+  TOCSection(TOCSection),
+  TableRow(TableRow),
 }
 
 #[derive(Debug, Clone, Hash, Serialize, Deserialize, PartialEq, Eq)]

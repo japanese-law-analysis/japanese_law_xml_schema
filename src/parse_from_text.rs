@@ -273,7 +273,7 @@ fn parse_paragraph(
       ),
       children: subitem1,
       struct_list: Vec::new(),
-      num: ArticleNumber::from_item_number(item_number),
+      num: Some(ArticleNumber::from_item_number(item_number)),
       delete: text.trim() == "削除" || text.trim() == "（削除）",
       hide: false,
     };
@@ -328,7 +328,7 @@ fn parse_subitem1(
         ),
         children: subitem2,
         struct_list: Vec::new(),
-        num: ArticleNumber::from_item_number(item_number),
+        num: Some(ArticleNumber::from_item_number(item_number)),
         delete: text.trim() == "削除" || text.trim() == "（削除）",
         hide: false,
       })
@@ -372,7 +372,7 @@ fn parse_subitem2(
         ),
         children: subitem3,
         struct_list: Vec::new(),
-        num: ArticleNumber::from_item_number(item_number),
+        num: Some(ArticleNumber::from_item_number(item_number)),
         delete: text.trim() == "削除" || text.trim() == "（削除）",
         hide: false,
       })
@@ -416,7 +416,7 @@ fn parse_subitem3(
         ),
         children: subitem4,
         struct_list: Vec::new(),
-        num: ArticleNumber::from_item_number(item_number),
+        num: Some(ArticleNumber::from_item_number(item_number)),
         delete: text.trim() == "削除" || text.trim() == "（削除）",
         hide: false,
       })
@@ -460,7 +460,7 @@ fn parse_subitem4(
         ),
         children: subitem5,
         struct_list: Vec::new(),
-        num: ArticleNumber::from_item_number(item_number),
+        num: Some(ArticleNumber::from_item_number(item_number)),
         delete: text.trim() == "削除" || text.trim() == "（削除）",
         hide: false,
       })
@@ -504,7 +504,7 @@ fn parse_subitem5(
         ),
         children: subitem6,
         struct_list: Vec::new(),
-        num: ArticleNumber::from_item_number(item_number),
+        num: Some(ArticleNumber::from_item_number(item_number)),
         delete: text.trim() == "削除" || text.trim() == "（削除）",
         hide: false,
       })
@@ -548,7 +548,7 @@ fn parse_subitem6(
         ),
         children: subitem7,
         struct_list: Vec::new(),
-        num: ArticleNumber::from_item_number(item_number),
+        num: Some(ArticleNumber::from_item_number(item_number)),
         delete: text.trim() == "削除" || text.trim() == "（削除）",
         hide: false,
       })
@@ -592,7 +592,7 @@ fn parse_subitem7(
         ),
         children: subitem8,
         struct_list: Vec::new(),
-        num: ArticleNumber::from_item_number(item_number),
+        num: Some(ArticleNumber::from_item_number(item_number)),
         delete: text.trim() == "削除" || text.trim() == "（削除）",
         hide: false,
       })
@@ -636,7 +636,7 @@ fn parse_subitem8(
         ),
         children: subitem9,
         struct_list: Vec::new(),
-        num: ArticleNumber::from_item_number(item_number),
+        num: Some(ArticleNumber::from_item_number(item_number)),
         delete: text.trim() == "削除" || text.trim() == "（削除）",
         hide: false,
       })
@@ -680,7 +680,7 @@ fn parse_subitem9(
         ),
         children: subitem10,
         struct_list: Vec::new(),
-        num: ArticleNumber::from_item_number(item_number),
+        num: Some(ArticleNumber::from_item_number(item_number)),
         delete: text.trim() == "削除" || text.trim() == "（削除）",
         hide: false,
       })
@@ -717,7 +717,7 @@ fn parse_subitem10(
             .collect(),
         ),
         struct_list: Vec::new(),
-        num: ArticleNumber::from_item_number(item_number),
+        num: Some(ArticleNumber::from_item_number(item_number)),
         delete: text.trim() == "削除" || text.trim() == "（削除）",
         hide: false,
       })
@@ -1188,7 +1188,7 @@ fn check_parse_body_1() {
                   sentence: class::SentenceOrColumnOrTable::Sentence(vec![text_to_sentence(1, "元本を領収し、又は利用すること。")]),
                   children: Vec::new(),
                   struct_list: Vec::new(),
-                  num: ArticleNumber::from_num_str("1").unwrap(),
+                  num: Some(ArticleNumber::from_num_str("1").unwrap()),
                   delete: false,
                   hide: false
                 },
@@ -1201,13 +1201,13 @@ fn check_parse_body_1() {
                       sentence: class::SentenceOrColumnOrTable::Sentence(vec![text_to_sentence(1, "主たる債務者の総株主の議決権（株主総会において決議をすることができる事項の全部につき議決権を行使することができない株式についての議決権を除く。以下この号において同じ。）の過半数を有する者")]),
                       children: Vec::new(),
                       struct_list: Vec::new(),
-                      num: ArticleNumber::from_num_str("1").unwrap(),
+                      num: Some(ArticleNumber::from_num_str("1").unwrap()),
                       delete: false,
                       hide: false
                     }
                   ],
                   struct_list: Vec::new(),
-                  num: ArticleNumber::from_num_str("2").unwrap(),
+                  num: Some(ArticleNumber::from_num_str("2").unwrap()),
                   delete: false,
                   hide: false
                 },
@@ -1216,7 +1216,7 @@ fn check_parse_body_1() {
                   sentence: class::SentenceOrColumnOrTable::Sentence(vec![text_to_sentence(1, "不動産その他重要な財産に関する権利の得喪を目的とする行為をすること。")]),
                   children: Vec::new(),
                   struct_list: Vec::new(),
-                  num: ArticleNumber::from_num_str("3").unwrap(),
+                  num: Some(ArticleNumber::from_num_str("3").unwrap()),
                   delete: false,
                   hide: false
                 }

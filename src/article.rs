@@ -306,6 +306,10 @@ impl Parser for Section {
               let v = Article::parser(e)?;
               children_list.push(SectionContents::Article(v))
             }
+            "Division" => {
+              let v = Division::parser(e)?;
+              children_list.push(SectionContents::Division(v))
+            }
             s => return Err(Error::unexpected_tag(element, s)),
           }
         }
@@ -331,6 +335,9 @@ impl ToXmlElement for Section {
         SectionContents::Subsection(v) => {
           e.children.push(XMLNode::Element(v.to_xml_element()));
         }
+        SectionContents::Division(v) => {
+          e.children.push(XMLNode::Element(v.to_xml_element()));
+        }
       }
     }
     e.attributes
@@ -351,6 +358,7 @@ impl ToXmlElement for Section {
 pub enum SectionContents {
   Article(Article),
   Subsection(Subsection),
+  Division(Division),
 }
 
 /// 款

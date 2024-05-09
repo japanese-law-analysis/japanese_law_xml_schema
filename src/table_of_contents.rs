@@ -1,4 +1,5 @@
 //! 目次
+use crate::article_number::ArticleNumber;
 use crate::class::*;
 use crate::parser::*;
 use crate::result::Error;
@@ -131,7 +132,7 @@ pub struct TOCPart {
   /// 条の範囲
   pub article_range: Option<Text>,
   /// 編の番号
-  pub num: String,
+  pub num: ArticleNumber,
   /// 削除された編かどうか
   pub delete: bool,
   /// 子要素
@@ -144,7 +145,7 @@ impl Parser for TOCPart {
       let mut title = Text::new();
       let mut article_range = None;
       let mut children = Vec::new();
-      let num = get_attribute(element, "Num")?;
+      let num = get_attribute_with_parse(element, "Num")?;
       let delete = get_attribute_opt_with_parse(element, "Delete")?.unwrap_or(false);
       for node in element.children.iter() {
         if let XMLNode::Element(e) = node {
@@ -190,7 +191,7 @@ impl ToXmlElement for TOCPart {
     for v in self.children.iter() {
       e.children.push(XMLNode::Element(v.to_xml_element()));
     }
-    e.attributes.insert("Num".to_string(), self.num.clone());
+    e.attributes.insert("Num".to_string(), self.num.num_str());
     if self.delete {
       e.attributes
         .insert("Delete".to_string(), self.delete.to_string());
@@ -207,7 +208,7 @@ pub struct TOCChapter {
   /// 条の範囲
   pub article_range: Option<Text>,
   /// 章の番号
-  pub num: String,
+  pub num: ArticleNumber,
   /// 削除された章かどうか
   pub delete: bool,
   /// 子要素
@@ -220,7 +221,7 @@ impl Parser for TOCChapter {
       let mut title = Text::new();
       let mut article_range = None;
       let mut children = Vec::new();
-      let num = get_attribute(element, "Num")?;
+      let num = get_attribute_with_parse(element, "Num")?;
       let delete = get_attribute_opt_with_parse(element, "Delete")?.unwrap_or(false);
       for node in element.children.iter() {
         if let XMLNode::Element(e) = node {
@@ -266,7 +267,7 @@ impl ToXmlElement for TOCChapter {
     for v in self.children.iter() {
       e.children.push(XMLNode::Element(v.to_xml_element()));
     }
-    e.attributes.insert("Num".to_string(), self.num.clone());
+    e.attributes.insert("Num".to_string(), self.num.num_str());
     if self.delete {
       e.attributes
         .insert("Delete".to_string(), self.delete.to_string());
@@ -283,7 +284,7 @@ pub struct TOCSection {
   /// 条の範囲
   pub article_range: Option<Text>,
   /// 節の番号
-  pub num: String,
+  pub num: ArticleNumber,
   /// 削除された節かどうか
   pub delete: bool,
   /// 子要素
@@ -296,7 +297,7 @@ impl Parser for TOCSection {
       let mut title = Text::new();
       let mut article_range = None;
       let mut children = Vec::new();
-      let num = get_attribute(element, "Num")?;
+      let num = get_attribute_with_parse(element, "Num")?;
       let delete = get_attribute_opt_with_parse(element, "Delete")?.unwrap_or(false);
       for node in element.children.iter() {
         if let XMLNode::Element(e) = node {
@@ -351,7 +352,7 @@ impl ToXmlElement for TOCSection {
         }
       }
     }
-    e.attributes.insert("Num".to_string(), self.num.clone());
+    e.attributes.insert("Num".to_string(), self.num.num_str());
     if self.delete {
       e.attributes
         .insert("Delete".to_string(), self.delete.to_string());
@@ -377,7 +378,7 @@ pub struct TOCSubsection {
   /// 条の範囲
   pub article_range: Option<Text>,
   /// 款の番号
-  pub num: String,
+  pub num: ArticleNumber,
   /// 削除された款かどうか
   pub delete: bool,
   /// 子要素
@@ -390,7 +391,7 @@ impl Parser for TOCSubsection {
       let mut title = Text::new();
       let mut article_range = None;
       let mut children = Vec::new();
-      let num = get_attribute(element, "Num")?;
+      let num = get_attribute_with_parse(element, "Num")?;
       let delete = get_attribute_opt_with_parse(element, "Delete")?.unwrap_or(false);
       for node in element.children.iter() {
         if let XMLNode::Element(e) = node {
@@ -438,7 +439,7 @@ impl ToXmlElement for TOCSubsection {
     for v in self.children.iter() {
       e.children.push(XMLNode::Element(v.to_xml_element()));
     }
-    e.attributes.insert("Num".to_string(), self.num.clone());
+    e.attributes.insert("Num".to_string(), self.num.num_str());
     if self.delete {
       e.attributes
         .insert("Delete".to_string(), self.delete.to_string());
@@ -455,7 +456,7 @@ pub struct TOCDivision {
   /// 条の範囲
   pub article_range: Option<Text>,
   /// 目の番号
-  pub num: String,
+  pub num: ArticleNumber,
   /// 削除された目かどうか
   pub delete: bool,
 }
@@ -465,7 +466,7 @@ impl Parser for TOCDivision {
     if element.name.as_str() == "TOCDivision" {
       let mut title = Text::new();
       let mut article_range = None;
-      let num = get_attribute(element, "Num")?;
+      let num = get_attribute_with_parse(element, "Num")?;
       let delete = get_attribute_opt_with_parse(element, "Delete")?.unwrap_or(false);
       for node in element.children.iter() {
         if let XMLNode::Element(e) = node {
@@ -505,7 +506,7 @@ impl ToXmlElement for TOCDivision {
         range.to_xml_element_with_name("ArticleRange"),
       ));
     }
-    e.attributes.insert("Num".to_string(), self.num.clone());
+    e.attributes.insert("Num".to_string(), self.num.num_str());
     if self.delete {
       e.attributes
         .insert("Delete".to_string(), self.delete.to_string());
@@ -522,7 +523,7 @@ pub struct TOCArticle {
   /// 見出し
   pub article_caption: Caption,
   /// 条番号
-  pub num: String,
+  pub num: ArticleNumber,
   /// 削除された条かどうか
   pub delete: bool,
 }
@@ -532,7 +533,7 @@ impl Parser for TOCArticle {
     if element.name.as_str() == "TOCArticle" {
       let mut title = Text::new();
       let mut caption = None;
-      let num = get_attribute(element, "Num")?;
+      let num = get_attribute_with_parse(element, "Num")?;
       let delete = get_attribute_opt_with_parse(element, "Delete")?.unwrap_or(false);
       for node in element.children.iter() {
         if let XMLNode::Element(e) = node {
@@ -552,7 +553,7 @@ impl Parser for TOCArticle {
         Ok(TOCArticle {
           article_title: title,
           article_caption: caption,
-          num: num.to_string(),
+          num,
           delete,
         })
       } else {
@@ -577,7 +578,7 @@ impl ToXmlElement for TOCArticle {
         .article_caption
         .to_xml_element_with_name("ArticleCaption"),
     ));
-    e.attributes.insert("Num".to_string(), self.num.clone());
+    e.attributes.insert("Num".to_string(), self.num.num_str());
     if self.delete {
       e.attributes
         .insert("Delete".to_string(), self.delete.to_string());

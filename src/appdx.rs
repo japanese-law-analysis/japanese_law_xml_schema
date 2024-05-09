@@ -18,7 +18,7 @@ pub struct AppdxTable {
   pub related_article_num: Option<Text>,
   pub children: Vec<AppdxTableContents>,
   pub remarks: Option<Remarks>,
-  pub num: Option<usize>,
+  pub num: Option<String>,
 }
 
 impl Parser for AppdxTable {
@@ -89,7 +89,7 @@ impl ToXmlElement for AppdxTable {
       e.children.push(XMLNode::Element(v.to_xml_element()));
     }
     if let Some(n) = &self.num {
-      e.attributes.insert("Num".to_string(), n.to_string());
+      e.attributes.insert("Num".to_string(), n.clone());
     }
     e
   }
@@ -107,7 +107,7 @@ pub struct AppdxNote {
   pub related_article_num: Option<Text>,
   pub children: Vec<AppdxNoteContents>,
   pub remarks: Option<Remarks>,
-  pub num: Option<usize>,
+  pub num: Option<String>,
 }
 
 impl Parser for AppdxNote {
@@ -183,7 +183,7 @@ impl ToXmlElement for AppdxNote {
       e.children.push(XMLNode::Element(v.to_xml_element()));
     }
     if let Some(n) = &self.num {
-      e.attributes.insert("Num".to_string(), n.to_string());
+      e.attributes.insert("Num".to_string(), n.clone());
     }
     e
   }
@@ -202,7 +202,7 @@ pub struct AppdxStyle {
   pub related_article_num: Option<Text>,
   pub children: Vec<StyleStruct>,
   pub remarks: Option<Remarks>,
-  pub num: Option<usize>,
+  pub num: Option<String>,
 }
 
 impl Parser for AppdxStyle {
@@ -266,7 +266,7 @@ impl ToXmlElement for AppdxStyle {
       e.children.push(XMLNode::Element(v.to_xml_element()));
     }
     if let Some(n) = &self.num {
-      e.attributes.insert("Num".to_string(), n.to_string());
+      e.attributes.insert("Num".to_string(), n.clone());
     }
     e
   }
@@ -278,7 +278,7 @@ pub struct AppdxFormat {
   pub related_article_num: Option<Text>,
   pub children: Vec<FormatStruct>,
   pub remarks: Option<Remarks>,
-  pub num: Option<usize>,
+  pub num: Option<String>,
 }
 
 impl Parser for AppdxFormat {
@@ -341,7 +341,7 @@ impl ToXmlElement for AppdxFormat {
       e.children.push(XMLNode::Element(v.to_xml_element()));
     }
     if let Some(n) = &self.num {
-      e.attributes.insert("Num".to_string(), n.to_string());
+      e.attributes.insert("Num".to_string(), n.clone());
     }
     e
   }
@@ -419,7 +419,7 @@ pub struct AppdxFig {
   pub title: Option<TextWithWritingMode>,
   pub related_article_num: Option<Text>,
   pub children: Vec<AppdxFigContents>,
-  pub num: Option<usize>,
+  pub num: Option<String>,
 }
 
 impl Parser for AppdxFig {
@@ -480,7 +480,7 @@ impl ToXmlElement for AppdxFig {
       }
     }
     if let Some(n) = &self.num {
-      e.attributes.insert("Num".to_string(), n.to_string());
+      e.attributes.insert("Num".to_string(), n.clone());
     }
     e
   }

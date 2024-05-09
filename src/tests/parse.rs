@@ -1,5 +1,7 @@
 #[cfg(test)]
 mod parse_mod {
+  use std::str::FromStr;
+
   use crate::{article::PartContents, law::MainProvisionContents, sentence::SentenceElement, *};
   #[test]
   fn test_129ac0000000089() {
@@ -17,7 +19,10 @@ mod parse_mod {
           &chap.article_range.clone().unwrap(),
           &Text::from_value("（第一条・第二条）")
         );
-        assert_eq!(chap.num, "1".to_string());
+        assert_eq!(
+          chap.num,
+          article_number::ArticleNumber::from_str("1").unwrap()
+        );
       }
       _ => unreachable!(),
     }

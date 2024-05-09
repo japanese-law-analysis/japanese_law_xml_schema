@@ -162,7 +162,7 @@ pub struct SupplProvisionAppdxTable {
   pub title: TextWithWritingMode,
   pub related_article_num: Option<Text>,
   pub table_struct: Vec<TableStruct>,
-  pub num: Option<usize>,
+  pub num: Option<String>,
 }
 
 impl Parser for SupplProvisionAppdxTable {
@@ -224,8 +224,8 @@ impl ToXmlElement for SupplProvisionAppdxTable {
     for v in self.table_struct.iter() {
       e.children.push(XMLNode::Element(v.to_xml_element()));
     }
-    if let Some(n) = self.num {
-      e.attributes.insert("Num".to_string(), n.to_string());
+    if let Some(n) = self.num.clone() {
+      e.attributes.insert("Num".to_string(), n.clone());
     }
     e
   }
@@ -236,7 +236,7 @@ pub struct SupplProvisionAppdxStyle {
   pub title: text::TextWithWritingMode,
   pub related_article_num: Option<Text>,
   pub style_struct: Vec<StyleStruct>,
-  pub num: Option<usize>,
+  pub num: Option<String>,
 }
 
 impl Parser for SupplProvisionAppdxStyle {
@@ -298,8 +298,8 @@ impl ToXmlElement for SupplProvisionAppdxStyle {
     for v in self.style_struct.iter() {
       e.children.push(XMLNode::Element(v.to_xml_element()));
     }
-    if let Some(n) = self.num {
-      e.attributes.insert("Num".to_string(), n.to_string());
+    if let Some(n) = self.num.clone() {
+      e.attributes.insert("Num".to_string(), n.clone());
     }
     e
   }
@@ -310,7 +310,7 @@ pub struct SupplProvisionAppdx {
   pub arith_formula_num: Option<Text>,
   pub related_article_num: Option<Text>,
   pub arith_formula: Vec<ArithFormula>,
-  pub num: Option<usize>,
+  pub num: Option<String>,
 }
 
 impl Parser for SupplProvisionAppdx {
@@ -365,8 +365,8 @@ impl ToXmlElement for SupplProvisionAppdx {
     for v in self.arith_formula.iter() {
       e.children.push(XMLNode::Element(v.to_xml_element()));
     }
-    if let Some(v) = self.num {
-      e.attributes.insert("Num".to_string(), v.to_string());
+    if let Some(v) = self.num.clone() {
+      e.attributes.insert("Num".to_string(), v.clone());
     }
     e
   }

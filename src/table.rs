@@ -202,6 +202,10 @@ impl Parser for TableColumn {
               let v = Article::parser(e)?;
               contents.push(TableColumnContents::Article(v));
             }
+            "Paragraph" => {
+              let v = Paragraph::parser(e)?;
+              contents.push(TableColumnContents::Paragraph(v));
+            }
             "Item" => {
               let v = Item::parser(e)?;
               contents.push(TableColumnContents::Item(v));
