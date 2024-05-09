@@ -81,6 +81,10 @@ impl Parser for Paragraph {
               let v = StyleStruct::parser(e)?;
               struct_list.push(Struct::StyleStruct(v));
             }
+            "List" => {
+              let v = List::parser(e)?;
+              struct_list.push(Struct::List(v));
+            }
             "Item" => {
               let v = Item::parser(e)?;
               children.push(v);

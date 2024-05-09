@@ -2,6 +2,7 @@
 
 use crate::appdx::*;
 use crate::article::*;
+use crate::article_number::ArticleNumber;
 use crate::list::*;
 use crate::paragraph::*;
 use crate::parser::*;
@@ -26,7 +27,7 @@ pub struct Law {
   /// 制定年
   pub year: usize,
   /// その年で制定された法令の通し番号
-  pub num: usize,
+  pub num: ArticleNumber,
   /// 公布月
   pub promulgate_month: Option<usize>,
   /// 公布日
@@ -171,7 +172,7 @@ impl ToXmlElement for Law {
     }
     e.attributes
       .insert("Year".to_string(), self.year.to_string());
-    e.attributes.insert("Num".to_string(), self.num.to_string());
+    e.attributes.insert("Num".to_string(), self.num.num_str());
     if let Some(n) = &self.promulgate_month {
       e.attributes
         .insert("PromulgateMonth".to_string(), n.to_string());

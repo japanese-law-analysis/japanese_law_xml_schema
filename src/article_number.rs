@@ -1,6 +1,8 @@
 //! 枝番号にも対応した条番号
 //!
 
+use std::str::FromStr;
+
 use crate::result::*;
 use kansuji::Kansuji;
 use regex::Regex;
@@ -196,6 +198,13 @@ impl ArticleNumber {
       eda_numbers: n.eda_numbers.clone(),
       range_end_numbers: n.range_end_numbers.clone(),
     }
+  }
+}
+
+impl FromStr for ArticleNumber {
+  type Err = Error;
+  fn from_str(s: &str) -> std::prelude::v1::Result<Self, Self::Err> {
+    ArticleNumber::from_num_str(s)
   }
 }
 
