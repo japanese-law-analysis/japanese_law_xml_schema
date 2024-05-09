@@ -86,6 +86,46 @@ impl parser::Parser for Contents {
             let v = Item::parser(e)?;
             lst.push(ContentsElement::Item(v));
           }
+          "Subitem1" => {
+            let v = Subitem1::parser(e)?;
+            lst.push(ContentsElement::Subitem1(v));
+          }
+          "Subitem2" => {
+            let v = Subitem2::parser(e)?;
+            lst.push(ContentsElement::Subitem2(v));
+          }
+          "Subitem3" => {
+            let v = Subitem3::parser(e)?;
+            lst.push(ContentsElement::Subitem3(v));
+          }
+          "Subitem4" => {
+            let v = Subitem4::parser(e)?;
+            lst.push(ContentsElement::Subitem4(v));
+          }
+          "Subitem5" => {
+            let v = Subitem5::parser(e)?;
+            lst.push(ContentsElement::Subitem5(v));
+          }
+          "Subitem6" => {
+            let v = Subitem6::parser(e)?;
+            lst.push(ContentsElement::Subitem6(v));
+          }
+          "Subitem7" => {
+            let v = Subitem7::parser(e)?;
+            lst.push(ContentsElement::Subitem7(v));
+          }
+          "Subitem8" => {
+            let v = Subitem8::parser(e)?;
+            lst.push(ContentsElement::Subitem8(v));
+          }
+          "Subitem9" => {
+            let v = Subitem9::parser(e)?;
+            lst.push(ContentsElement::Subitem9(v));
+          }
+          "Subitem10" => {
+            let v = Subitem10::parser(e)?;
+            lst.push(ContentsElement::Subitem10(v));
+          }
           "List" => {
             let v = List::parser(e)?;
             lst.push(ContentsElement::List(v));
@@ -139,6 +179,16 @@ impl ToXmlElementWithName for Contents {
         ContentsElement::Sup(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
         ContentsElement::Paragraph(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
         ContentsElement::Item(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        ContentsElement::Subitem1(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        ContentsElement::Subitem2(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        ContentsElement::Subitem3(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        ContentsElement::Subitem4(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        ContentsElement::Subitem5(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        ContentsElement::Subitem6(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        ContentsElement::Subitem7(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        ContentsElement::Subitem8(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        ContentsElement::Subitem9(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        ContentsElement::Subitem10(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
         ContentsElement::List(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
         ContentsElement::Sentence(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
         ContentsElement::ArithFormula(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
@@ -163,15 +213,25 @@ pub enum ContentsElement {
   NoteStruct(NoteStruct),
   StyleStruct(StyleStruct),
   AppdxTable(AppdxTable),
-  Ruby(text::Ruby),
-  Line(line::Line),
-  Sup(text::Sup),
-  Sub(text::Sub),
+  Ruby(Ruby),
+  Line(Line),
+  Sup(Sup),
+  Sub(Sub),
   String(String),
-  Paragraph(paragraph::Paragraph),
-  Item(paragraph::Item),
-  List(list::List),
-  Sentence(sentence::Sentence),
+  Paragraph(Paragraph),
+  Item(Item),
+  Subitem1(Subitem1),
+  Subitem2(Subitem2),
+  Subitem3(Subitem3),
+  Subitem4(Subitem4),
+  Subitem5(Subitem5),
+  Subitem6(Subitem6),
+  Subitem7(Subitem7),
+  Subitem8(Subitem8),
+  Subitem9(Subitem9),
+  Subitem10(Subitem10),
+  List(List),
+  Sentence(Sentence),
   ArithFormula(ArithFormula),
   Remarks(Remarks),
   TOCSection(TOCSection),
