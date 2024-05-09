@@ -59,7 +59,7 @@ pub fn parse_text(
   day: Option<usize>,
   law_type: law::LawType,
   lang: law::Lang,
-  num: article_number::ArticleNumber,
+  num: Option<article_number::ArticleNumber>,
   law_num: String,
   title: &str,
 ) -> Result<law::Law> {

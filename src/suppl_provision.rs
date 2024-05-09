@@ -1,7 +1,6 @@
 //! 附則
 //!
 use crate::article::*;
-use crate::article_number::ArticleNumber;
 use crate::contents::*;
 use crate::paragraph::*;
 use crate::parser::*;
@@ -163,7 +162,7 @@ pub struct SupplProvisionAppdxTable {
   pub title: TextWithWritingMode,
   pub related_article_num: Option<Text>,
   pub table_struct: Vec<TableStruct>,
-  pub num: Option<ArticleNumber>,
+  pub num: Option<String>,
 }
 
 impl Parser for SupplProvisionAppdxTable {
@@ -226,7 +225,7 @@ impl ToXmlElement for SupplProvisionAppdxTable {
       e.children.push(XMLNode::Element(v.to_xml_element()));
     }
     if let Some(n) = self.num.clone() {
-      e.attributes.insert("Num".to_string(), n.num_str());
+      e.attributes.insert("Num".to_string(), n.clone());
     }
     e
   }
@@ -237,7 +236,7 @@ pub struct SupplProvisionAppdxStyle {
   pub title: text::TextWithWritingMode,
   pub related_article_num: Option<Text>,
   pub style_struct: Vec<StyleStruct>,
-  pub num: Option<ArticleNumber>,
+  pub num: Option<String>,
 }
 
 impl Parser for SupplProvisionAppdxStyle {
@@ -300,7 +299,7 @@ impl ToXmlElement for SupplProvisionAppdxStyle {
       e.children.push(XMLNode::Element(v.to_xml_element()));
     }
     if let Some(n) = self.num.clone() {
-      e.attributes.insert("Num".to_string(), n.num_str());
+      e.attributes.insert("Num".to_string(), n.clone());
     }
     e
   }
@@ -311,7 +310,7 @@ pub struct SupplProvisionAppdx {
   pub arith_formula_num: Option<Text>,
   pub related_article_num: Option<Text>,
   pub arith_formula: Vec<ArithFormula>,
-  pub num: Option<ArticleNumber>,
+  pub num: Option<String>,
 }
 
 impl Parser for SupplProvisionAppdx {
@@ -367,7 +366,7 @@ impl ToXmlElement for SupplProvisionAppdx {
       e.children.push(XMLNode::Element(v.to_xml_element()));
     }
     if let Some(v) = self.num.clone() {
-      e.attributes.insert("Num".to_string(), v.num_str());
+      e.attributes.insert("Num".to_string(), v.clone());
     }
     e
   }
