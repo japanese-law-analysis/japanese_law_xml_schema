@@ -63,7 +63,7 @@ impl Parser for TOC {
             "TOCAppdxTableLabel" => {
               appdx_table_lable.push(Text::from_children(&e.children));
             }
-            s => return Err(Error::unexpected_tag(e, s)),
+            s => return Err(Error::unexpected_tag(element, s)),
           }
         }
       }
@@ -159,7 +159,7 @@ impl Parser for TOCPart {
               let v = TOCChapter::parser(e)?;
               children.push(v);
             }
-            s => return Err(Error::unexpected_tag(e, s)),
+            s => return Err(Error::unexpected_tag(element, s)),
           }
         }
       }
@@ -235,7 +235,7 @@ impl Parser for TOCChapter {
               let v = TOCSection::parser(e)?;
               children.push(v);
             }
-            s => return Err(Error::unexpected_tag(e, s)),
+            s => return Err(Error::unexpected_tag(element, s)),
           }
         }
       }
@@ -315,7 +315,7 @@ impl Parser for TOCSection {
               let v = TOCDivision::parser(e)?;
               children.push(TOCSectionContents::TOCDivision(v));
             }
-            s => return Err(Error::unexpected_tag(e, s)),
+            s => return Err(Error::unexpected_tag(element, s)),
           }
         }
       }
@@ -405,7 +405,7 @@ impl Parser for TOCSubsection {
               let v = TOCDivision::parser(e)?;
               children.push(v);
             }
-            s => return Err(Error::unexpected_tag(e, s)),
+            s => return Err(Error::unexpected_tag(element, s)),
           }
         }
       }
@@ -476,7 +476,7 @@ impl Parser for TOCDivision {
             "ArticleRange" => {
               article_range = Some(Text::from_children(&e.children));
             }
-            s => return Err(Error::unexpected_tag(e, s)),
+            s => return Err(Error::unexpected_tag(element, s)),
           }
         }
       }
@@ -544,7 +544,7 @@ impl Parser for TOCArticle {
               let v = Caption::parser(e)?;
               caption = Some(v);
             }
-            s => return Err(Error::unexpected_tag(e, s)),
+            s => return Err(Error::unexpected_tag(element, s)),
           }
         }
       }
@@ -620,7 +620,7 @@ impl Parser for TOCSupplProvision {
               let v = TOCChapter::parser(e)?;
               children.push(TOCSupplProvisionContents::TOCChapter(v));
             }
-            s => return Err(Error::unexpected_tag(e, s)),
+            s => return Err(Error::unexpected_tag(element, s)),
           }
         }
       }

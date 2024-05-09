@@ -87,7 +87,7 @@ impl Parser for Sentence {
               let v = text::Sub::parser(e)?;
               contents.push(SentenceElement::Sub(v));
             }
-            s => return Err(Error::unexpected_tag(e, s)),
+            s => return Err(Error::unexpected_tag(element, s)),
           }
         } else if let XMLNode::Text(s) = node {
           contents.push(SentenceElement::String(s.clone()))

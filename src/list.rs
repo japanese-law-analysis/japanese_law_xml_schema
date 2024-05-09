@@ -47,7 +47,7 @@ impl Parser for List {
                   let v = Column::parser(e)?;
                   sentence.push(ListSentence::Column(v))
                 }
-                s => return Err(Error::unexpected_tag(e, s)),
+                s => return Err(Error::unexpected_tag(element, s)),
               }
             }
           }
@@ -130,7 +130,7 @@ impl Parser for Sublist1 {
                   let v = Column::parser(e)?;
                   sentence.push(ListSentence::Column(v))
                 }
-                s => return Err(Error::unexpected_tag(e, s)),
+                s => return Err(Error::unexpected_tag(element, s)),
               }
             }
           }
@@ -207,7 +207,7 @@ impl Parser for Sublist2 {
                   let v = Column::parser(e)?;
                   sentence.push(ListSentence::Column(v))
                 }
-                s => return Err(Error::unexpected_tag(e, s)),
+                s => return Err(Error::unexpected_tag(element, s)),
               }
             }
           }
@@ -283,7 +283,7 @@ impl Parser for Sublist3 {
                   let v = Column::parser(e)?;
                   sentence.push(ListSentence::Column(v))
                 }
-                s => return Err(Error::unexpected_tag(e, s)),
+                s => return Err(Error::unexpected_tag(element, s)),
               }
             }
           }

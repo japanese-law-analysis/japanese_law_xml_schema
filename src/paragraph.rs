@@ -85,7 +85,7 @@ impl Parser for Paragraph {
               let v = Item::parser(e)?;
               children.push(v);
             }
-            s => return Err(Error::unexpected_tag(e, s)),
+            s => return Err(Error::unexpected_tag(element, s)),
           }
         }
       }
@@ -229,7 +229,7 @@ impl Parser for Item {
               let v = Subitem1::parser(e)?;
               children.push(v);
             }
-            s => return Err(Error::unexpected_tag(e, s)),
+            s => return Err(Error::unexpected_tag(element, s)),
           }
         }
       }
@@ -371,7 +371,7 @@ impl Parser for Subitem1 {
               let v = Subitem2::parser(e)?;
               children.push(v);
             }
-            s => return Err(Error::unexpected_tag(e, s)),
+            s => return Err(Error::unexpected_tag(element, s)),
           }
         }
       }
@@ -513,7 +513,7 @@ impl Parser for Subitem2 {
               let v = Subitem3::parser(e)?;
               children.push(v);
             }
-            s => return Err(Error::unexpected_tag(e, s)),
+            s => return Err(Error::unexpected_tag(element, s)),
           }
         }
       }
@@ -655,7 +655,7 @@ impl Parser for Subitem3 {
               let v = Subitem4::parser(e)?;
               children.push(v);
             }
-            s => return Err(Error::unexpected_tag(e, s)),
+            s => return Err(Error::unexpected_tag(element, s)),
           }
         }
       }
@@ -797,7 +797,7 @@ impl Parser for Subitem4 {
               let v = Subitem5::parser(e)?;
               children.push(v);
             }
-            s => return Err(Error::unexpected_tag(e, s)),
+            s => return Err(Error::unexpected_tag(element, s)),
           }
         }
       }
@@ -939,7 +939,7 @@ impl Parser for Subitem5 {
               let v = Subitem6::parser(e)?;
               children.push(v);
             }
-            s => return Err(Error::unexpected_tag(e, s)),
+            s => return Err(Error::unexpected_tag(element, s)),
           }
         }
       }
@@ -1081,7 +1081,7 @@ impl Parser for Subitem6 {
               let v = Subitem7::parser(e)?;
               children.push(v);
             }
-            s => return Err(Error::unexpected_tag(e, s)),
+            s => return Err(Error::unexpected_tag(element, s)),
           }
         }
       }
@@ -1223,7 +1223,7 @@ impl Parser for Subitem7 {
               let v = Subitem8::parser(e)?;
               children.push(v);
             }
-            s => return Err(Error::unexpected_tag(e, s)),
+            s => return Err(Error::unexpected_tag(element, s)),
           }
         }
       }
@@ -1365,7 +1365,7 @@ impl Parser for Subitem8 {
               let v = Subitem9::parser(e)?;
               children.push(v);
             }
-            s => return Err(Error::unexpected_tag(e, s)),
+            s => return Err(Error::unexpected_tag(element, s)),
           }
         }
       }
@@ -1507,7 +1507,7 @@ impl Parser for Subitem9 {
               let v = Subitem10::parser(e)?;
               children.push(v);
             }
-            s => return Err(Error::unexpected_tag(e, s)),
+            s => return Err(Error::unexpected_tag(element, s)),
           }
         }
       }
@@ -1641,7 +1641,7 @@ impl Parser for Subitem10 {
               let v = List::parser(e)?;
               struct_list.push(Struct::List(v));
             }
-            s => return Err(Error::unexpected_tag(e, s)),
+            s => return Err(Error::unexpected_tag(element, s)),
           }
         }
       }

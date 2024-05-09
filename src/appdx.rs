@@ -49,7 +49,7 @@ impl Parser for AppdxTable {
               let v = Remarks::parser(e)?;
               remarks = Some(v)
             }
-            s => return Err(Error::unexpected_tag(e, s)),
+            s => return Err(Error::unexpected_tag(element, s)),
           }
         }
       }
@@ -142,7 +142,7 @@ impl Parser for AppdxNote {
               let v = Remarks::parser(e)?;
               remarks = Some(v)
             }
-            s => return Err(Error::unexpected_tag(e, s)),
+            s => return Err(Error::unexpected_tag(element, s)),
           }
         }
       }
@@ -229,7 +229,7 @@ impl Parser for AppdxStyle {
               let v = Remarks::parser(e)?;
               remarks = Some(v)
             }
-            s => return Err(Error::unexpected_tag(e, s)),
+            s => return Err(Error::unexpected_tag(element, s)),
           }
         }
       }
@@ -305,7 +305,7 @@ impl Parser for AppdxFormat {
               let v = Remarks::parser(e)?;
               remarks = Some(v)
             }
-            s => return Err(Error::unexpected_tag(e, s)),
+            s => return Err(Error::unexpected_tag(element, s)),
           }
         }
       }
@@ -375,7 +375,7 @@ impl Parser for Appdx {
               let v = Remarks::parser(e)?;
               remarks = Some(v)
             }
-            s => return Err(Error::unexpected_tag(e, s)),
+            s => return Err(Error::unexpected_tag(element, s)),
           }
         }
       }
@@ -445,7 +445,7 @@ impl Parser for AppdxFig {
               let v = FigStruct::parser(e)?;
               children.push(AppdxFigContents::FigStruct(v))
             }
-            s => return Err(Error::unexpected_tag(e, s)),
+            s => return Err(Error::unexpected_tag(element, s)),
           }
         }
       }

@@ -42,7 +42,7 @@ impl Parser for Table {
               let v = TableRow::parser(e)?;
               table_row.push(v)
             }
-            s => return Err(Error::unexpected_tag(e, s)),
+            s => return Err(Error::unexpected_tag(element, s)),
           }
         }
       }
@@ -262,7 +262,7 @@ impl Parser for TableColumn {
               let v = Column::parser(e)?;
               contents.push(TableColumnContents::Column(v));
             }
-            s => return Err(Error::unexpected_tag(e, s)),
+            s => return Err(Error::unexpected_tag(element, s)),
           }
         } else if let XMLNode::Text(s) = node {
           contents.push(TableColumnContents::String(s.clone()))

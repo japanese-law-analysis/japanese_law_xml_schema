@@ -71,7 +71,7 @@ impl parser::Parser for Contents {
             let v = Sentence::parser(e)?;
             lst.push(ContentsElement::Sentence(v));
           }
-          s => return Err(Error::unexpected_tag(e, s)),
+          s => return Err(Error::unexpected_tag(element, s)),
         }
       } else if let XMLNode::Text(s) = node {
         lst.push(ContentsElement::String(s.to_string()))

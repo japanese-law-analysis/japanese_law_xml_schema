@@ -95,7 +95,7 @@ impl Parser for NoteStruct {
               let v = Note::parser(e)?;
               note = Some(v);
             }
-            s => return Err(Error::unexpected_tag(e, s)),
+            s => return Err(Error::unexpected_tag(element, s)),
           }
         }
       }
@@ -171,7 +171,7 @@ impl Parser for StyleStruct {
               let v = Style::parser(e)?;
               style = Some(v);
             }
-            s => return Err(Error::unexpected_tag(e, s)),
+            s => return Err(Error::unexpected_tag(element, s)),
           }
         }
       }
@@ -247,7 +247,7 @@ impl Parser for FormatStruct {
               let v = Format::parser(e)?;
               format = Some(v);
             }
-            s => return Err(Error::unexpected_tag(e, s)),
+            s => return Err(Error::unexpected_tag(element, s)),
           }
         }
       }
@@ -323,7 +323,7 @@ impl Parser for FigStruct {
               let v = Fig::parser(e)?;
               fig = Some(v);
             }
-            s => return Err(Error::unexpected_tag(e, s)),
+            s => return Err(Error::unexpected_tag(element, s)),
           }
         }
       }
@@ -399,7 +399,7 @@ impl Parser for TableStruct {
               let v = Table::parser(e)?;
               table = Some(v);
             }
-            s => return Err(Error::unexpected_tag(e, s)),
+            s => return Err(Error::unexpected_tag(element, s)),
           }
         }
       }
