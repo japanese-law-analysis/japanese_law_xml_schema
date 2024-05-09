@@ -95,7 +95,7 @@ dependencies = [
 
 [[package]]
 name = "japanese_law_xml_schema"
-version = "3.0.0"
+version = "4.0.0"
 dependencies = [
  "kansuji",
  "koyomi",
