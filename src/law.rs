@@ -358,7 +358,7 @@ impl Parser for LawBody {
               let v = AppdxFormat::parser(e)?;
               appdx_format.push(v);
             }
-            s => return Err(Error::unexpected_tag(e, s)),
+            s => return Err(Error::unexpected_tag(element, s)),
           }
         }
       }
@@ -554,7 +554,7 @@ impl Parser for MainProvision {
               let v = Paragraph::parser(e)?;
               children.push(MainProvisionContents::Paragraph(v))
             }
-            s => return Err(Error::unexpected_tag(e, s)),
+            s => return Err(Error::unexpected_tag(element, s)),
           }
         }
       }
@@ -827,12 +827,12 @@ impl Parser for AmendProvision {
                       let v = LawBody::parser(e)?;
                       new_provision.push(NewProvision::LawBody(v));
                     }
-                    s => return Err(Error::unexpected_tag(e, s)),
+                    s => return Err(Error::unexpected_tag(element, s)),
                   }
                 }
               }
             }
-            s => return Err(Error::unexpected_tag(e, s)),
+            s => return Err(Error::unexpected_tag(element, s)),
           }
         }
       }

@@ -48,7 +48,7 @@ impl Parser for Line {
               let v = Sub::parser(e)?;
               contents.push(LineContents::Sub(v))
             }
-            s => return Err(Error::unexpected_tag(e, s)),
+            s => return Err(Error::unexpected_tag(element, s)),
           }
         } else if let XMLNode::Text(s) = node {
           contents.push(LineContents::String(s.clone()))

@@ -41,7 +41,7 @@ impl Parser for Class {
               let v = Item::parser(e)?;
               children.push(v)
             }
-            s => return Err(Error::unexpected_tag(e, s)),
+            s => return Err(Error::unexpected_tag(element, s)),
           }
         }
       }
@@ -131,7 +131,7 @@ impl SentenceOrColumnOrTable {
             let v = Table::parser(e)?;
             sentence_opt = Some(SentenceOrColumnOrTable::Table(v));
           }
-          s => return Err(Error::unexpected_tag(e, s)),
+          s => return Err(Error::unexpected_tag(element, s)),
         }
       }
     }

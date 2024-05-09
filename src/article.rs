@@ -78,7 +78,7 @@ impl Parser for Part {
               let v = Article::parser(e)?;
               children_list.push(PartContents::Article(v))
             }
-            s => return Err(Error::unexpected_tag(e, s)),
+            s => return Err(Error::unexpected_tag(element, s)),
           }
         }
       }
@@ -192,7 +192,7 @@ impl Parser for Chapter {
               let v = Article::parser(e)?;
               children_list.push(ChapterContents::Article(v))
             }
-            s => return Err(Error::unexpected_tag(e, s)),
+            s => return Err(Error::unexpected_tag(element, s)),
           }
         }
       }
@@ -306,7 +306,7 @@ impl Parser for Section {
               let v = Article::parser(e)?;
               children_list.push(SectionContents::Article(v))
             }
-            s => return Err(Error::unexpected_tag(e, s)),
+            s => return Err(Error::unexpected_tag(element, s)),
           }
         }
       }
@@ -420,7 +420,7 @@ impl Parser for Subsection {
               let v = Article::parser(e)?;
               children_list.push(SubsectionContents::Article(v))
             }
-            s => return Err(Error::unexpected_tag(e, s)),
+            s => return Err(Error::unexpected_tag(element, s)),
           }
         }
       }
@@ -532,7 +532,7 @@ impl Parser for Division {
               let v = Article::parser(e)?;
               children_list.push(v)
             }
-            s => return Err(Error::unexpected_tag(e, s)),
+            s => return Err(Error::unexpected_tag(element, s)),
           }
         }
       }
@@ -629,7 +629,7 @@ impl Parser for Article {
             "ArticleTitle" => {
               title = Text::from_children(&e.children);
             }
-            s => return Err(Error::unexpected_tag(e, s)),
+            s => return Err(Error::unexpected_tag(element, s)),
           }
         }
       }
@@ -644,7 +644,7 @@ impl Parser for Article {
             }
             "SupplNote" => suppl_note = Some(Text::from_children(&e.children)),
 
-            s => return Err(Error::unexpected_tag(e, s)),
+            s => return Err(Error::unexpected_tag(element, s)),
           }
         }
       }

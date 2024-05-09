@@ -70,7 +70,7 @@ impl Parser for SupplProvision {
               let v = SupplProvisionAppdx::parser(e)?;
               children.push(SupplProvisionChildrenElement::SupplProvisionAppdx(v))
             }
-            s => return Err(Error::unexpected_tag(e, s)),
+            s => return Err(Error::unexpected_tag(element, s)),
           }
         }
       }
@@ -260,7 +260,7 @@ impl Parser for SupplProvisionAppdxStyle {
               let v = StyleStruct::parser(e)?;
               style_struct.push(v)
             }
-            s => return Err(Error::unexpected_tag(e, s)),
+            s => return Err(Error::unexpected_tag(element, s)),
           }
         }
       }
@@ -333,7 +333,7 @@ impl Parser for SupplProvisionAppdx {
               let v = ArithFormula::parser(e)?;
               arith_formula.push(v)
             }
-            s => return Err(Error::unexpected_tag(e, s)),
+            s => return Err(Error::unexpected_tag(element, s)),
           }
         }
       }

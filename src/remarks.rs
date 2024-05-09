@@ -36,7 +36,7 @@ impl Parser for Remarks {
               let v = Sentence::parser(e)?;
               children.push(RemarksContents::Sentence(v));
             }
-            s => return Err(Error::unexpected_tag(e, s)),
+            s => return Err(Error::unexpected_tag(element, s)),
           }
         }
       }
