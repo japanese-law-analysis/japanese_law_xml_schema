@@ -166,7 +166,7 @@ pub struct Item {
   pub sentence: SentenceOrColumnOrTable,
   pub children: Vec<Subitem1>,
   pub struct_list: Vec<Struct>,
-  pub num: ArticleNumber,
+  pub num: Option<ArticleNumber>,
   pub delete: bool,
   pub hide: bool,
 }
@@ -177,7 +177,7 @@ impl Item {
     sentence: SentenceOrColumnOrTable,
     struct_list: Vec<Struct>,
     children: Vec<Subitem1>,
-    num: ArticleNumber,
+    num: Option<ArticleNumber>,
     delete: bool,
     hide: bool,
   ) -> Self {
@@ -196,7 +196,8 @@ impl Item {
 impl Parser for Item {
   fn parser(element: &Element) -> result::Result<Self> {
     if element.name.as_str() == "Item" {
-      let num = ArticleNumber::from_num_str(&get_attribute_with_parse::<String>(element, "Num")?)?;
+      let num =
+        ArticleNumber::from_num_str(&get_attribute_with_parse::<String>(element, "Num")?).ok();
       let delete = get_attribute_opt_with_parse(element, "Delete")?.unwrap_or(false);
       let hide = get_attribute_opt_with_parse(element, "Hide")?.unwrap_or(false);
       let mut title = None;
@@ -288,8 +289,9 @@ impl ToXmlElement for Item {
         }
       }
     }
-    e.attributes
-      .insert("Num".to_string(), self.num.num_str().clone());
+    if let Some(n) = &self.num {
+      e.attributes.insert("Num".to_string(), n.num_str());
+    }
     if self.delete {
       e.attributes
         .insert("Delete".to_string(), self.delete.to_string());
@@ -308,7 +310,7 @@ pub struct Subitem1 {
   pub sentence: SentenceOrColumnOrTable,
   pub children: Vec<Subitem2>,
   pub struct_list: Vec<Struct>,
-  pub num: ArticleNumber,
+  pub num: Option<ArticleNumber>,
   pub delete: bool,
   pub hide: bool,
 }
@@ -319,7 +321,7 @@ impl Subitem1 {
     sentence: SentenceOrColumnOrTable,
     struct_list: Vec<Struct>,
     children: Vec<Subitem2>,
-    num: ArticleNumber,
+    num: Option<ArticleNumber>,
     delete: bool,
     hide: bool,
   ) -> Self {
@@ -338,7 +340,8 @@ impl Subitem1 {
 impl Parser for Subitem1 {
   fn parser(element: &Element) -> result::Result<Self> {
     if element.name.as_str() == "Subitem1" {
-      let num = ArticleNumber::from_num_str(&get_attribute_with_parse::<String>(element, "Num")?)?;
+      let num =
+        ArticleNumber::from_num_str(&get_attribute_with_parse::<String>(element, "Num")?).ok();
       let delete = get_attribute_opt_with_parse(element, "Delete")?.unwrap_or(false);
       let hide = get_attribute_opt_with_parse(element, "Hide")?.unwrap_or(false);
       let mut title = None;
@@ -430,8 +433,9 @@ impl ToXmlElement for Subitem1 {
         }
       }
     }
-    e.attributes
-      .insert("Num".to_string(), self.num.num_str().clone());
+    if let Some(n) = &self.num {
+      e.attributes.insert("Num".to_string(), n.num_str());
+    }
     if self.delete {
       e.attributes
         .insert("Delete".to_string(), self.delete.to_string());
@@ -450,7 +454,7 @@ pub struct Subitem2 {
   pub sentence: SentenceOrColumnOrTable,
   pub children: Vec<Subitem3>,
   pub struct_list: Vec<Struct>,
-  pub num: ArticleNumber,
+  pub num: Option<ArticleNumber>,
   pub delete: bool,
   pub hide: bool,
 }
@@ -461,7 +465,7 @@ impl Subitem2 {
     sentence: SentenceOrColumnOrTable,
     struct_list: Vec<Struct>,
     children: Vec<Subitem3>,
-    num: ArticleNumber,
+    num: Option<ArticleNumber>,
     delete: bool,
     hide: bool,
   ) -> Self {
@@ -480,7 +484,8 @@ impl Subitem2 {
 impl Parser for Subitem2 {
   fn parser(element: &Element) -> result::Result<Self> {
     if element.name.as_str() == "Subitem2" {
-      let num = ArticleNumber::from_num_str(&get_attribute_with_parse::<String>(element, "Num")?)?;
+      let num =
+        ArticleNumber::from_num_str(&get_attribute_with_parse::<String>(element, "Num")?).ok();
       let delete = get_attribute_opt_with_parse(element, "Delete")?.unwrap_or(false);
       let hide = get_attribute_opt_with_parse(element, "Hide")?.unwrap_or(false);
       let mut title = None;
@@ -572,8 +577,9 @@ impl ToXmlElement for Subitem2 {
         }
       }
     }
-    e.attributes
-      .insert("Num".to_string(), self.num.num_str().clone());
+    if let Some(n) = &self.num {
+      e.attributes.insert("Num".to_string(), n.num_str());
+    }
     if self.delete {
       e.attributes
         .insert("Delete".to_string(), self.delete.to_string());
@@ -592,7 +598,7 @@ pub struct Subitem3 {
   pub sentence: SentenceOrColumnOrTable,
   pub children: Vec<Subitem4>,
   pub struct_list: Vec<Struct>,
-  pub num: ArticleNumber,
+  pub num: Option<ArticleNumber>,
   pub delete: bool,
   pub hide: bool,
 }
@@ -603,7 +609,7 @@ impl Subitem3 {
     sentence: SentenceOrColumnOrTable,
     struct_list: Vec<Struct>,
     children: Vec<Subitem4>,
-    num: ArticleNumber,
+    num: Option<ArticleNumber>,
     delete: bool,
     hide: bool,
   ) -> Self {
@@ -622,7 +628,8 @@ impl Subitem3 {
 impl Parser for Subitem3 {
   fn parser(element: &Element) -> result::Result<Self> {
     if element.name.as_str() == "Subitem3" {
-      let num = ArticleNumber::from_num_str(&get_attribute_with_parse::<String>(element, "Num")?)?;
+      let num =
+        ArticleNumber::from_num_str(&get_attribute_with_parse::<String>(element, "Num")?).ok();
       let delete = get_attribute_opt_with_parse(element, "Delete")?.unwrap_or(false);
       let hide = get_attribute_opt_with_parse(element, "Hide")?.unwrap_or(false);
       let mut title = None;
@@ -714,8 +721,9 @@ impl ToXmlElement for Subitem3 {
         }
       }
     }
-    e.attributes
-      .insert("Num".to_string(), self.num.num_str().clone());
+    if let Some(n) = &self.num {
+      e.attributes.insert("Num".to_string(), n.num_str());
+    }
     if self.delete {
       e.attributes
         .insert("Delete".to_string(), self.delete.to_string());
@@ -734,7 +742,7 @@ pub struct Subitem4 {
   pub sentence: SentenceOrColumnOrTable,
   pub children: Vec<Subitem5>,
   pub struct_list: Vec<Struct>,
-  pub num: ArticleNumber,
+  pub num: Option<ArticleNumber>,
   pub delete: bool,
   pub hide: bool,
 }
@@ -745,7 +753,7 @@ impl Subitem4 {
     sentence: SentenceOrColumnOrTable,
     struct_list: Vec<Struct>,
     children: Vec<Subitem5>,
-    num: ArticleNumber,
+    num: Option<ArticleNumber>,
     delete: bool,
     hide: bool,
   ) -> Self {
@@ -764,7 +772,8 @@ impl Subitem4 {
 impl Parser for Subitem4 {
   fn parser(element: &Element) -> result::Result<Self> {
     if element.name.as_str() == "Subitem4" {
-      let num = ArticleNumber::from_num_str(&get_attribute_with_parse::<String>(element, "Num")?)?;
+      let num =
+        ArticleNumber::from_num_str(&get_attribute_with_parse::<String>(element, "Num")?).ok();
       let delete = get_attribute_opt_with_parse(element, "Delete")?.unwrap_or(false);
       let hide = get_attribute_opt_with_parse(element, "Hide")?.unwrap_or(false);
       let mut title = None;
@@ -856,8 +865,9 @@ impl ToXmlElement for Subitem4 {
         }
       }
     }
-    e.attributes
-      .insert("Num".to_string(), self.num.num_str().clone());
+    if let Some(n) = &self.num {
+      e.attributes.insert("Num".to_string(), n.num_str());
+    }
     if self.delete {
       e.attributes
         .insert("Delete".to_string(), self.delete.to_string());
@@ -876,7 +886,7 @@ pub struct Subitem5 {
   pub sentence: SentenceOrColumnOrTable,
   pub children: Vec<Subitem6>,
   pub struct_list: Vec<Struct>,
-  pub num: ArticleNumber,
+  pub num: Option<ArticleNumber>,
   pub delete: bool,
   pub hide: bool,
 }
@@ -887,7 +897,7 @@ impl Subitem5 {
     sentence: SentenceOrColumnOrTable,
     struct_list: Vec<Struct>,
     children: Vec<Subitem6>,
-    num: ArticleNumber,
+    num: Option<ArticleNumber>,
     delete: bool,
     hide: bool,
   ) -> Self {
@@ -906,7 +916,8 @@ impl Subitem5 {
 impl Parser for Subitem5 {
   fn parser(element: &Element) -> result::Result<Self> {
     if element.name.as_str() == "Subitem5" {
-      let num = ArticleNumber::from_num_str(&get_attribute_with_parse::<String>(element, "Num")?)?;
+      let num =
+        ArticleNumber::from_num_str(&get_attribute_with_parse::<String>(element, "Num")?).ok();
       let delete = get_attribute_opt_with_parse(element, "Delete")?.unwrap_or(false);
       let hide = get_attribute_opt_with_parse(element, "Hide")?.unwrap_or(false);
       let mut title = None;
@@ -998,8 +1009,9 @@ impl ToXmlElement for Subitem5 {
         }
       }
     }
-    e.attributes
-      .insert("Num".to_string(), self.num.num_str().clone());
+    if let Some(n) = &self.num {
+      e.attributes.insert("Num".to_string(), n.num_str());
+    }
     if self.delete {
       e.attributes
         .insert("Delete".to_string(), self.delete.to_string());
@@ -1018,7 +1030,7 @@ pub struct Subitem6 {
   pub sentence: SentenceOrColumnOrTable,
   pub children: Vec<Subitem7>,
   pub struct_list: Vec<Struct>,
-  pub num: ArticleNumber,
+  pub num: Option<ArticleNumber>,
   pub delete: bool,
   pub hide: bool,
 }
@@ -1029,7 +1041,7 @@ impl Subitem6 {
     sentence: SentenceOrColumnOrTable,
     struct_list: Vec<Struct>,
     children: Vec<Subitem7>,
-    num: ArticleNumber,
+    num: Option<ArticleNumber>,
     delete: bool,
     hide: bool,
   ) -> Self {
@@ -1048,7 +1060,8 @@ impl Subitem6 {
 impl Parser for Subitem6 {
   fn parser(element: &Element) -> result::Result<Self> {
     if element.name.as_str() == "Subitem6" {
-      let num = ArticleNumber::from_num_str(&get_attribute_with_parse::<String>(element, "Num")?)?;
+      let num =
+        ArticleNumber::from_num_str(&get_attribute_with_parse::<String>(element, "Num")?).ok();
       let delete = get_attribute_opt_with_parse(element, "Delete")?.unwrap_or(false);
       let hide = get_attribute_opt_with_parse(element, "Hide")?.unwrap_or(false);
       let mut title = None;
@@ -1140,8 +1153,9 @@ impl ToXmlElement for Subitem6 {
         }
       }
     }
-    e.attributes
-      .insert("Num".to_string(), self.num.num_str().clone());
+    if let Some(n) = &self.num {
+      e.attributes.insert("Num".to_string(), n.num_str());
+    }
     if self.delete {
       e.attributes
         .insert("Delete".to_string(), self.delete.to_string());
@@ -1160,7 +1174,7 @@ pub struct Subitem7 {
   pub sentence: SentenceOrColumnOrTable,
   pub children: Vec<Subitem8>,
   pub struct_list: Vec<Struct>,
-  pub num: ArticleNumber,
+  pub num: Option<ArticleNumber>,
   pub delete: bool,
   pub hide: bool,
 }
@@ -1171,7 +1185,7 @@ impl Subitem7 {
     sentence: SentenceOrColumnOrTable,
     struct_list: Vec<Struct>,
     children: Vec<Subitem8>,
-    num: ArticleNumber,
+    num: Option<ArticleNumber>,
     delete: bool,
     hide: bool,
   ) -> Self {
@@ -1190,7 +1204,8 @@ impl Subitem7 {
 impl Parser for Subitem7 {
   fn parser(element: &Element) -> result::Result<Self> {
     if element.name.as_str() == "Subitem7" {
-      let num = ArticleNumber::from_num_str(&get_attribute_with_parse::<String>(element, "Num")?)?;
+      let num =
+        ArticleNumber::from_num_str(&get_attribute_with_parse::<String>(element, "Num")?).ok();
       let delete = get_attribute_opt_with_parse(element, "Delete")?.unwrap_or(false);
       let hide = get_attribute_opt_with_parse(element, "Hide")?.unwrap_or(false);
       let mut title = None;
@@ -1282,8 +1297,9 @@ impl ToXmlElement for Subitem7 {
         }
       }
     }
-    e.attributes
-      .insert("Num".to_string(), self.num.num_str().clone());
+    if let Some(n) = &self.num {
+      e.attributes.insert("Num".to_string(), n.num_str());
+    }
     if self.delete {
       e.attributes
         .insert("Delete".to_string(), self.delete.to_string());
@@ -1302,7 +1318,7 @@ pub struct Subitem8 {
   pub sentence: SentenceOrColumnOrTable,
   pub children: Vec<Subitem9>,
   pub struct_list: Vec<Struct>,
-  pub num: ArticleNumber,
+  pub num: Option<ArticleNumber>,
   pub delete: bool,
   pub hide: bool,
 }
@@ -1313,7 +1329,7 @@ impl Subitem8 {
     sentence: SentenceOrColumnOrTable,
     struct_list: Vec<Struct>,
     children: Vec<Subitem9>,
-    num: ArticleNumber,
+    num: Option<ArticleNumber>,
     delete: bool,
     hide: bool,
   ) -> Self {
@@ -1332,7 +1348,8 @@ impl Subitem8 {
 impl Parser for Subitem8 {
   fn parser(element: &Element) -> result::Result<Self> {
     if element.name.as_str() == "Subitem8" {
-      let num = ArticleNumber::from_num_str(&get_attribute_with_parse::<String>(element, "Num")?)?;
+      let num =
+        ArticleNumber::from_num_str(&get_attribute_with_parse::<String>(element, "Num")?).ok();
       let delete = get_attribute_opt_with_parse(element, "Delete")?.unwrap_or(false);
       let hide = get_attribute_opt_with_parse(element, "Hide")?.unwrap_or(false);
       let mut title = None;
@@ -1424,8 +1441,9 @@ impl ToXmlElement for Subitem8 {
         }
       }
     }
-    e.attributes
-      .insert("Num".to_string(), self.num.num_str().clone());
+    if let Some(n) = &self.num {
+      e.attributes.insert("Num".to_string(), n.num_str());
+    }
     if self.delete {
       e.attributes
         .insert("Delete".to_string(), self.delete.to_string());
@@ -1444,7 +1462,7 @@ pub struct Subitem9 {
   pub sentence: SentenceOrColumnOrTable,
   pub children: Vec<Subitem10>,
   pub struct_list: Vec<Struct>,
-  pub num: ArticleNumber,
+  pub num: Option<ArticleNumber>,
   pub delete: bool,
   pub hide: bool,
 }
@@ -1455,7 +1473,7 @@ impl Subitem9 {
     sentence: SentenceOrColumnOrTable,
     struct_list: Vec<Struct>,
     children: Vec<Subitem10>,
-    num: ArticleNumber,
+    num: Option<ArticleNumber>,
     delete: bool,
     hide: bool,
   ) -> Self {
@@ -1474,7 +1492,8 @@ impl Subitem9 {
 impl Parser for Subitem9 {
   fn parser(element: &Element) -> result::Result<Self> {
     if element.name.as_str() == "Subitem9" {
-      let num = ArticleNumber::from_num_str(&get_attribute_with_parse::<String>(element, "Num")?)?;
+      let num =
+        ArticleNumber::from_num_str(&get_attribute_with_parse::<String>(element, "Num")?).ok();
       let delete = get_attribute_opt_with_parse(element, "Delete")?.unwrap_or(false);
       let hide = get_attribute_opt_with_parse(element, "Hide")?.unwrap_or(false);
       let mut title = None;
@@ -1566,8 +1585,9 @@ impl ToXmlElement for Subitem9 {
         }
       }
     }
-    e.attributes
-      .insert("Num".to_string(), self.num.num_str().clone());
+    if let Some(n) = &self.num {
+      e.attributes.insert("Num".to_string(), n.num_str());
+    }
     if self.delete {
       e.attributes
         .insert("Delete".to_string(), self.delete.to_string());
@@ -1585,7 +1605,7 @@ pub struct Subitem10 {
   pub title: Option<text::Text>,
   pub sentence: SentenceOrColumnOrTable,
   pub struct_list: Vec<Struct>,
-  pub num: ArticleNumber,
+  pub num: Option<ArticleNumber>,
   pub delete: bool,
   pub hide: bool,
 }
@@ -1595,7 +1615,7 @@ impl Subitem10 {
     title: Option<Text>,
     sentence: SentenceOrColumnOrTable,
     struct_list: Vec<Struct>,
-    num: ArticleNumber,
+    num: Option<ArticleNumber>,
     delete: bool,
     hide: bool,
   ) -> Self {
@@ -1613,7 +1633,8 @@ impl Subitem10 {
 impl Parser for Subitem10 {
   fn parser(element: &Element) -> result::Result<Self> {
     if element.name.as_str() == "Subitem10" {
-      let num = ArticleNumber::from_num_str(&get_attribute_with_parse::<String>(element, "Num")?)?;
+      let num =
+        ArticleNumber::from_num_str(&get_attribute_with_parse::<String>(element, "Num")?).ok();
       let delete = get_attribute_opt_with_parse(element, "Delete")?.unwrap_or(false);
       let hide = get_attribute_opt_with_parse(element, "Hide")?.unwrap_or(false);
       let mut title = None;
@@ -1696,8 +1717,9 @@ impl ToXmlElement for Subitem10 {
         }
       }
     }
-    e.attributes
-      .insert("Num".to_string(), self.num.num_str().clone());
+    if let Some(n) = &self.num {
+      e.attributes.insert("Num".to_string(), n.num_str());
+    }
     if self.delete {
       e.attributes
         .insert("Delete".to_string(), self.delete.to_string());
