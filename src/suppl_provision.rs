@@ -90,9 +90,11 @@ impl Parser for SupplProvision {
 impl ToXmlElement for SupplProvision {
   fn to_xml_element(&self) -> Element {
     let mut e = Element::new("SupplProvision");
-    e.children.push(XMLNode::Element(
-      self.label.to_xml_element_with_name("SupplProvisionLabel"),
-    ));
+    if !self.label.contents.is_empty() {
+      e.children.push(XMLNode::Element(
+        self.label.to_xml_element_with_name("SupplProvisionLabel"),
+      ));
+    }
     for v in self.children.iter() {
       match v {
         SupplProvisionChildrenElement::Chapter(v) => {
