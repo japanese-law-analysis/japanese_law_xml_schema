@@ -10,7 +10,7 @@ use crate::remarks::*;
 use crate::sentence::*;
 use crate::structs::*;
 use crate::table::*;
-use crate::table_of_contents::TOCSection;
+use crate::table_of_contents::{TOCSection, TOC};
 use crate::text::*;
 use crate::to_xml::*;
 use crate::*;
@@ -138,6 +138,10 @@ impl parser::Parser for Contents {
             let v = ArithFormula::parser(e)?;
             lst.push(ContentsElement::ArithFormula(v));
           }
+          "TOC" => {
+            let v = TOC::parser(e)?;
+            lst.push(ContentsElement::TOC(v));
+          }
           "TOCSection" => {
             let v = TOCSection::parser(e)?;
             lst.push(ContentsElement::TOCSection(v));
@@ -192,6 +196,7 @@ impl ToXmlElementWithName for Contents {
         ContentsElement::List(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
         ContentsElement::Sentence(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
         ContentsElement::ArithFormula(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
+        ContentsElement::TOC(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
         ContentsElement::TOCSection(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
         ContentsElement::Remarks(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
         ContentsElement::TableRow(v) => e.children.push(XMLNode::Element(v.to_xml_element())),
@@ -234,6 +239,7 @@ pub enum ContentsElement {
   Sentence(Sentence),
   ArithFormula(ArithFormula),
   Remarks(Remarks),
+  TOC(TOC),
   TOCSection(TOCSection),
   TableRow(TableRow),
 }
