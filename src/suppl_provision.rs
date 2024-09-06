@@ -38,13 +38,13 @@ impl Parser for SupplProvision {
       };
       let amend_law_num = element.attributes.get("AmendLawNum").cloned();
       let extract = get_attribute_opt_with_parse(element, "Extract")?;
-      let mut label = None;
+      let mut label = Text::new();
       let mut children = Vec::new();
       for node in element.children.iter() {
         if let XMLNode::Element(e) = node {
           match e.name.as_str() {
             "SupplProvisionLabel" => {
-              label = Some(Text::from_children(&e.children));
+              label = Text::from_children(&e.children);
             }
             "Chapter" => {
               let v = Chapter::parser(e)?;
@@ -74,19 +74,13 @@ impl Parser for SupplProvision {
           }
         }
       }
-      if let Some(label) = label {
-        Ok(SupplProvision {
-          label,
-          children,
-          suppl_provision_type,
-          amend_law_num,
-          extract,
-        })
-      } else {
-        Err(Error::MissingRequiredTag {
-          tag_name: "SupplProbisionLabel".to_string(),
-        })
-      }
+      Ok(SupplProvision {
+        label,
+        children,
+        suppl_provision_type,
+        amend_law_num,
+        extract,
+      })
     } else {
       Err(Error::wrong_tag_name(element, "SupplProbision"))
     }
