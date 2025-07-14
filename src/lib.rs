@@ -42,6 +42,7 @@ pub mod table_of_contents;
 mod tests;
 pub mod text;
 pub(crate) mod to_xml;
+pub mod utils;
 
 use crate::parser::Parser;
 use koyomi::{era, Date};
