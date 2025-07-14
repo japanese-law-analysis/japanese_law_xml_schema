@@ -862,7 +862,7 @@ impl Parser for AmendProvision {
                     }
                     "LawBody" => {
                       let v = LawBody::parser(e)?;
-                      new_provision.push(NewProvision::LawBody(v));
+                      new_provision.push(NewProvision::LawBody(Box::new(v)));
                     }
                     s => return Err(Error::unexpected_tag(element, s)),
                   }
@@ -1016,5 +1016,5 @@ pub enum NewProvision {
   StyleStruct(StyleStruct),
   FormatStruct(FormatStruct),
   Remarks(Remarks),
-  LawBody(LawBody),
+  LawBody(Box<LawBody>),
 }
