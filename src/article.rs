@@ -37,6 +37,10 @@ impl Part {
       hide,
     }
   }
+
+  pub fn number_text(&self) -> String {
+    self.num.part_text()
+  }
 }
 
 impl Parser for Part {
@@ -151,6 +155,10 @@ impl Chapter {
       hide,
     }
   }
+
+  pub fn number_text(&self) -> String {
+    self.num.chapter_text()
+  }
 }
 
 impl Parser for Chapter {
@@ -264,6 +272,10 @@ impl Section {
       delete,
       hide,
     }
+  }
+
+  pub fn number_text(&self) -> String {
+    self.num.section_text()
   }
 }
 
@@ -387,6 +399,10 @@ impl Subsection {
       hide,
     }
   }
+
+  pub fn number_text(&self) -> String {
+    self.num.subsection_text()
+  }
 }
 
 impl Parser for Subsection {
@@ -503,6 +519,10 @@ impl Division {
       hide,
     }
   }
+
+  pub fn number_text(&self) -> String {
+    self.num.division_text()
+  }
 }
 
 impl Parser for Division {
@@ -607,6 +627,10 @@ impl Article {
       delete,
       hide,
     }
+  }
+
+  pub fn number_text(&self) -> String {
+    self.num.article_text()
   }
 }
 
