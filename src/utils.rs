@@ -193,7 +193,7 @@ pub fn text_from_paragraph_list(list: &[Paragraph]) -> String {
 }
 
 /// 段落のリストから文字列のリストとそのインデックスの組を生成する
-/// ルビと線は無視し、上付き文字は`^`、下付き文字は`_`で出力する
+/// 線は無視し、ルビはテキストのみを取得し、上付き文字は`^`、下付き文字は`_`で出力する
 pub fn text_info_list_from_paragraph(lst: &[Paragraph]) -> Vec<(TextIndex, String)> {
   let mut v = Vec::new();
   for para in lst.iter() {
@@ -530,6 +530,9 @@ pub fn sentence_element_to_str(element: &[SentenceElement]) -> String {
   for e in element.iter() {
     match e {
       SentenceElement::String(s2) => s.push_str(s2),
+      SentenceElement::Ruby(ruby) => {
+        s.push_str(&ruby.text.to_string());
+      }
       SentenceElement::Sub(s2) => {
         s.push_str("_{");
         s.push_str(&s2.text);
@@ -545,6 +548,31 @@ pub fn sentence_element_to_str(element: &[SentenceElement]) -> String {
         for c in contents.iter() {
           match c {
             ContentsElement::String(s2) => s.push_str(s2),
+            ContentsElement::Ruby(ruby) => {
+              s.push_str(&ruby.text.to_string());
+            }
+            ContentsElement::Sub(s2) => {
+              s.push_str("_{");
+              s.push_str(&s2.text);
+              s.push('}');
+            }
+            ContentsElement::Sup(s2) => {
+              s.push_str("^{");
+              s.push_str(&s2.text);
+              s.push('}');
+            }
+            _ => (),
+          }
+        }
+      }
+      SentenceElement::QuoteStruct(quote_struct) => {
+        let contents = &quote_struct.contentes.contents;
+        for c in contents.iter() {
+          match c {
+            ContentsElement::String(s2) => s.push_str(s2),
+            ContentsElement::Ruby(ruby) => {
+              s.push_str(&ruby.text.to_string());
+            }
             ContentsElement::Sub(s2) => {
               s.push_str("_{");
               s.push_str(&s2.text);
