@@ -390,3 +390,25 @@ impl ToXmlElement for Sub {
     e
   }
 }
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn check_text() {
+    let data = r#"<Sentence Num="1" WritingMode="vertical">激<Ruby>甚<Rt>じん</Rt></Ruby>災害に対処するための特別の財政援助等に関する法律（以下「法」という。）第三条第一項の政令で定める基準に該当する都道府県又は市町村は、その年に発生した激甚災害（法第二条第一項の規定により激甚災害として指定され、かつ、同条第二項の規定により当該事項に係る法の規定の適用が指定された災害をいう。以下同じ。）に係る法第三条第一項各号に掲げる事業ごとの当該都道府県又は市町村の負担額を合算した額の当該激甚災害が発生した年の四月一日の属する会計年度における当該都道府県又は市町村の標準税収入（法第四条第一項第一号の標準税収入をいう。以下同じ。）に対する割合が都道府県にあつては百分の十、市町村にあつては百分の五を超えるものとする。</Sentence>"#;
+    let node = xmltree::Element::parse(data.as_bytes()).unwrap();
+    let text = Text::from_children(&node.children);
+    assert_eq!(text.to_string(), "激甚災害に対処するための特別の財政援助等に関する法律（以下「法」という。）第三条第一項の政令で定める基準に該当する都道府県又は市町村は、その年に発生した激甚災害（法第二条第一項の規定により激甚災害として指定され、かつ、同条第二項の規定により当該事項に係る法の規定の適用が指定された災害をいう。以下同じ。）に係る法第三条第一項各号に掲げる事業ごとの当該都道府県又は市町村の負担額を合算した額の当該激甚災害が発生した年の四月一日の属する会計年度における当該都道府県又は市町村の標準税収入（法第四条第一項第一号の標準税収入をいう。以下同じ。）に対する割合が都道府県にあつては百分の十、市町村にあつては百分の五を超えるものとする。");
+  }
+
+  #[test]
+  fn check_ruby() {
+    let data = r#"<Ruby>甚<Rt>じん</Rt></Ruby>"#;
+    let node = xmltree::Element::parse(data.as_bytes()).unwrap();
+    let ruby = Ruby::parser(&node).unwrap();
+    assert_eq!(ruby, Ruby::new(&Text::from_value("甚"), "じん"));
+    assert_eq!(ruby.text.to_string(), "甚".to_string())
+  }
+}
