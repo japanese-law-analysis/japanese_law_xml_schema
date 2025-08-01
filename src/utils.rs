@@ -512,7 +512,17 @@ fn text_list_from_subitem10(
         .iter()
         .map(|sentence| sentence_element_to_str(&sentence.contents))
         .collect::<String>(),
-      _ => String::new(),
+      SentenceOrColumnOrTable::Column(cs) => cs
+        .iter()
+        .flat_map(|column| {
+          column
+            .sentence
+            .iter()
+            .map(|sentence| sentence_element_to_str(&sentence.contents))
+        })
+        .collect::<Vec<_>>()
+        .join(" "),
+      SentenceOrColumnOrTable::Table(_) => String::new(),
     };
     v.push((
       TextIndex {
