@@ -16,6 +16,7 @@ use crate::{
   },
   sentence::SentenceElement,
   suppl_provision::{self, SupplProvision},
+  table::{Table, TableColumnContents},
 };
 use serde::{Deserialize, Serialize};
 
@@ -230,7 +231,7 @@ pub fn text_info_list_from_paragraph(lst: &[Paragraph]) -> Vec<(TextIndex, Strin
           })
           .collect::<Vec<_>>()
           .join(" "),
-        SentenceOrColumnOrTable::Table(_) => String::new(),
+        SentenceOrColumnOrTable::Table(table) => table_to_str(table),
       };
       v.push((
         TextIndex {
@@ -271,7 +272,7 @@ fn text_list_from_subitem1(
         })
         .collect::<Vec<_>>()
         .join(" "),
-      SentenceOrColumnOrTable::Table(_) => String::new(),
+      SentenceOrColumnOrTable::Table(table) => table_to_str(table),
     };
     v.push((
       TextIndex {
@@ -310,7 +311,7 @@ fn text_list_from_subitem2(
         })
         .collect::<Vec<_>>()
         .join(" "),
-      SentenceOrColumnOrTable::Table(_) => String::new(),
+      SentenceOrColumnOrTable::Table(table) => table_to_str(table),
     };
     v.push((
       TextIndex {
@@ -349,7 +350,7 @@ fn text_list_from_subitem3(
         })
         .collect::<Vec<_>>()
         .join(" "),
-      SentenceOrColumnOrTable::Table(_) => String::new(),
+      SentenceOrColumnOrTable::Table(table) => table_to_str(table),
     };
     v.push((
       TextIndex {
@@ -388,7 +389,7 @@ fn text_list_from_subitem4(
         })
         .collect::<Vec<_>>()
         .join(" "),
-      SentenceOrColumnOrTable::Table(_) => String::new(),
+      SentenceOrColumnOrTable::Table(table) => table_to_str(table),
     };
     v.push((
       TextIndex {
@@ -427,7 +428,7 @@ fn text_list_from_subitem5(
         })
         .collect::<Vec<_>>()
         .join(" "),
-      SentenceOrColumnOrTable::Table(_) => String::new(),
+      SentenceOrColumnOrTable::Table(table) => table_to_str(table),
     };
     v.push((
       TextIndex {
@@ -505,7 +506,7 @@ fn text_list_from_subitem7(
         })
         .collect::<Vec<_>>()
         .join(" "),
-      SentenceOrColumnOrTable::Table(_) => String::new(),
+      SentenceOrColumnOrTable::Table(table) => table_to_str(table),
     };
     v.push((
       TextIndex {
@@ -544,7 +545,7 @@ fn text_list_from_subitem8(
         })
         .collect::<Vec<_>>()
         .join(" "),
-      SentenceOrColumnOrTable::Table(_) => String::new(),
+      SentenceOrColumnOrTable::Table(table) => table_to_str(table),
     };
     v.push((
       TextIndex {
@@ -583,7 +584,7 @@ fn text_list_from_subitem9(
         })
         .collect::<Vec<_>>()
         .join(" "),
-      SentenceOrColumnOrTable::Table(_) => String::new(),
+      SentenceOrColumnOrTable::Table(table) => table_to_str(table),
     };
     v.push((
       TextIndex {
@@ -622,7 +623,7 @@ fn text_list_from_subitem10(
         })
         .collect::<Vec<_>>()
         .join(" "),
-      SentenceOrColumnOrTable::Table(_) => String::new(),
+      SentenceOrColumnOrTable::Table(table) => table_to_str(table),
     };
     v.push((
       TextIndex {
@@ -633,6 +634,52 @@ fn text_list_from_subitem10(
     ));
   }
   v
+}
+
+pub fn table_to_str(table: &Table) -> String {
+  let header_row_str = table
+    .table_header_row
+    .iter()
+    .map(|row| {
+      row
+        .columns
+        .iter()
+        .map(|text| text.to_string())
+        .collect::<String>()
+    })
+    .collect::<Vec<_>>()
+    .join(" ");
+  let row = table
+    .table_row
+    .iter()
+    .map(|row| {
+      row
+        .columns
+        .iter()
+        .map(|column| {
+          column
+            .contents
+            .iter()
+            .map(|contents| {
+              match contents {
+                TableColumnContents::String(s) => s.clone(),
+                TableColumnContents::Sentence(se) => sentence_element_to_str(&se.contents),
+                TableColumnContents::Column(c) => c
+                  .sentence
+                  .iter()
+                  .map(|sentence| sentence_element_to_str(&sentence.contents))
+                  .collect::<String>(),
+                _ => String::new(), // unsupported
+              }
+            })
+            .collect::<String>()
+        })
+        .collect::<Vec<_>>()
+        .join(" ")
+    })
+    .collect::<Vec<_>>()
+    .join("\n");
+  format!("{header_row_str}\n{row}")
 }
 
 pub fn sentence_element_to_str(element: &[SentenceElement]) -> String {
