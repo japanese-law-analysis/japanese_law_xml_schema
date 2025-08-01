@@ -220,7 +220,17 @@ pub fn text_info_list_from_paragraph(lst: &[Paragraph]) -> Vec<(TextIndex, Strin
           .iter()
           .map(|sentence| sentence_element_to_str(&sentence.contents))
           .collect::<String>(),
-        _ => String::new(),
+        SentenceOrColumnOrTable::Column(cs) => cs
+          .iter()
+          .flat_map(|column| {
+            column
+              .sentence
+              .iter()
+              .map(|sentence| sentence_element_to_str(&sentence.contents))
+          })
+          .collect::<Vec<_>>()
+          .join(" "),
+        SentenceOrColumnOrTable::Table(_) => String::new(),
       };
       v.push((
         TextIndex {
@@ -251,7 +261,17 @@ fn text_list_from_subitem1(
         .iter()
         .map(|sentence| sentence_element_to_str(&sentence.contents))
         .collect::<String>(),
-      _ => String::new(),
+      SentenceOrColumnOrTable::Column(cs) => cs
+        .iter()
+        .flat_map(|column| {
+          column
+            .sentence
+            .iter()
+            .map(|sentence| sentence_element_to_str(&sentence.contents))
+        })
+        .collect::<Vec<_>>()
+        .join(" "),
+      SentenceOrColumnOrTable::Table(_) => String::new(),
     };
     v.push((
       TextIndex {
@@ -280,7 +300,17 @@ fn text_list_from_subitem2(
         .iter()
         .map(|sentence| sentence_element_to_str(&sentence.contents))
         .collect::<String>(),
-      _ => String::new(),
+      SentenceOrColumnOrTable::Column(cs) => cs
+        .iter()
+        .flat_map(|column| {
+          column
+            .sentence
+            .iter()
+            .map(|sentence| sentence_element_to_str(&sentence.contents))
+        })
+        .collect::<Vec<_>>()
+        .join(" "),
+      SentenceOrColumnOrTable::Table(_) => String::new(),
     };
     v.push((
       TextIndex {
@@ -309,7 +339,17 @@ fn text_list_from_subitem3(
         .iter()
         .map(|sentence| sentence_element_to_str(&sentence.contents))
         .collect::<String>(),
-      _ => String::new(),
+      SentenceOrColumnOrTable::Column(cs) => cs
+        .iter()
+        .flat_map(|column| {
+          column
+            .sentence
+            .iter()
+            .map(|sentence| sentence_element_to_str(&sentence.contents))
+        })
+        .collect::<Vec<_>>()
+        .join(" "),
+      SentenceOrColumnOrTable::Table(_) => String::new(),
     };
     v.push((
       TextIndex {
@@ -338,7 +378,17 @@ fn text_list_from_subitem4(
         .iter()
         .map(|sentence| sentence_element_to_str(&sentence.contents))
         .collect::<String>(),
-      _ => String::new(),
+      SentenceOrColumnOrTable::Column(cs) => cs
+        .iter()
+        .flat_map(|column| {
+          column
+            .sentence
+            .iter()
+            .map(|sentence| sentence_element_to_str(&sentence.contents))
+        })
+        .collect::<Vec<_>>()
+        .join(" "),
+      SentenceOrColumnOrTable::Table(_) => String::new(),
     };
     v.push((
       TextIndex {
@@ -367,7 +417,17 @@ fn text_list_from_subitem5(
         .iter()
         .map(|sentence| sentence_element_to_str(&sentence.contents))
         .collect::<String>(),
-      _ => String::new(),
+      SentenceOrColumnOrTable::Column(cs) => cs
+        .iter()
+        .flat_map(|column| {
+          column
+            .sentence
+            .iter()
+            .map(|sentence| sentence_element_to_str(&sentence.contents))
+        })
+        .collect::<Vec<_>>()
+        .join(" "),
+      SentenceOrColumnOrTable::Table(_) => String::new(),
     };
     v.push((
       TextIndex {
@@ -396,7 +456,17 @@ fn text_list_from_subitem6(
         .iter()
         .map(|sentence| sentence_element_to_str(&sentence.contents))
         .collect::<String>(),
-      _ => String::new(),
+      SentenceOrColumnOrTable::Column(cs) => cs
+        .iter()
+        .flat_map(|column| {
+          column
+            .sentence
+            .iter()
+            .map(|sentence| sentence_element_to_str(&sentence.contents))
+        })
+        .collect::<Vec<_>>()
+        .join(" "),
+      SentenceOrColumnOrTable::Table(_) => String::new(),
     };
     v.push((
       TextIndex {
@@ -425,7 +495,17 @@ fn text_list_from_subitem7(
         .iter()
         .map(|sentence| sentence_element_to_str(&sentence.contents))
         .collect::<String>(),
-      _ => String::new(),
+      SentenceOrColumnOrTable::Column(cs) => cs
+        .iter()
+        .flat_map(|column| {
+          column
+            .sentence
+            .iter()
+            .map(|sentence| sentence_element_to_str(&sentence.contents))
+        })
+        .collect::<Vec<_>>()
+        .join(" "),
+      SentenceOrColumnOrTable::Table(_) => String::new(),
     };
     v.push((
       TextIndex {
@@ -454,7 +534,17 @@ fn text_list_from_subitem8(
         .iter()
         .map(|sentence| sentence_element_to_str(&sentence.contents))
         .collect::<String>(),
-      _ => String::new(),
+      SentenceOrColumnOrTable::Column(cs) => cs
+        .iter()
+        .flat_map(|column| {
+          column
+            .sentence
+            .iter()
+            .map(|sentence| sentence_element_to_str(&sentence.contents))
+        })
+        .collect::<Vec<_>>()
+        .join(" "),
+      SentenceOrColumnOrTable::Table(_) => String::new(),
     };
     v.push((
       TextIndex {
@@ -483,7 +573,17 @@ fn text_list_from_subitem9(
         .iter()
         .map(|sentence| sentence_element_to_str(&sentence.contents))
         .collect::<String>(),
-      _ => String::new(),
+      SentenceOrColumnOrTable::Column(cs) => cs
+        .iter()
+        .flat_map(|column| {
+          column
+            .sentence
+            .iter()
+            .map(|sentence| sentence_element_to_str(&sentence.contents))
+        })
+        .collect::<Vec<_>>()
+        .join(" "),
+      SentenceOrColumnOrTable::Table(_) => String::new(),
     };
     v.push((
       TextIndex {
