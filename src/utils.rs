@@ -20,7 +20,6 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 
-
 /// 章番号や節番号などの情報つきの条
 #[derive(Debug, Clone)]
 pub struct WithNumberArticle {
