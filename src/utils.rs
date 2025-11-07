@@ -21,7 +21,7 @@ use crate::{
 use serde::{Deserialize, Serialize};
 
 /// 章番号や節番号などの情報つきの条
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct WithNumberArticle {
   pub(crate) part: Option<ArticleNumber>,
   pub(crate) chapter: Option<ArticleNumber>,
@@ -878,6 +878,199 @@ pub fn sentence_element_to_str(element: &[SentenceElement]) -> String {
     }
   }
   s
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Default)]
+pub struct Toc {
+  pub(crate) part_number: Option<ArticleNumber>,
+  pub(crate) chapter_number: Option<ArticleNumber>,
+  pub(crate) section_number: Option<ArticleNumber>,
+  pub(crate) subsection_number: Option<ArticleNumber>,
+  pub(crate) division_number: Option<ArticleNumber>,
+  pub(crate) article_number: Option<ArticleNumber>,
+  pub(crate) title: Option<String>,
+}
+
+impl Toc {
+  pub fn set_part(&mut self, num: Option<ArticleNumber>) {
+    self.part_number = num;
+  }
+  pub fn set_chapter(&mut self, num: Option<ArticleNumber>) {
+    self.chapter_number = num;
+  }
+  pub fn set_section(&mut self, num: Option<ArticleNumber>) {
+    self.section_number = num;
+  }
+  pub fn set_subsection(&mut self, num: Option<ArticleNumber>) {
+    self.subsection_number = num;
+  }
+  pub fn set_division(&mut self, num: Option<ArticleNumber>) {
+    self.division_number = num;
+  }
+  pub fn set_article(&mut self, num: Option<ArticleNumber>) {
+    self.division_number = num;
+  }
+  pub fn set_title(&mut self, title: Option<String>) {
+    self.title = title;
+  }
+  pub fn get_part(&self) -> Option<ArticleNumber> {
+    self.part_number.clone()
+  }
+  pub fn get_chapter(&self) -> Option<ArticleNumber> {
+    self.chapter_number.clone()
+  }
+  pub fn get_section(&self) -> Option<ArticleNumber> {
+    self.section_number.clone()
+  }
+  pub fn get_subsection(&self) -> Option<ArticleNumber> {
+    self.subsection_number.clone()
+  }
+  pub fn get_division(&self) -> Option<ArticleNumber> {
+    self.division_number.clone()
+  }
+  pub fn get_article(&self) -> Option<ArticleNumber> {
+    self.article_number.clone()
+  }
+  pub fn get_title(&self) -> Option<String> {
+    self.title.clone()
+  }
+}
+
+pub fn toc_list_from_main_provision(main_provision: &MainProvision) -> Vec<Toc> {
+  let mut v = Vec::new();
+  for children in main_provision.children.iter() {
+    match children {
+      MainProvisionContents::Article(t) => {
+        let mut toc = Toc::default();
+        toc.set_article(Some(t.num.clone()));
+        toc.set_title(Some(t.title.to_string()));
+        v.push(toc.clone());
+      }
+      MainProvisionContents::Part(t) => {
+        let mut v2 = toc_list_from_part(t);
+        v.append(&mut v2);
+      }
+      MainProvisionContents::Chapter(t) => {
+        let mut toc = Toc::default();
+        let mut v2 = toc_list_from_chapter(t, &mut toc);
+        v.append(&mut v2);
+      }
+      MainProvisionContents::Section(t) => {
+        let mut toc = Toc::default();
+        let mut v2 = toc_list_from_section(t, &mut toc);
+        v.append(&mut v2);
+      }
+      _ => (),
+    }
+  }
+  v
+}
+
+fn toc_list_from_part(t: &Part) -> Vec<Toc> {
+  let mut v = Vec::new();
+  let mut toc = Toc::default();
+  let num = &t.num;
+  toc.set_part(Some(num.clone()));
+  toc.set_title(Some(t.part_title.to_string()));
+  v.push(toc.clone());
+  for children in t.children.iter() {
+    match children {
+      PartContents::Article(t) => {
+        toc.set_article(Some(t.num.clone()));
+        toc.set_title(Some(t.title.to_string()));
+        v.push(toc.clone());
+      }
+      PartContents::Chapter(t) => {
+        let mut toc_list = toc_list_from_chapter(t, &mut toc);
+        v.append(&mut toc_list);
+      }
+    }
+  }
+  v
+}
+
+fn toc_list_from_chapter(t: &Chapter, toc: &mut Toc) -> Vec<Toc> {
+  let mut v = Vec::new();
+  let num = &t.num;
+  toc.set_chapter(Some(num.clone()));
+  toc.set_title(Some(t.chapter_title.to_string()));
+  v.push(toc.clone());
+  for children in t.children.iter() {
+    match children {
+      ChapterContents::Article(t) => {
+        toc.set_article(Some(t.num.clone()));
+        toc.set_title(Some(t.title.to_string()));
+        v.push(toc.clone());
+      }
+      ChapterContents::Section(t) => {
+        let mut toc_list = toc_list_from_section(t, &mut toc.clone());
+        v.append(&mut toc_list);
+      }
+    }
+  }
+  v
+}
+
+fn toc_list_from_section(t: &Section, toc: &mut Toc) -> Vec<Toc> {
+  let mut v = Vec::new();
+  let num = &t.num;
+  toc.set_section(Some(num.clone()));
+  toc.set_title(Some(t.section_title.to_string()));
+  v.push(toc.clone());
+  for children in t.children.iter() {
+    match children {
+      SectionContents::Article(t) => {
+        toc.set_article(Some(t.num.clone()));
+        toc.set_title(Some(t.title.to_string()));
+        v.push(toc.clone());
+      }
+      SectionContents::Subsection(t) => {
+        let mut toc_list = toc_list_from_subsection(t, &mut toc.clone());
+        v.append(&mut toc_list);
+      }
+      SectionContents::Division(t) => {
+        let mut toc_list = toc_list_from_division(t, &mut toc.clone());
+        v.append(&mut toc_list);
+      }
+    }
+  }
+  v
+}
+
+fn toc_list_from_subsection(t: &Subsection, toc: &mut Toc) -> Vec<Toc> {
+  let mut v = Vec::new();
+  let num = &t.num;
+  toc.set_subsection(Some(num.clone()));
+  toc.set_title(Some(t.subsection_title.to_string()));
+  v.push(toc.clone());
+  for children in t.children.iter() {
+    match children {
+      SubsectionContents::Article(t) => {
+        toc.set_article(Some(t.num.clone()));
+        toc.set_title(Some(t.title.to_string()));
+        v.push(toc.clone());
+      }
+      SubsectionContents::Division(t) => {
+        let mut toc_list = toc_list_from_division(t, &mut toc.clone());
+        v.append(&mut toc_list);
+      }
+    }
+  }
+  v
+}
+
+fn toc_list_from_division(t: &Division, toc: &mut Toc) -> Vec<Toc> {
+  let mut v = Vec::new();
+  let num = &t.num;
+  toc.set_division(Some(num.clone()));
+  toc.set_title(Some(t.division_title.to_string()));
+  v.push(toc.clone());
+  for t in t.children.iter() {
+    toc.set_article(Some(t.num.clone()));
+    toc.set_title(Some(t.title.to_string()));
+    v.push(toc.clone());
+  }
+  v
 }
 
 #[test]
