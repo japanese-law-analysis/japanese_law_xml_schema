@@ -209,7 +209,7 @@ impl FromStr for ArticleNumber {
 }
 
 pub fn parse_article_number(str: &str) -> Option<ArticleNumber> {
-  let re_article = Regex::new(r"^第((?<arabic_num>[0-9]+)|(?<zenkaku_num>[０-９]+)|(?<kansuji>[一二三四五六七八九十百千]+))(?<suffix>(編|章|節|款|目|条))(?<eda_str>(の([0-9]+|[０-９]+|[一二三四五六七八九十百千]+))*)(から(第((?<arabic_num_2>[0-9]+)|(?<zenkaku_num_2>[０-９]+)|(?<kansuji_2>[一二三四五六七八九十百千]+))(?<suffix_2>(編|章|節|款|目|条))(?<eda_str_2>(の([0-9]+|[０-９]+|[一二三四五六七八九十百千]+))*))まで)?").unwrap();
+  let re_article = Regex::new(r"^第((?<arabic_num>[0-9]+)|(?<zenkaku_num>[０-９]+)|(?<kansuji>[一二三四五六七八九十百千]+))(?<suffix>(編|章|節|款|目|条|項|号))(?<eda_str>(の([0-9]+|[０-９]+|[一二三四五六七八九十百千]+))*)(から(第((?<arabic_num_2>[0-9]+)|(?<zenkaku_num_2>[０-９]+)|(?<kansuji_2>[一二三四五六七八九十百千]+))(?<suffix_2>(編|章|節|款|目|条|項|号))(?<eda_str_2>(の([0-9]+|[０-９]+|[一二三四五六七八九十百千]+))*))まで)?").unwrap();
   let re_paragraph = Regex::new(
     r"^(?<num>([０-９]+|[0-9]+))(?<eda_str>(の([０-９]+|[0-9]+))*)(から(?<num_2>([０-９]+|[0-9]+))(?<eda_str_2>(の([０-９]+|[0-9]+))*)まで)?",
   )
@@ -525,8 +525,41 @@ pub fn split_number(str: &str) -> Option<(String, String)> {
   })
 }
 
+#[test]
+fn check_parse_article_number() {
+  let cases = vec![
+    (
+      "第一条",
+      ArticleNumber {
+        base_number: 1,
+        eda_numbers: Vec::new(),
+        range_end_numbers: Vec::new(),
+      },
+    ),
+    (
+      "第一条の二",
+      ArticleNumber {
+        base_number: 1,
+        eda_numbers: vec![2],
+        range_end_numbers: Vec::new(),
+      },
+    ),
+    (
+      "第一項の二の三",
+      ArticleNumber {
+        base_number: 1,
+        eda_numbers: vec![2, 3],
+        range_end_numbers: Vec::new(),
+      },
+    ),
+  ];
+  for (s, a) in cases.iter() {
+    let r = parse_article_number(s);
+    assert_eq!(r, Some(a.clone()))
+  }
+}
+
 pub fn parse_item_number(str: &str) -> Option<ItemNumber> {
-  println!("-------------------------------------------------------------{str}");
   let re_item = Regex::new(r"^(?<base_number>(（(([ア-ン]+)|([あ-ん]+)|([一二三四五六七八九十百千]+)|([０-９]+)|([Ａ-Ｚ]+)|([ａ-ｚ]+))）|(([ア-ン]+)|([あ-ん]+)|([一二三四五六七八九十百千]+)|([０-９]+)|([Ａ-Ｚ]+)|([ａ-ｚ]+))))(?<eda_numbers>(の(（(([ア-ン]+)|([あ-ん]+)|([一二三四五六七八九十百千]+)|([０-９]+)|([Ａ-Ｚ]+)|([ａ-ｚ]+))）|(([ア-ン]+)|([あ-ん]+)|([一二三四五六七八九十百千]+)|([０-９]+)|([Ａ-Ｚ]+)|([ａ-ｚ]+))))+)?(から(?<base_number2>(（(([ア-ン]+)|([あ-ん]+)|([一二三四五六七八九十百千]+)|([０-９]+)|([Ａ-Ｚ]+)|([ａ-ｚ]+))）|(([ア-ン]+)|([あ-ん]+)|([一二三四五六七八九十百千]+)|([０-９]+)|([Ａ-Ｚ]+)|([ａ-ｚ]+))))(?<eda_numbers2>(の(（(([ア-ン]+)|([あ-ん]+)|([一二三四五六七八九十百千]+)|([０-９]+)|([Ａ-Ｚ]+)|([ａ-ｚ]+))）|(([ア-ン]+)|([あ-ん]+)|([一二三四五六七八九十百千]+)|([０-９]+)|([Ａ-Ｚ]+)|([ａ-ｚ]+))))+)?まで)?$").unwrap();
   if let Some(caps) = re_item.captures(str.trim()) {
     println!("ok!!!");
