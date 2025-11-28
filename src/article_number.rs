@@ -219,13 +219,13 @@ pub fn parse_article_number(str: &str) -> Option<ArticleNumber> {
     let base_number = if let Some(arabic_num) = caps.name("arabic_num") {
       arabic_num.as_str().parse::<usize>().unwrap()
     } else if let Some(zenkaku_num) = caps.name("zenkaku_num") {
-      parse_zenkaku_num(zenkaku_num.as_str()).unwrap()
+      parse_zenkaku_num(zenkaku_num.as_str())?
     } else if let Some(kansuji) = caps.name("kansuji") {
-      let kansuji = Kansuji::try_from(kansuji.as_str()).unwrap();
+      let kansuji = Kansuji::try_from(kansuji.as_str()).ok()?;
       let n: u128 = kansuji.into();
       n as usize
     } else {
-      unreachable!()
+      return None;
     };
     let eda_numbers = &caps["eda_str"]
       .split('の')
@@ -236,7 +236,8 @@ pub fn parse_article_number(str: &str) -> Option<ArticleNumber> {
         } else if let Some(n) = parse_zenkaku_num(s) {
           n
         } else {
-          let kansuji = Kansuji::try_from(s).unwrap();
+          let kansuji =
+            Kansuji::try_from(s).unwrap_or_else(|_| panic!("unexpected kansuji string: {s}"));
           let n: u128 = kansuji.into();
           n as usize
         }
@@ -250,9 +251,9 @@ pub fn parse_article_number(str: &str) -> Option<ArticleNumber> {
     if let Some(arabic_num) = caps.name("arabic_num_2") {
       range_end_numbers.push(arabic_num.as_str().parse::<usize>().unwrap())
     } else if let Some(zenkaku_num) = caps.name("zenkaku_num_2") {
-      range_end_numbers.push(parse_zenkaku_num(zenkaku_num.as_str()).unwrap())
+      range_end_numbers.push(parse_zenkaku_num(zenkaku_num.as_str())?)
     } else if let Some(kansuji) = caps.name("kansuji_2") {
-      let kansuji = Kansuji::try_from(kansuji.as_str()).unwrap();
+      let kansuji = Kansuji::try_from(kansuji.as_str()).ok()?;
       let n: u128 = kansuji.into();
       range_end_numbers.push(n as usize)
     };
@@ -268,7 +269,7 @@ pub fn parse_article_number(str: &str) -> Option<ArticleNumber> {
         } else if let Some(n) = parse_zenkaku_num(s) {
           range_end_numbers.push(n);
         } else {
-          let kansuji = Kansuji::try_from(*s).unwrap();
+          let kansuji = Kansuji::try_from(*s).ok()?;
           let n: u128 = kansuji.into();
           range_end_numbers.push(n as usize);
         }
@@ -302,7 +303,7 @@ pub fn parse_article_number(str: &str) -> Option<ArticleNumber> {
       if let Ok(n) = m.as_str().parse::<usize>() {
         range_end_numbers.push(n)
       } else {
-        range_end_numbers.push(parse_zenkaku_num(m.as_str()).unwrap());
+        range_end_numbers.push(parse_zenkaku_num(m.as_str())?);
       }
     }
     Some(ArticleNumber {
