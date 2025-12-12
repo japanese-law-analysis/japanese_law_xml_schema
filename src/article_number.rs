@@ -209,7 +209,7 @@ impl FromStr for ArticleNumber {
 }
 
 pub fn parse_article_number(str: &str) -> Option<ArticleNumber> {
-  let re_article = Regex::new(r"^第((?<arabic_num>[0-9]+)|(?<zenkaku_num>[０-９]+)|(?<kansuji>[一二三四五六七八九十百千]+))(?<suffix>(編|章|節|款|目|条|項|号))(?<eda_str>(の([0-9]+|[０-９]+|[一二三四五六七八九十百千]+))*)(から(第((?<arabic_num_2>[0-9]+)|(?<zenkaku_num_2>[０-９]+)|(?<kansuji_2>[一二三四五六七八九十百千]+))(?<suffix_2>(編|章|節|款|目|条|項|号))(?<eda_str_2>(の([0-9]+|[０-９]+|[一二三四五六七八九十百千]+))*))まで)?").unwrap();
+  let re_article = Regex::new(r"^(第)?((?<arabic_num>[0-9]+)|(?<zenkaku_num>[０-９]+)|(?<kansuji>[一二三四五六七八九十百千]+))(?<suffix>(編|章|節|款|目|条|項|号))(?<eda_str>(の([0-9]+|[０-９]+|[一二三四五六七八九十百千]+))*)(から(第((?<arabic_num_2>[0-9]+)|(?<zenkaku_num_2>[０-９]+)|(?<kansuji_2>[一二三四五六七八九十百千]+))(?<suffix_2>(編|章|節|款|目|条|項|号))(?<eda_str_2>(の([0-9]+|[０-９]+|[一二三四五六七八九十百千]+))*))まで)?").unwrap();
   let re_paragraph = Regex::new(
     r"^(?<num>([０-９]+|[0-9]+))(?<eda_str>(の([０-９]+|[0-9]+))*)(から(?<num_2>([０-９]+|[0-9]+))(?<eda_str_2>(の([０-９]+|[0-9]+))*)まで)?",
   )
@@ -227,22 +227,18 @@ pub fn parse_article_number(str: &str) -> Option<ArticleNumber> {
     } else {
       return None;
     };
-    let eda_numbers = &caps["eda_str"]
-      .split('の')
-      .filter(|s| !s.is_empty())
-      .map(|s| {
-        if let Ok(n) = s.parse::<usize>() {
-          n
-        } else if let Some(n) = parse_zenkaku_num(s) {
-          n
-        } else {
-          let kansuji =
-            Kansuji::try_from(s).unwrap_or_else(|_| panic!("unexpected kansuji string: {s}"));
-          let n: u128 = kansuji.into();
-          n as usize
-        }
-      })
-      .collect::<Vec<usize>>();
+    let mut eda_numbers = Vec::new();
+    for s in caps["eda_str"].split('の').filter(|s| !s.is_empty()) {
+      if let Ok(n) = s.parse::<usize>() {
+        eda_numbers.push(n)
+      } else if let Some(n) = parse_zenkaku_num(s) {
+        eda_numbers.push(n)
+      } else {
+        let kansuji = Kansuji::try_from(s).ok()?;
+        let n: u128 = kansuji.into();
+        eda_numbers.push(n as usize)
+      }
+    }
     let mut num_str = base_number.to_string();
     for n in eda_numbers.iter() {
       num_str.push_str(&format!("_{n}"))
