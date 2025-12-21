@@ -170,6 +170,38 @@ pub fn article_list_from_suppl_provision(
   (v, para_v)
 }
 
+/// 附則の条文のリストを返す
+/// 項しかない場合や前文は`Vec<Vec<Paragraph>>`に中身が入って返る
+pub fn with_number_article_list_from_suppl_provision(
+  suppl_provision: &SupplProvision,
+) -> (Vec<WithNumberArticle>, Vec<Vec<Paragraph>>) {
+  let mut v = Vec::new();
+  let mut para_v = Vec::new();
+  let mut para_v_tmp = Vec::new();
+  for se in &suppl_provision.children {
+    match se {
+      suppl_provision::SupplProvisionChildrenElement::Article(t) => {
+        para_v.push(para_v_tmp);
+        para_v_tmp = Vec::new();
+        let w = WithNumberArticle::new(t.clone());
+        v.push(w)
+      }
+      suppl_provision::SupplProvisionChildrenElement::Chapter(t) => {
+        para_v.push(para_v_tmp);
+        para_v_tmp = Vec::new();
+        let mut v2 = article_list_from_chapter(t);
+        v.append(&mut v2);
+      }
+      suppl_provision::SupplProvisionChildrenElement::Paragraph(t) => {
+        para_v_tmp.push(t.clone());
+      }
+      _ => (),
+    }
+  }
+  para_v.push(para_v_tmp);
+  (v, para_v)
+}
+
 fn article_list_from_part(part: &Part) -> Vec<WithNumberArticle> {
   let mut v = Vec::new();
   for contents in part.children.iter() {
@@ -958,6 +990,27 @@ pub fn toc_list_from_main_provision(main_provision: &MainProvision) -> Vec<Toc> 
       MainProvisionContents::Section(t) => {
         let mut toc = Toc::default();
         let mut v2 = toc_list_from_section(t, &mut toc);
+        v.append(&mut v2);
+      }
+      _ => (),
+    }
+  }
+  v
+}
+
+pub fn toc_list_from_suppl_provision(suppl_provision: &SupplProvision) -> Vec<Toc> {
+  let mut v = Vec::new();
+  for se in suppl_provision.children.iter() {
+    match se {
+      suppl_provision::SupplProvisionChildrenElement::Article(t) => {
+        let mut toc = Toc::default();
+        toc.set_article(Some(t.num.clone()));
+        toc.set_title(Some(t.title.to_string()));
+        v.push(toc.clone());
+      }
+      suppl_provision::SupplProvisionChildrenElement::Chapter(t) => {
+        let mut toc = Toc::default();
+        let mut v2 = toc_list_from_chapter(t, &mut toc);
         v.append(&mut v2);
       }
       _ => (),
