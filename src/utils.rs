@@ -72,7 +72,7 @@ impl WithNumberArticle {
   pub fn get_division(&self) -> Option<ArticleNumber> {
     self.division.clone()
   }
-  pub fn set_articl(&mut self, article: Article) {
+  pub fn set_article(&mut self, article: Article) {
     self.article = article
   }
   pub fn get_article(&self) -> Article {
@@ -211,7 +211,7 @@ fn article_list_from_part(part: &Part) -> Vec<WithNumberArticle> {
         let mut v3 = v2
           .iter_mut()
           .map(|w| {
-            w.set_part(Some(t.num.clone()));
+            w.set_part(Some(part.num.clone()));
             w.clone()
           })
           .collect::<Vec<_>>();
@@ -219,7 +219,7 @@ fn article_list_from_part(part: &Part) -> Vec<WithNumberArticle> {
       }
       PartContents::Article(t) => {
         let mut w = WithNumberArticle::new(t.clone());
-        w.set_part(Some(t.num.clone()));
+        w.set_part(Some(part.num.clone()));
         v.push(w)
       }
     }
@@ -227,16 +227,16 @@ fn article_list_from_part(part: &Part) -> Vec<WithNumberArticle> {
   v
 }
 
-fn article_list_from_chapter(t: &Chapter) -> Vec<WithNumberArticle> {
+fn article_list_from_chapter(chapter: &Chapter) -> Vec<WithNumberArticle> {
   let mut v = Vec::new();
-  for contents in t.children.iter() {
+  for contents in chapter.children.iter() {
     match contents {
       ChapterContents::Section(t) => {
         let mut v2 = article_list_from_section(t);
         let mut v3 = v2
           .iter_mut()
           .map(|w| {
-            w.set_chapter(Some(t.num.clone()));
+            w.set_chapter(Some(chapter.num.clone()));
             w.clone()
           })
           .collect::<Vec<_>>();
@@ -244,7 +244,7 @@ fn article_list_from_chapter(t: &Chapter) -> Vec<WithNumberArticle> {
       }
       ChapterContents::Article(t) => {
         let mut w = WithNumberArticle::new(t.clone());
-        w.set_chapter(Some(t.num.clone()));
+        w.set_chapter(Some(chapter.num.clone()));
         v.push(w)
       }
     }
@@ -252,16 +252,16 @@ fn article_list_from_chapter(t: &Chapter) -> Vec<WithNumberArticle> {
   v
 }
 
-fn article_list_from_section(t: &Section) -> Vec<WithNumberArticle> {
+fn article_list_from_section(section: &Section) -> Vec<WithNumberArticle> {
   let mut v = Vec::new();
-  for contents in t.children.iter() {
+  for contents in section.children.iter() {
     match contents {
       SectionContents::Subsection(t) => {
         let mut v2 = article_list_from_subsection(t);
         let mut v3 = v2
           .iter_mut()
           .map(|w| {
-            w.set_section(Some(t.num.clone()));
+            w.set_section(Some(section.num.clone()));
             w.clone()
           })
           .collect::<Vec<_>>();
@@ -272,7 +272,7 @@ fn article_list_from_section(t: &Section) -> Vec<WithNumberArticle> {
         let mut v3 = v2
           .iter_mut()
           .map(|w| {
-            w.set_section(Some(t.num.clone()));
+            w.set_section(Some(section.num.clone()));
             w.clone()
           })
           .collect::<Vec<_>>();
@@ -280,7 +280,7 @@ fn article_list_from_section(t: &Section) -> Vec<WithNumberArticle> {
       }
       SectionContents::Article(t) => {
         let mut w = WithNumberArticle::new(t.clone());
-        w.set_section(Some(t.num.clone()));
+        w.set_section(Some(section.num.clone()));
         v.push(w)
       }
     }
@@ -289,16 +289,16 @@ fn article_list_from_section(t: &Section) -> Vec<WithNumberArticle> {
 }
 
 #[allow(clippy::too_many_arguments)]
-fn article_list_from_subsection(t: &Subsection) -> Vec<WithNumberArticle> {
+fn article_list_from_subsection(subsection: &Subsection) -> Vec<WithNumberArticle> {
   let mut v = Vec::new();
-  for contents in t.children.iter() {
+  for contents in subsection.children.iter() {
     match contents {
       SubsectionContents::Division(t) => {
         let mut v2 = article_list_from_division(t);
         let mut v3 = v2
           .iter_mut()
           .map(|w| {
-            w.set_subsection(Some(t.num.clone()));
+            w.set_subsection(Some(subsection.num.clone()));
             w.clone()
           })
           .collect::<Vec<_>>();
@@ -306,7 +306,7 @@ fn article_list_from_subsection(t: &Subsection) -> Vec<WithNumberArticle> {
       }
       SubsectionContents::Article(t) => {
         let mut w = WithNumberArticle::new(t.clone());
-        w.set_subsection(Some(t.num.clone()));
+        w.set_subsection(Some(subsection.num.clone()));
         v.push(w)
       }
     }
@@ -315,11 +315,11 @@ fn article_list_from_subsection(t: &Subsection) -> Vec<WithNumberArticle> {
 }
 
 #[allow(clippy::too_many_arguments)]
-fn article_list_from_division(t: &Division) -> Vec<WithNumberArticle> {
+fn article_list_from_division(division: &Division) -> Vec<WithNumberArticle> {
   let mut v = Vec::new();
-  for a in t.children.iter() {
+  for a in division.children.iter() {
     let mut w = WithNumberArticle::new(a.clone());
-    w.set_division(Some(t.num.clone()));
+    w.set_division(Some(division.num.clone()));
     v.push(w)
   }
   v
