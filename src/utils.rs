@@ -940,7 +940,7 @@ impl Toc {
     self.division_number = num;
   }
   pub fn set_article(&mut self, num: Option<ArticleNumber>) {
-    self.division_number = num;
+    self.article_number = num;
   }
   pub fn set_title(&mut self, title: Option<String>) {
     self.title = title;
